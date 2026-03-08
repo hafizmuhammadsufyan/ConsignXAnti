@@ -1,0 +1,195 @@
+/* FILE: /consignxAnti/assets/css/neumorphism.css */
+
+/* Core Neumorphic Surface - Soft Elevated Card */
+.neumorphic-card {
+    background: var(--bg-color);
+    border-radius: var(--border-radius-card);
+    box-shadow: var(--shadow-light-up);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+/* Inset Surface - For Inputs & Depressed Areas */
+.neumorphic-inset,
+.neumorphic-input {
+    background: var(--bg-color);
+    border-radius: var(--border-radius-input);
+    box-shadow: var(--shadow-light-in);
+    border: 1px solid transparent;
+    padding: 10px 15px;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+/* Base Input Focus State */
+.neumorphic-input:focus {
+    outline: none;
+    box-shadow: inset 8px 8px 12px rgba(163, 177, 198, 0.7), inset -8px -8px 12px rgba(255, 255, 255, 0.6);
+    border-color: rgba(49, 130, 206, 0.3);
+}
+
+[data-theme="dark"] .neumorphic-input:focus {
+    box-shadow: inset 8px 8px 12px rgba(0, 0, 0, 0.5), inset -8px -8px 12px rgba(45, 55, 72, 0.7);
+    border-color: rgba(66, 153, 225, 0.3);
+}
+
+/* Neumorphic Buttons */
+.neumorphic-btn {
+    background: var(--bg-color);
+    border-radius: var(--border-radius-btn);
+    box-shadow: var(--shadow-light-up);
+    color: var(--text-primary);
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+    border: none;
+    padding: 10px 24px;
+}
+
+.neumorphic-btn:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(1px);
+}
+
+.neumorphic-btn:active {
+    box-shadow: var(--shadow-light-in);
+}
+
+/* Primary Button Modifier (Filled) */
+.neumorphic-btn.btn-primary {
+    background: var(--primary-color);
+    color: #ffffff;
+    box-shadow: 6px 6px 14px rgba(49, 130, 206, 0.4), -6px -6px 14px rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="dark"] .neumorphic-btn.btn-primary {
+    box-shadow: 6px 6px 14px rgba(0, 0, 0, 0.5), -4px -4px 10px rgba(66, 153, 225, 0.2);
+}
+
+.neumorphic-btn.btn-primary:active {
+    box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.2), inset -4px -4px 8px rgba(255, 255, 255, 0.1);
+}
+
+/* Danger Button Modifier */
+.neumorphic-btn.btn-danger {
+    background: #e53e3e;
+    color: #ffffff;
+    box-shadow: 6px 6px 14px rgba(229, 62, 62, 0.4), -6px -6px 14px rgba(255, 255, 255, 0.2);
+}
+
+/* Status Badges */
+.badge-neumorphic {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 500;
+    box-shadow: var(--shadow-light-up);
+    background: var(--bg-color);
+}
+
+.status-pending {
+    color: #d69e2e;
+}
+
+.status-transit {
+    color: #3182ce;
+}
+
+.status-delivered {
+    color: #38a169;
+}
+
+/* Table Styling Soft */
+.neumorphic-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 15px;
+    /* Creates gap between rows */
+}
+
+.neumorphic-table th {
+    border: none;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 10px 20px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.neumorphic-table tbody tr {
+    background: var(--bg-color);
+    box-shadow: var(--shadow-light-up);
+    transition: transform 0.2s ease;
+}
+
+.neumorphic-table tbody tr:hover {
+    transform: scale(1.01);
+}
+
+.neumorphic-table td {
+    padding: 16px 20px;
+    vertical-align: middle;
+    border: none;
+}
+
+.neumorphic-table td:first-child {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+
+.neumorphic-table td:last-child {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+/* Theme Toggle Switch */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch {
+    display: inline-block;
+    height: 34px;
+    position: relative;
+    width: 60px;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.slider {
+    background-color: var(--bg-color);
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    box-shadow: var(--shadow-light-in);
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.slider:before {
+    background-color: var(--primary-color);
+    bottom: 4px;
+    content: "";
+    height: 26px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 26px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+input:checked+.slider:before {
+    transform: translateX(26px);
+}

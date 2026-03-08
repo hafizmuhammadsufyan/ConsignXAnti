@@ -1,0 +1,99 @@
+/* FILE: /consignxAnti/assets/css/style.css */
+
+/* Core Variables & Theme Support (Light/Dark Mode) */
+:root {
+    /* Light Mode Foundation */
+    --bg-color: #e0e5ec;
+    --text-primary: #2d3748;
+    --text-muted: #718096;
+    --primary-color: #3182ce;
+    --primary-hover: #2b6cb0;
+    
+    /* Neumorphic Shadows (Light) */
+    --shadow-light-up: 9px 9px 16px rgba(163,177,198,0.6), -9px -9px 16px rgba(255,255,255, 0.5);
+    --shadow-light-in: inset 6px 6px 10px rgba(163,177,198,0.6), inset -6px -6px 10px rgba(255,255,255, 0.5);
+    --shadow-hover: 4px 4px 8px rgba(163,177,198,0.6), -4px -4px 8px rgba(255,255,255, 0.5);
+    
+    /* Border/Input Constants */
+    --border-radius-card: 20px;
+    --border-radius-input: 12px;
+    --border-radius-btn: 30px;
+}
+
+[data-theme="dark"] {
+    /* Dark Mode Foundation */
+    --bg-color: #1a202c;
+    --text-primary: #e2e8f0;
+    --text-muted: #a0aec0;
+    --primary-color: #4299e1;
+    --primary-hover: #63b3ed;
+    
+    /* Neumorphic Shadows (Dark) */
+    --shadow-light-up: 7px 7px 15px rgba(0,0,0,0.4), -7px -7px 15px rgba(45,55,72, 0.6);
+    --shadow-light-in: inset 5px 5px 10px rgba(0,0,0,0.4), inset -5px -5px 10px rgba(45,55,72, 0.6);
+    --shadow-hover: 3px 3px 8px rgba(0,0,0,0.4), -3px -3px 8px rgba(45,55,72, 0.6);
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Base Overrides for Bootstrap Compatibility */
+.bg-light { background-color: transparent !important; }
+.text-primary { color: var(--primary-color) !important; }
+.text-muted { color: var(--text-muted) !important; }
+.form-control, .form-select { 
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+}
+.form-control:focus, .form-select:focus {
+    box-shadow: none;
+    background-color: transparent;
+    color: var(--text-primary);
+}
+.btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+}
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Sidebar Styling Foundation */
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    background-color: var(--bg-color);
+    box-shadow: 4px 0 10px rgba(0,0,0,0.05); /* Soft border trick */
+    padding: 2rem 1.5rem;
+    z-index: 100;
+}
+[data-theme="dark"] .sidebar {
+    box-shadow: 4px 0 10px rgba(0,0,0,0.3);
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+/* Link Resets */
+a {
+    transition: color 0.2s ease-in-out;
+}
+a:hover {
+    color: var(--primary-hover);
+}
+
+/* Utilities */
+.fw-medium { font-weight: 500; }
+.cursor-pointer { cursor: pointer; }
