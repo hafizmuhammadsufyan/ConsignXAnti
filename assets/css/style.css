@@ -67,23 +67,118 @@ body {
 .admin-wrapper {
     display: flex;
     min-height: 100vh;
+    background-color: var(--bg-color);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Sidebar Toggle Button (Mobile/Tablet) */
+.sidebar-toggle-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    z-index: 1050;
+    display: none; /* Hidden on desktop by default */
+}
+
+/* Sidebar Toggle Button (Desktop) */
+.desktop-toggle-btn {
+    position: absolute;
+    top: 20px;
+    right: -20px;
+    z-index: 1060;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: var(--bg-color);
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-hover);
+    transition: transform 0.3s ease;
+}
+
+[data-theme="dark"] .desktop-toggle-btn {
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
 .sidebar {
-    width: 280px;
-    background-color: var(--bg-color);
-    box-shadow: 4px 0 10px rgba(0,0,0,0.05); /* Soft border trick */
-    padding: 2rem 1.5rem;
-    z-index: 100;
+    width: 250px;
+    flex-shrink: 0;
+    height: calc(100vh - 2rem);
+    position: sticky;
+    top: 1rem;
+    transition: all 0.3s ease-in-out;
+    z-index: 1040;
 }
-[data-theme="dark"] .sidebar {
-    box-shadow: 4px 0 10px rgba(0,0,0,0.3);
+
+/* Sidebar Collapsed State */
+.sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar.collapsed .text-center h3,
+.sidebar.collapsed .text-center small,
+.sidebar.collapsed .nav-link span,
+.sidebar.collapsed .mt-auto span.text-muted,
+.sidebar.collapsed .mt-auto a {
+    display: none;
+}
+
+.sidebar.collapsed .nav-link {
+    text-align: center;
+    padding: 10px;
+}
+
+.sidebar.collapsed .nav-link i {
+    margin: 0 !important;
+    font-size: 1.25rem;
+}
+
+.sidebar.collapsed .desktop-toggle-btn i {
+    transform: rotate(180deg);
 }
 
 .main-content {
     flex-grow: 1;
     padding: 2rem;
-    overflow-y: auto;
+    max-width: calc(100vw - 250px);
+    transition: all 0.3s ease-in-out;
+}
+
+.admin-wrapper:has(.sidebar.collapsed) .main-content {
+    max-width: calc(100vw - 80px);
+}
+
+@media (max-width: 991.98px) {
+    .desktop-toggle-btn {
+        display: none;
+    }
+
+    .sidebar-toggle-btn {
+        display: block;
+    }
+    
+    .sidebar {
+        position: fixed;
+        left: -280px; /* Hide off-screen */
+        width: 250px;
+        height: 100vh;
+        top: 0;
+        margin: 0 !important;
+        border-radius: 0;
+    }
+    
+    .sidebar.show {
+        left: 0;
+    }
+
+    .main-content {
+        max-width: 100vw;
+        padding-top: 4rem; /* Space for toggle button */
+    }
 }
 
 /* Link Resets */

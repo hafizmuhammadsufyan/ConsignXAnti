@@ -239,3 +239,27 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- <?php
+-- require_once __DIR__ . '/includes/db.php';
+
+-- try {
+--     $sql = "CREATE TABLE IF NOT EXISTS `company_requests` ( 
+--         `id` int(11) NOT NULL AUTO_INCREMENT, 
+--         `name` varchar(100) NOT NULL, 
+--         `company_name` varchar(150) NOT NULL, 
+--         `email` varchar(100) NOT NULL, 
+--         `phone` varchar(20) NOT NULL, 
+--         `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending', 
+--         `created_at` timestamp NOT NULL DEFAULT current_timestamp(), 
+--         PRIMARY KEY (`id`) 
+--     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;";
+    
+--     $pdo->exec($sql);
+--     echo "Table created successfully.";
+-- } catch (PDOException $e) {
+--     echo "Error: " . $e->getMessage();
+-- }
+-- ?>
+

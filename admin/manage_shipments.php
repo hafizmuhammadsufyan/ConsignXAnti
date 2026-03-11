@@ -6,6 +6,9 @@ require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 
+require_once '../includes/auth.php';
+require_once '../includes/mailer.php';
+
 // Secure the route
 require_role('admin');
 
@@ -48,15 +51,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 if ($customer) {
                     $customer_id = $customer['id'];
                 } else {
-                    $temp_password = hash_password(bin2hex(random_bytes(8))); // Auto-gen password
+                    $temp_password = strtolower(str_replace(' ', '', $customer_name)) . rand(100, 999);
+                    $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
                     $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, password_hash) VALUES (:name, :email, :phone, :pass)");
-                    $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $temp_password]);
+                    $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $hashed_password]);
                     $customer_id = $pdo->lastInsertId();
-                    // TODO: Trigger Email to customer with auto-gen pass
                 }
 
                 // 2. Generate Tracking
                 $tracking_number = generate_tracking_number();
+
+                if (isset($temp_password)) {
+                    // Trigger Email to customer with auto-gen pass
+                    send_customer_welcome_email($customer_email, $customer_name, $temp_password, $tracking_number);
+                }
 
                 // 3. Create Shipment (Agent ID is null since admin created it)
                 $stmt = $pdo->prepare("
@@ -96,6 +104,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $location = filter_input(INPUT_POST, 'location', FILTER_SANITIZE_STRING) ?? '';
 
             try {
+                // Check if already delivered
+                $stmt = $pdo->prepare("SELECT status FROM shipments WHERE id = ?");
+                $stmt->execute([$shipment_id]);
+                $current_status = $stmt->fetchColumn();
+
+                if ($current_status === 'Delivered') {
+                    throw new Exception("This shipment is locked and cannot be modified.");
+                }
+
                 $pdo->beginTransaction();
 
                 $stmt = $pdo->prepare("UPDATE shipments SET status = :status WHERE id = :id");
@@ -121,18 +138,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 $pdo->commit();
                 $msg = display_alert("Shipment status updated to $new_status.", "success");
-            } catch (PDOException $e) {
-                $pdo->rollBack();
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
                 $msg = display_alert("Failed to update status: " . escape($e->getMessage()), "danger");
             }
         } elseif ($action === 'delete_shipment') {
             $shipment_id = (int) $_POST['shipment_id'];
             try {
+                // Check if already delivered
+                $stmt = $pdo->prepare("SELECT status FROM shipments WHERE id = ?");
+                $stmt->execute([$shipment_id]);
+                $current_status = $stmt->fetchColumn();
+
+                if ($current_status === 'Delivered') {
+                    throw new Exception("This shipment is locked and cannot be deleted.");
+                }
+
                 // Cascading delete handles history/revenue
                 $stmt = $pdo->prepare("DELETE FROM shipments WHERE id = :id");
                 $stmt->execute(['id' => $shipment_id]);
                 $msg = display_alert("Shipment deleted successfully.", "success");
-            } catch (PDOException $e) {
+            } catch (Exception $e) {
                 $msg = display_alert("Failed to delete shipment: " . escape($e->getMessage()), "danger");
             }
         }
@@ -178,8 +206,17 @@ try {
 <body class="neumorphic-bg">
 
     <div class="admin-wrapper">
+        <!-- Mobile Sidebar Toggle -->
+        <button class="btn btn-primary sidebar-toggle-btn shadow-sm" type="button">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+
         <!-- Main Sidebar -->
         <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card m-3 border-0">
+            <!-- Desktop Sidebar Toggle -->
+            <div class="desktop-toggle-btn text-muted">
+                <i class="bi bi-chevron-left fs-5"></i>
+            </div>
             <div>
                 <div class="text-center mb-4">
                     <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
@@ -200,6 +237,11 @@ try {
                     <li class="nav-item">
                         <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_agents.php">
                             <i class="bi bi-building me-2"></i> Agents
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="company_requests.php">
+                            <i class="bi bi-person-lines-fill me-2"></i> Requests
                         </a>
                     </li>
                     <li class="nav-item">
@@ -297,11 +339,16 @@ try {
                                             </span>
                                         </td>
                                         <td class="text-end">
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm neumorphic-btn" type="button"
-                                                    data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots-vertical"></i>
+                                            <?php if ($ship['status'] === 'Delivered'): ?>
+                                                <button class="btn btn-sm neumorphic-btn" disabled data-bs-toggle="tooltip" title="Shipment is locked">
+                                                    <i class="bi bi-lock-fill text-muted"></i>
                                                 </button>
+                                            <?php else: ?>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm neumorphic-btn" type="button"
+                                                        data-bs-toggle="dropdown">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
                                                 <ul
                                                     class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 p-2 rounded-3">
                                                     <!-- Form for Status Update inside Dropdown -->
@@ -355,6 +402,7 @@ try {
                                                     </li>
                                                 </ul>
                                             </div>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

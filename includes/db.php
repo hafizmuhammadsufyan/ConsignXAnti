@@ -17,6 +17,20 @@ try {
     die('Database connection failed. Please try again later.');
 }
 
+// Temporary migration
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `company_requests` ( 
+        `id` int(11) NOT NULL AUTO_INCREMENT, 
+        `name` varchar(100) NOT NULL, 
+        `company_name` varchar(150) NOT NULL, 
+        `email` varchar(100) NOT NULL, 
+        `phone` varchar(20) NOT NULL, 
+        `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending', 
+        `created_at` timestamp NOT NULL DEFAULT current_timestamp(), 
+        PRIMARY KEY (`id`) 
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;");
+} catch (PDOException $e) {}
+
 // Function to safely execute queries
 function db_query($sql, $params = [])
 {

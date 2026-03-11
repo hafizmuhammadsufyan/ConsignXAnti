@@ -47,6 +47,54 @@ try {
     ");
     $latest_shipments = $stmt->fetchAll();
 
+    // Month wise shipment metrics for charts
+    $stmt = $pdo->query("
+        SELECT 
+            DATE_FORMAT(created_at, '%Y-%m') as month_label,
+            COUNT(id) as total_count,
+            SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending_count,
+            SUM(CASE WHEN status = 'In Transit' THEN 1 ELSE 0 END) as transit_count,
+            SUM(CASE WHEN status = 'Delivered' THEN 1 ELSE 0 END) as delivered_count
+        FROM shipments
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+        GROUP BY month_label
+        ORDER BY month_label ASC
+    ");
+    $monthly_shipments = $stmt->fetchAll();
+
+    // Month wise revenue metrics
+    $stmt = $pdo->query("
+        SELECT 
+            DATE_FORMAT(transaction_date, '%Y-%m') as month_label,
+            SUM(amount) as total_rev
+        FROM revenue
+        WHERE transaction_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+        GROUP BY month_label
+        ORDER BY month_label ASC
+    ");
+    $monthly_revenue = $stmt->fetchAll();
+
+    // Chart Data Preparation
+    $chart_labels = [];
+    $chart_total = [];
+    $chart_pending = [];
+    $chart_transit = [];
+    $chart_delivered = [];
+    foreach ($monthly_shipments as $row) {
+        $chart_labels[] = date('M Y', strtotime($row['month_label'] . '-01'));
+        $chart_total[] = $row['total_count'];
+        $chart_pending[] = $row['pending_count'];
+        $chart_transit[] = $row['transit_count'];
+        $chart_delivered[] = $row['delivered_count'];
+    }
+
+    $rev_labels = [];
+    $rev_data = [];
+    foreach ($monthly_revenue as $row) {
+        $rev_labels[] = date('M Y', strtotime($row['month_label'] . '-01'));
+        $rev_data[] = $row['total_rev'];
+    }
+
 } catch (PDOException $e) {
     error_log("Admin Dashboard Error: " . $e->getMessage());
     $error = "Error loading dashboard metrics.";
@@ -69,8 +117,17 @@ try {
 <body class="neumorphic-bg">
 
     <div class="admin-wrapper">
+        <!-- Mobile Sidebar Toggle -->
+        <button class="btn btn-primary sidebar-toggle-btn shadow-sm" type="button">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+
         <!-- Main Sidebar Navigation -->
         <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card m-3 border-0">
+            <!-- Desktop Sidebar Toggle -->
+            <div class="desktop-toggle-btn text-muted">
+                <i class="bi bi-chevron-left fs-5"></i>
+            </div>
             <div>
                 <div class="text-center mb-4">
                     <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
@@ -92,6 +149,11 @@ try {
                     <li class="nav-item">
                         <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_agents.php">
                             <i class="bi bi-building me-2"></i> Agents
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="company_requests.php">
+                            <i class="bi bi-person-lines-fill me-2"></i> Requests
                         </a>
                     </li>
                     <li class="nav-item">
@@ -173,6 +235,34 @@ try {
                 </div>
             </div>
 
+            <!-- Charts Section -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <div class="neumorphic-card p-4">
+                        <h5 class="fw-bold mb-4">Shipments Overview (Monthly)</h5>
+                        <div style="height: 250px;">
+                            <canvas id="shipmentsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="neumorphic-card p-4">
+                        <h5 class="fw-bold mb-4">Revenue Overview (Monthly)</h5>
+                        <div style="height: 250px;">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 mt-4">
+                    <div class="neumorphic-card p-4">
+                        <h5 class="fw-bold mb-4">Shipments Comparison (Total, Delivered, Pending, In Transit)</h5>
+                        <div style="height: 250px;">
+                            <canvas id="compChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Latest Shipments Table -->
             <div class="neumorphic-card p-4">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -242,6 +332,87 @@ try {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctxP = document.getElementById('shipmentsChart')?.getContext('2d');
+        const ctxR = document.getElementById('revenueChart')?.getContext('2d');
+        const ctxC = document.getElementById('compChart')?.getContext('2d');
+
+        if(ctxC) {
+            new Chart(ctxC, {
+                type: 'line',
+                data: {
+                    labels: <?= json_encode($chart_labels) ?>,
+                    datasets: [
+                        {
+                            label: 'Total Shipments',
+                            data: <?= json_encode($chart_total) ?>,
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Delivered',
+                            data: <?= json_encode($chart_delivered) ?>,
+                            borderColor: '#198754',
+                            backgroundColor: 'transparent',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Pending',
+                            data: <?= json_encode($chart_pending) ?>,
+                            borderColor: '#ffc107',
+                            backgroundColor: 'transparent',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'In Transit',
+                            data: <?= json_encode($chart_transit) ?>,
+                            borderColor: '#0dcaf0',
+                            backgroundColor: 'transparent',
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        if(ctxP) {
+            new Chart(ctxP, {
+                type: 'bar',
+                data: {
+                    labels: <?= json_encode($chart_labels) ?>,
+                    datasets: [{
+                        label: 'Total Shipments',
+                        data: <?= json_encode($chart_total) ?>,
+                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                        borderRadius: 5
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        if(ctxR) {
+            new Chart(ctxR, {
+                type: 'line',
+                data: {
+                    labels: <?= json_encode($rev_labels) ?>,
+                    datasets: [{
+                        label: 'Monthly Revenue ($)',
+                        data: <?= json_encode($rev_data) ?>,
+                        borderColor: '#198754',
+                        backgroundColor: 'rgba(25, 135, 84, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+    </script>
     <script src="../assets/js/main.js"></script>
 </body>
 

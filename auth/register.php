@@ -21,26 +21,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $company_name = filter_input(INPUT_POST, 'company_name', FILTER_SANITIZE_STRING);
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
     $phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_STRING);
-    $password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
+    $phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_STRING);
     $csrf = $_POST['csrf_token'] ?? '';
 
     // Validate inputs
     if (!validate_csrf_token($csrf)) {
         $error = "Invalid security token. Please try again.";
-    } elseif (empty($name) || empty($company_name) || empty($email) || empty($phone) || empty($password)) {
+    } elseif (empty($name) || empty($company_name) || empty($email) || empty($phone)) {
         $error = "All fields are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Please provide a valid email address.";
-    } elseif ($password !== $confirm_password) {
-        $error = "Passwords do not match.";
-    } elseif (strlen($password) < 8) {
-        $error = "Password must be at least 8 characters long.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Please provide a valid email address.";
     } else {
-        // Check if email exists
+        // Check if email exists in agents or requests
         global $pdo;
-        $stmt = $pdo->prepare("SELECT id FROM agents WHERE email = :email LIMIT 1");
-        $stmt->execute(['email' => $email]);
+        $stmt = $pdo->prepare("SELECT id FROM agents WHERE email = :email UNION SELECT id FROM company_requests WHERE email = :email_req");
+        $stmt->execute(['email' => $email, 'email_req' => $email]);
 
         if ($stmt->fetch()) {
             $error = "An account with this email already exists.";
@@ -49,19 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hash = hash_password($password);
 
             try {
-                // Determine Status: 'active' or 'pending' depending on needs. Defaults to 'active' on DB.
-                // We will default to active for this demo so they can login immediately
-                $insertStmt = $pdo->prepare("INSERT INTO agents (name, company_name, email, phone, password_hash) VALUES (:name, :company, :email, :phone, :hash)");
+                // Insert into company_requests instead of agents directly
+                $insertStmt = $pdo->prepare("INSERT INTO company_requests (name, company_name, email, phone) VALUES (:name, :company, :email, :phone)");
                 $insertStmt->execute([
                     'name' => $name,
                     'company' => $company_name,
                     'email' => $email,
-                    'phone' => $phone,
-                    'hash' => $hash
+                    'phone' => $phone
                 ]);
 
-                // Note: Email sending will be wired up later via PHPMailer to notify admin/agent
-                $success = "Registration successful! You can now login.";
+                $success = "Registration request submitted successfully! An Admin will review your request shortly.";
 
             } catch (PDOException $e) {
                 error_log("Registration Error: " . $e->getMessage());
@@ -130,16 +124,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" name="password" class="form-control neumorphic-input" required
-                                    minlength="8">
-                                <div class="form-text">Minimum 8 characters.</div>
-                            </div>
-                            <div class="col-md-6 mb-4">
-                                <label for="confirm_password" class="form-label">Confirm Password</label>
-                                <input type="password" name="confirm_password" class="form-control neumorphic-input"
-                                    required minlength="8">
+                            <div class="col-12 mb-4">
+                                <div class="alert alert-info py-2 small mb-0">
+                                    <i class="bi bi-info-circle me-1"></i> A password will be generated and emailed to you once your account is approved.
+                                </div>
                             </div>
                         </div>
 

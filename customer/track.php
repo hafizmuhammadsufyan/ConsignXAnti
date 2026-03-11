@@ -36,10 +36,18 @@ if (!empty($tracking_id)) {
             $shipment = $stmt->fetch();
 
             if ($shipment) {
-                // Fetch History
-                $hStmt = $pdo->prepare("SELECT * FROM shipment_status_history WHERE shipment_id = ? ORDER BY created_at DESC");
-                $hStmt->execute([$shipment['id']]);
-                $history = $hStmt->fetchAll();
+                // Security check for logged in customers: if logged in, they can only track THEIR own shipments.
+                // However, standard tracking is public. The prompt requested: "Enhancing customer tracking security" 
+                // "Customer Tracking Security: Implement access control so customers can only track their own shipments."
+                if ($is_logged_in && $shipment['customer_id'] !== $_SESSION['user_id']) {
+                    $error = "You don't have permission to view this shipment.";
+                    $shipment = null;
+                } else {
+                    // Fetch History
+                    $hStmt = $pdo->prepare("SELECT * FROM shipment_status_history WHERE shipment_id = ? ORDER BY created_at DESC");
+                    $hStmt->execute([$shipment['id']]);
+                    $history = $hStmt->fetchAll();
+                }
             } else {
                 $error = "Tracking number $tracking_id not found.";
             }
@@ -60,7 +68,7 @@ if (!empty($tracking_id)) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/neumorphism.css">
+    <link rel="stylesheet" href="../assets/css/glassmorphism.css">
     
     <style>
         /* Custom Timeline CSS */
@@ -106,15 +114,14 @@ if (!empty($tracking_id)) {
             background-color: var(--text-muted);
             box-shadow: none;
         }
-        
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; color: black !important; }
-            .neumorphic-card { box-shadow: none !important; border: 1px solid #ccc !important; }
+            .glass-card { box-shadow: none !important; border: 1px solid #ccc !important; }
         }
     </style>
 </head>
-<body class="neumorphic-bg">
+<body class="glass-bg">
 
 <!-- Navbar depending on auth state -->
 <nav class="navbar navbar-expand-lg border-bottom border-light border-opacity-10 mb-5 py-3 shadow-sm bg-transparent no-print">
@@ -142,7 +149,7 @@ if (!empty($tracking_id)) {
                 </div>
                 <?php if($is_logged_in): ?>
                     <div class="dropdown">
-                        <a class="btn neumorphic-btn dropdown-toggle fw-bold" href="#" data-bs-toggle="dropdown">
+                        <a class="btn glass-btn dropdown-toggle fw-bold" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle me-1"></i> <?= escape($user_name) ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 p-2 rounded-3">
@@ -150,7 +157,7 @@ if (!empty($tracking_id)) {
                         </ul>
                     </div>
                 <?php else: ?>
-                    <a href="../auth/login.php" class="btn neumorphic-btn text-primary fw-bold">Login</a>
+                    <a href="../auth/login.php" class="btn glass-btn text-primary fw-bold">Login</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -162,11 +169,11 @@ if (!empty($tracking_id)) {
     <!-- Tracking Input Bar -->
     <div class="row justify-content-center mb-5 no-print">
         <div class="col-md-8">
-            <div class="neumorphic-card p-4 text-center">
+            <div class="glass-card p-4 text-center">
                 <h4 class="fw-bold mb-4">Track Your Shipment</h4>
                 <form action="" method="GET" class="d-flex gap-2 mx-auto justify-content-center" style="max-width: 500px;">
-                    <input type="text" name="id" class="form-control neumorphic-input w-100 fs-5 text-center fw-bold" placeholder="e.g. C-XXXX-XXXX" value="<?= escape($tracking_id) ?>" required>
-                    <button type="submit" class="btn neumorphic-btn btn-primary fw-bold px-4 shadow-none">Search</button>
+                    <input type="text" name="id" class="form-control glass-input w-100 fs-5 text-center fw-bold" placeholder="e.g. C-XXXX-XXXX" value="<?= escape($tracking_id) ?>" required>
+                    <button type="submit" class="btn glass-btn btn-primary fw-bold px-4 shadow-none">Search</button>
                 </form>
             </div>
         </div>
@@ -183,7 +190,7 @@ if (!empty($tracking_id)) {
                         <h2 class="fw-bold text-primary mb-0"><?= escape($shipment['tracking_number']) ?></h2>
                     </div>
                     <div class="no-print">
-                        <button onclick="window.print()" class="btn neumorphic-btn fw-bold">
+                        <button onclick="window.print()" class="btn glass-btn fw-bold">
                             <i class="bi bi-printer text-primary me-2"></i> Print Receipt
                         </button>
                     </div>
@@ -192,7 +199,7 @@ if (!empty($tracking_id)) {
                 <div class="row g-4">
                     <!-- Shipment Details Panel -->
                     <div class="col-md-7">
-                        <div class="neumorphic-card p-4 h-100">
+                        <div class="glass-card p-4 h-100">
                             <div class="d-flex align-items-center mb-4">
                                 <h5 class="fw-bold mb-0 flex-grow-1"><i class="bi bi-info-square me-2 text-primary"></i>Shipment Info</h5>
                                 <?php 
@@ -263,7 +270,7 @@ if (!empty($tracking_id)) {
 
                     <!-- Timeline Panel -->
                     <div class="col-md-5">
-                        <div class="neumorphic-card p-4 h-100">
+                        <div class="glass-card p-4 h-100">
                             <h5 class="fw-bold mb-4"><i class="bi bi-clock-history me-2 text-primary"></i>Tracking Status</h5>
                             <div class="ps-2">
                                 <ul class="timeline mt-4">

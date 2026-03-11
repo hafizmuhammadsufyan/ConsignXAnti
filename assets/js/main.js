@@ -75,4 +75,42 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }, 5000);
     }
+
+    // 6. Sidebar Toggle Logic
+    const sidebar = document.querySelector('.sidebar');
+    const desktopToggleBtn = document.querySelector('.desktop-toggle-btn');
+    const mobileToggleBtn = document.querySelector('.sidebar-toggle-btn');
+    
+    // Desktop: collapse / expand
+    if (sidebar && desktopToggleBtn) {
+        desktopToggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            // Save preference to localStorage
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
+        });
+
+        // Load preference on load
+        const savedState = localStorage.getItem('sidebarCollapsed');
+        if (savedState === 'true') {
+            sidebar.classList.add('collapsed');
+        }
+    }
+
+    // Mobile: open / close off-canvas
+    if (sidebar && mobileToggleBtn) {
+        mobileToggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('show');
+        });
+        
+        // Close when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 992 && sidebar.classList.contains('show')) {
+                if (!sidebar.contains(e.target) && !mobileToggleBtn.contains(e.target)) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+    }
+
 });

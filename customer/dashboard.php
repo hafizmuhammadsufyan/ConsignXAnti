@@ -54,10 +54,10 @@ try {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../assets/css/style.css">
-    <link rel="stylesheet" href="../assets/css/neumorphism.css">
+    <link rel="stylesheet" href="../assets/css/glassmorphism.css">
 </head>
 
-<body class="neumorphic-bg">
+<body class="glass-bg">
 
     <!-- Simple Top Navbar for Customers -->
     <nav
@@ -83,7 +83,7 @@ try {
                         </label>
                     </div>
                     <div class="dropdown">
-                        <a class="btn neumorphic-btn dropdown-toggle fw-bold" href="#" role="button"
+                        <a class="btn glass-btn dropdown-toggle fw-bold" href="#" role="button"
                             data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle me-1"></i>
                             <?= escape($customer_name) ?>
@@ -109,7 +109,7 @@ try {
             <div class="col-md-6">
                 <!-- Quick Track Input -->
                 <form action="track.php" method="GET"
-                    class="d-flex neumorphic-card p-2 rounded-pill shadow-sm bg-transparent border-0"
+                    class="d-flex glass-card p-2 rounded-pill shadow-sm"
                     style="max-width: 450px; margin-left: auto;">
                     <input type="text" name="id" class="form-control border-0 bg-transparent shadow-none px-3"
                         placeholder="Enter Tracking Number (e.g. C-XXXX-XXXX)" required
@@ -125,7 +125,7 @@ try {
         <!-- Summary Cards -->
         <div class="row g-4 mb-5">
             <div class="col-md-6">
-                <div class="neumorphic-card p-4 d-flex align-items-center">
+                <div class="glass-card p-4 d-flex align-items-center">
                     <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-4">
                         <i class="bi bi-box-seam fs-3"></i>
                     </div>
@@ -138,7 +138,7 @@ try {
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="neumorphic-card p-4 d-flex align-items-center">
+                <div class="glass-card p-4 d-flex align-items-center">
                     <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success me-4">
                         <i class="bi bi-check-circle fs-3"></i>
                     </div>
@@ -153,11 +153,11 @@ try {
         </div>
 
         <!-- Shipment History Table -->
-        <div class="neumorphic-card p-4 p-md-5">
+        <div class="glass-card p-4 p-md-5">
             <h5 class="fw-bold mb-4"><i class="bi bi-clock-history me-2"></i>Shipment History</h5>
 
             <div class="table-responsive">
-                <table class="table neumorphic-table table-borderless align-middle mb-0">
+                <table class="table glass-table table-borderless align-middle mb-0">
                     <thead>
                         <tr>
                             <th>Tracking Number</th>
@@ -208,7 +208,7 @@ try {
                                     </td>
                                     <td class="text-end">
                                         <a href="track.php?id=<?= urlencode($ship['tracking_number']) ?>"
-                                            class="btn btn-sm neumorphic-btn btn-primary px-3 fw-bold">Track Details</a>
+                                            class="btn btn-sm glass-btn btn-primary px-3 fw-bold">Track Details</a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

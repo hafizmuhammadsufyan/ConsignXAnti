@@ -99,8 +99,17 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
 <body class="neumorphic-bg">
 
     <div class="admin-wrapper">
+        <!-- Mobile Sidebar Toggle -->
+        <button class="btn btn-primary sidebar-toggle-btn shadow-sm" type="button">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+
         <!-- Main Sidebar -->
         <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card m-3 border-0">
+            <!-- Desktop Sidebar Toggle -->
+            <div class="desktop-toggle-btn text-muted">
+                <i class="bi bi-chevron-left fs-5"></i>
+            </div>
             <div>
                 <div class="text-center mb-4">
                     <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
