@@ -75,7 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $msg = "<div class='alert alert-danger alert-dismissible fade show'>Failed to delete agent. They might have existing shipments.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
             }
         }
-
+    }
+}
 // Handle Status Toggle
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'toggle_status') {
     $csrf = $_POST['csrf_token'] ?? '';

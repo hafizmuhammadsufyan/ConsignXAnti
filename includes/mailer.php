@@ -79,11 +79,11 @@ function send_customer_welcome_email($to, $name, $password, $tracking_number)
 /**
  * Sends a welcome email to a new agent
  */
-function send_agent_welcome_email($to, $company, $status)
+function send_agent_welcome_email($to, $company, $status,$password)
 {
     $subject = "Welcome to the ConsignX Network - $company";
     $html = "
-        <h2>Welcome aboard, $company!</h2>
+        <h2>Welcome aboard, $company, $password!</h2>
         <p>Your agent account has been successfully registered.</p>
         <p>Current Status: <strong>" . strtoupper($status) . "</strong></p>
         <p>You can now log in at " . APP_URL . "/auth/login.php and start managing shipments.</p>
