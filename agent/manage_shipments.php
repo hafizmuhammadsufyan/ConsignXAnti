@@ -60,7 +60,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// Fetch Agents Shipments
+// Filtering Logic
+$where_clauses = ["s.agent_id = ?"];
+$params = [$agent_id];
+
+if (!empty($_GET['date_from'])) {
+    $where_clauses[] = "s.created_at >= ?";
+    $params[] = $_GET['date_from'] . ' 00:00:00';
+}
+if (!empty($_GET['date_to'])) {
+    $where_clauses[] = "s.created_at <= ?";
+    $params[] = $_GET['date_to'] . ' 23:59:59';
+}
+if (!empty($_GET['city_id'])) {
+    $where_clauses[] = "(s.origin_city_id = ? OR s.destination_city_id = ?)";
+    $params[] = $_GET['city_id'];
+    $params[] = $_GET['city_id'];
+}
+if (!empty($_GET['status'])) {
+    $where_clauses[] = "s.status = ?";
+    $params[] = $_GET['status'];
+}
+
+$where_sql = implode(" AND ", $where_clauses);
+
 try {
     $stmt = $pdo->prepare("
         SELECT s.*, 
@@ -70,14 +93,17 @@ try {
         LEFT JOIN customers c ON s.customer_id = c.id
         LEFT JOIN cities orig ON s.origin_city_id = orig.id
         LEFT JOIN cities dest ON s.destination_city_id = dest.id
-        WHERE s.agent_id = ?
+        WHERE $where_sql
         ORDER BY s.created_at DESC
     ");
-    $stmt->execute([$agent_id]);
+    $stmt->execute($params);
     $shipments = $stmt->fetchAll();
+    
+    $cities = get_cities();
 } catch (PDOException $e) {
     $msg = display_alert("Error loading data.", "danger");
     $shipments = [];
+    $cities = [];
 }
 ?>
 <!DOCTYPE html>
@@ -97,50 +123,12 @@ try {
 
     <div class="admin-wrapper">
         <!-- Sidebar -->
-        <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card m-3 border-0">
-            <div>
-                <div class="text-center mb-4">
-                    <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
-                    <small class="text-muted">Agent Portal</small>
-                </div>
+        <?php 
+        $role = 'agent';
+        $active_page = 'manage_shipments.php';
+        require_once '../includes/sidebar.php'; 
+        ?>
 
-                <div class="text-center mt-3 mb-4">
-                    <span class="badge rounded-pill bg-primary px-3 py-2 fw-medium text-uppercase shadow-sm">
-                        <i class="bi bi-building me-1"></i>
-                        <?= escape($company_name) ?>
-                    </span>
-                </div>
-
-                <ul class="nav flex-column gap-2 mt-4">
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="dashboard.php">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="create_shipment.php">
-                            <i class="bi bi-plus-circle me-2"></i> New Shipment
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn btn-primary text-center text-white active"
-                            href="manage_shipments.php">
-                            <i class="bi bi-box-seam me-2"></i> Manage Shipments
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
-                <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-                    <span class="text-muted small fw-bold">Dark Mode</span>
-                    <label class="theme-switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <a href="../auth/logout.php" class="btn neumorphic-btn btn-danger w-100 fw-bold">Logout</a>
-            </div>
-        </nav>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -152,6 +140,52 @@ try {
             </div>
 
             <?= $msg ?>
+
+            <!-- Filters Section -->
+            <div class="neumorphic-card p-4 mb-4">
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">From Date</label>
+                        <input type="date" name="date_from" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_from'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">To Date</label>
+                        <input type="date" name="date_to" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_to'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">City</label>
+                        <select name="city_id" class="form-select neumorphic-input py-2">
+                            <option value="">All Cities</option>
+                            <?php foreach ($cities as $ct): ?>
+                                <option value="<?= $ct['id'] ?>" <?= (isset($_GET['city_id']) && $_GET['city_id'] == $ct['id']) ? 'selected' : '' ?>>
+                                    <?= escape($ct['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">Status</label>
+                        <select name="status" class="form-select neumorphic-input py-2">
+                            <option value="">All Statuses</option>
+                            <option value="Pending" <?= ($_GET['status'] ?? '') == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                            <option value="Picked Up" <?= ($_GET['status'] ?? '') == 'Picked Up' ? 'selected' : '' ?>>Picked Up</option>
+                            <option value="In Transit" <?= ($_GET['status'] ?? '') == 'In Transit' ? 'selected' : '' ?>>In Transit</option>
+                            <option value="Out For Delivery" <?= ($_GET['status'] ?? '') == 'Out For Delivery' ? 'selected' : '' ?>>Out For Delivery</option>
+                            <option value="Delivered" <?= ($_GET['status'] ?? '') == 'Delivered' ? 'selected' : '' ?>>Delivered</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary neumorphic-btn flex-grow-1"><i class="bi bi-filter"></i> Filter</button>
+                        <a href="manage_shipments.php" class="btn btn-secondary neumorphic-btn"><i class="bi bi-arrow-clockwise"></i></a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="d-flex justify-content-end mb-3">
+                <a href="../includes/export_excel.php?<?= http_build_query($_GET) ?>" class="btn btn-success neumorphic-btn fw-bold">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Export to Excel
+                </a>
+            </div>
 
             <div class="neumorphic-card p-4">
                 <div class="table-responsive">

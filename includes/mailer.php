@@ -57,21 +57,46 @@ function send_email($to, $subject, $htmlBody)
 /**
  * Sends a welcome email to a new customer
  */
-function send_customer_welcome_email($to, $name, $password, $tracking_number)
+function send_shipment_notification_new($to, $name, $password, $tracking_number)
 {
-    $subject = "Welcome to ConsignX - Track Your Shipment ($tracking_number)";
+    $subject = "Welcome to ConsignX - Your Shipment is Ready! ($tracking_number)";
     $html = "
-        <h2>Hello $name,</h2>
-        <p>A new shipment has been created for you with tracking number: <strong>$tracking_number</strong>.</p>
-        <p>An account was automatically created for you to manage your deliveries.</p>
-        <p>
-           <strong>Login URL:</strong> " . APP_URL . "/auth/login.php<br>
-           <strong>Email:</strong> $to<br>
-           <strong>Temporary Password:</strong> $password
-        </p>
-        <p>Please log in and change your password immediately.</p>
-        <br>
-        <p>Thank you,<br>The ConsignX Team</p>
+        <div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+            <h2 style='color: #0d6efd;'>Hello $name,</h2>
+            <p>Welcome to <strong>ConsignX</strong>! A new shipment has been created for you.</p>
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6;'>
+                <p><strong>Tracking ID:</strong> <span style='font-size: 1.2rem; color: #0d6efd;'>$tracking_number</span></p>
+                <hr>
+                <p>An account has been created for you to track your shipments.</p>
+                <p><strong>Login URL:</strong> " . APP_URL . "/auth/login.php</p>
+                <p><strong>Username:</strong> $to</p>
+                <p><strong>Password:</strong> $password</p>
+            </div>
+            <p style='margin-top: 20px;'>Please log in and change your password for security.</p>
+            <p>Thank you for choosing ConsignX!</p>
+            <p>Best Regards,<br><strong>The ConsignX Team</strong></p>
+        </div>
+    ";
+    return send_email($to, $subject, $html);
+}
+
+/**
+ * Sends a shipment notification to an existing customer
+ */
+function send_shipment_notification_existing($to, $name, $tracking_number)
+{
+    $subject = "Your Shipment is on its way! ($tracking_number)";
+    $html = "
+        <div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+            <h2 style='color: #198754;'>Hello $name,</h2>
+            <p>Thank you for choosing <strong>ConsignX</strong> again!</p>
+            <div style='background: #f8f9fa; padding: 20px; border-radius: 10px; border: 1px solid #dee2e6;'>
+                <p><strong>Tracking ID:</strong> <span style='font-size: 1.2rem; color: #198754;'>$tracking_number</span></p>
+                <p>You can track your shipment status by logging into your account.</p>
+            </div>
+            <p style='margin-top: 20px;'>We appreciate your continued trust in our service.</p>
+            <p>Best Regards,<br><strong>The ConsignX Team</strong></p>
+        </div>
     ";
     return send_email($to, $subject, $html);
 }

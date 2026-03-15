@@ -76,39 +76,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 5000);
     }
 
-    // 6. Sidebar Toggle Logic
+    // 6. Unified Sidebar Toggle Logic (Universal Off-canvas)
     const sidebar = document.querySelector('.sidebar');
-    const desktopToggleBtn = document.querySelector('.desktop-toggle-btn');
-    const mobileToggleBtn = document.querySelector('.sidebar-toggle-btn');
-    
-    // Desktop: collapse / expand
-    if (sidebar && desktopToggleBtn) {
-        desktopToggleBtn.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            // Save preference to localStorage
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
-        });
-
-        // Load preference on load
-        const savedState = localStorage.getItem('sidebarCollapsed');
-        if (savedState === 'true') {
-            sidebar.classList.add('collapsed');
-        }
+    const toggleBtns = document.querySelectorAll('.sidebar-toggle-btn');
+    const overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    if (sidebar && !document.querySelector('.sidebar-overlay')) {
+        document.body.appendChild(overlay);
     }
-
-    // Mobile: open / close off-canvas
-    if (sidebar && mobileToggleBtn) {
-        mobileToggleBtn.addEventListener('click', () => {
+    
+    if (sidebar) {
+        const toggleSidebar = () => {
             sidebar.classList.toggle('show');
+            overlay.classList.toggle('show');
+        };
+
+        toggleBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleSidebar();
+            });
         });
-        
-        // Close when clicking outside on mobile
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth < 992 && sidebar.classList.contains('show')) {
-                if (!sidebar.contains(e.target) && !mobileToggleBtn.contains(e.target)) {
-                    sidebar.classList.remove('show');
-                }
+
+        // Close on overlay click
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('show');
             }
         });
     }

@@ -8,6 +8,6 @@ require_once '../includes/auth.php';
 logout();
 
 // Redirect back to landing page or login page
-header('Location: ../index.php');
+header('Location: ../auth/login.php');
 exit;
 ?>

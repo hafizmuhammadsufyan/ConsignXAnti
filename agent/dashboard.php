@@ -47,6 +47,56 @@ try {
     $stmt->execute([$agent_id]);
     $latest_shipments = $stmt->fetchAll();
 
+    // Month wise shipment metrics for Agent charts
+    $stmt = $pdo->prepare("
+        SELECT 
+            DATE_FORMAT(created_at, '%Y-%m') as month_label,
+            COUNT(id) as total_count,
+            SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending_count,
+            SUM(CASE WHEN status = 'In Transit' THEN 1 ELSE 0 END) as transit_count,
+            SUM(CASE WHEN status = 'Delivered' THEN 1 ELSE 0 END) as delivered_count
+        FROM shipments
+        WHERE agent_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+        GROUP BY month_label
+        ORDER BY month_label ASC
+    ");
+    $stmt->execute([$agent_id]);
+    $monthly_shipments = $stmt->fetchAll();
+
+    // Month wise revenue metrics for Agent charts
+    $stmt = $pdo->prepare("
+        SELECT 
+            DATE_FORMAT(transaction_date, '%Y-%m') as month_label,
+            SUM(amount) as total_rev
+        FROM revenue
+        WHERE agent_id = ? AND transaction_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+        GROUP BY month_label
+        ORDER BY month_label ASC
+    ");
+    $stmt->execute([$agent_id]);
+    $monthly_revenue = $stmt->fetchAll();
+
+    // Prepare chart data
+    $chart_labels = [];
+    $chart_total = [];
+    $chart_pending = [];
+    $chart_transit = [];
+    $chart_delivered = [];
+    foreach ($monthly_shipments as $row) {
+        $chart_labels[] = date('M Y', strtotime($row['month_label'] . '-01'));
+        $chart_total[] = $row['total_count'];
+        $chart_pending[] = $row['pending_count'];
+        $chart_transit[] = $row['transit_count'];
+        $chart_delivered[] = $row['delivered_count'];
+    }
+
+    $rev_labels = [];
+    $rev_data = [];
+    foreach ($monthly_revenue as $row) {
+        $rev_labels[] = date('M Y', strtotime($row['month_label'] . '-01'));
+        $rev_data[] = $row['total_rev'];
+    }
+
 } catch (PDOException $e) {
     error_log("Agent Dashboard Error: " . $e->getMessage());
     $error = "Error loading dashboard metrics.";
@@ -64,58 +114,20 @@ try {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/neumorphism.css">
+    <!-- ApexCharts JS -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 
 <body class="neumorphic-bg">
 
     <div class="admin-wrapper">
         <!-- Sidebar Navigation -->
-        <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card m-3 border-0">
-            <div>
-                <div class="text-center mb-4">
-                    <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
-                    <small class="text-muted">Agent Portal</small>
-                </div>
+        <?php 
+        $role = 'agent';
+        $active_page = 'dashboard.php';
+        require_once '../includes/sidebar.php'; 
+        ?>
 
-                <div class="text-center mt-3 mb-4">
-                    <span class="badge rounded-pill bg-primary px-3 py-2 fw-medium text-uppercase shadow-sm">
-                        <i class="bi bi-building me-1"></i>
-                        <?= escape($company_name) ?>
-                    </span>
-                </div>
-
-                <ul class="nav flex-column gap-2 mt-4">
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn btn-primary text-center text-white active"
-                            href="dashboard.php">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="create_shipment.php">
-                            <i class="bi bi-plus-circle me-2"></i> New Shipment
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_shipments.php">
-                            <i class="bi bi-box-seam me-2"></i> Manage Shipments
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Bottom Controls -->
-            <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
-                <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-                    <span class="text-muted small fw-bold">Dark Mode</span>
-                    <label class="theme-switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <a href="../auth/logout.php" class="btn neumorphic-btn btn-danger w-100 fw-bold">Logout</a>
-            </div>
-        </nav>
 
         <!-- Main Content Area -->
         <main class="main-content">
@@ -161,6 +173,22 @@ try {
                         <h3 class="fw-bold text-info mb-0">
                             <?= number_format($delivered_shipments) ?>
                         </h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <div class="neumorphic-card p-4">
+                        <h5 class="fw-bold mb-4">Shipments Performance</h5>
+                        <div id="agentShipmentsChart" style="min-height: 250px;"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="neumorphic-card p-4">
+                        <h5 class="fw-bold mb-4">Revenue Earnings</h5>
+                        <div id="agentRevenueChart" style="min-height: 250px;"></div>
                     </div>
                 </div>
             </div>
@@ -239,6 +267,57 @@ try {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const commonOptions = {
+                chart: {
+                    height: 280,
+                    type: 'line',
+                    toolbar: { show: false },
+                    fontFamily: 'inherit'
+                },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 2 },
+                xaxis: {
+                    categories: <?= json_encode($chart_labels) ?>,
+                    axisBorder: { show: false },
+                },
+                colors: ['#0d6efd', '#198754'],
+                noData: { text: 'No shipment data found' }
+            };
+
+            // Shipments Chart
+            new ApexCharts(document.querySelector("#agentShipmentsChart"), {
+                ...commonOptions,
+                series: [{
+                    name: 'Total Shipments',
+                    data: <?= json_encode($chart_total) ?>
+                }],
+                colors: ['#0d6efd']
+            }).render();
+
+            // Revenue Chart
+            new ApexCharts(document.querySelector("#agentRevenueChart"), {
+                ...commonOptions,
+                xaxis: {
+                    categories: <?= json_encode($rev_labels) ?>,
+                    axisBorder: { show: false },
+                },
+                series: [{
+                    name: 'Revenue (PKR)',
+                    data: <?= json_encode($rev_data) ?>
+                }],
+                colors: ['#198754'],
+                yaxis: {
+                    labels: {
+                        formatter: function (value) {
+                            return "Rs." + value.toLocaleString();
+                        }
+                    }
+                }
+            }).render();
+        });
+    </script>
     <script src="../assets/js/main.js"></script>
 </body>
 

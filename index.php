@@ -1,490 +1,506 @@
 <?php
 // FILE: /consignxAnti/index.php
-
 require_once 'includes/config.php';
 require_once 'includes/functions.php';
-
-session_start();
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 $is_logged_in = isset($_SESSION['user_id']);
 $user_name = $_SESSION['user_name'] ?? '';
 $user_role = $_SESSION['user_role'] ?? '';
-
-// Determine Dashboard link based on role
 $dashboard_link = 'auth/login.php';
 if ($is_logged_in) {
-    if ($user_role === 'admin')
-        $dashboard_link = 'admin/dashboard.php';
-    elseif ($user_role === 'agent')
-        $dashboard_link = 'agent/dashboard.php';
-    elseif ($user_role === 'customer')
-        $dashboard_link = 'customer/dashboard.php';
+    if ($user_role === 'admin') $dashboard_link = 'admin/dashboard.php';
+    elseif ($user_role === 'agent') $dashboard_link = 'agent/dashboard.php';
+    elseif ($user_role === 'customer') $dashboard_link = 'customer/dashboard.php';
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>
-        <?= escape(APP_NAME) ?> - Modern SaaS Logistics Platform
-    </title>
-    <!-- Bootstrap CSS -->
+    <title>ConsignX — Global Logistics Intelligence</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- Google Fonts for Typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <style>
-        /* Specific Landing Page Styles - Non-Neumorphic, Clean SaaS Look */
-        body {
-            font-family: 'Inter', sans-serif;
-            overflow-x: hidden;
-        }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+        --bg:#050505;--bg2:#0a0a0a;--bg3:#0f0f0f;
+        --white:#ffffff;--dim:#a1a1aa;--muted:#52525b;
+        --blue:#3b82f6;--blue-g:rgba(59,130,246,0.15);--blue-b:#60a5fa;
+        --bdr:rgba(255,255,255,0.06);--bdr2:rgba(255,255,255,0.12);
+        --head:'Space Grotesk',sans-serif;--body:'Inter',sans-serif;
+    }
+    html{overflow-x:hidden;scroll-behavior: auto !important;}
+    body{font-family:var(--body);background:var(--bg);color:var(--white);overflow-x:hidden;-webkit-font-smoothing:antialiased}
 
-        /* Navbar */
-        .navbar-brand {
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
+    /* ===== ELITE PRELOADER (Circular + Glass) ===== */
+    #preloader{position:fixed;inset:0;z-index:999999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .p-glass{position:absolute;inset:0;background:radial-gradient(circle at center, rgba(59,130,246,0.1) 0%, transparent 70%);backdrop-filter:blur(100px);z-index:-1}
+    .p-circle-wrap{position:relative;width:240px;height:240px;display:flex;align-items:center;justify-content:center}
+    .p-svg{position:absolute;inset:0;transform:rotate(-90deg)}
+    .p-circle-bg{fill:none;stroke:var(--bdr);stroke-width:2}
+    .p-circle-val{fill:none;stroke:var(--blue);stroke-width:2;stroke-dasharray:628;stroke-dashoffset:628;transition:stroke-dashoffset 0.1s linear}
+    .p-truck-node{position:absolute;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;z-index:10;transform-origin: center center}
+    .p-counter{font-family:var(--head);font-size:3.5rem;font-weight:700;letter-spacing:-2px}
+    .p-label{margin-top:20px;font-size:0.7rem;letter-spacing:4px;color:var(--muted);text-transform:uppercase;font-weight:600}
 
-        .nav-link {
-            font-weight: 500;
-            transition: color 0.3s;
-        }
+    /* ===== MAIN CONTENT ===== */
+    #mainContent{opacity:0;visibility:hidden} /* Hidden until preloader finishes */
 
-        .nav-link:hover {
-            color: #3182ce !important;
-        }
+    /* ===== NAV ===== */
+    .nav-cx{position:fixed;top:0;width:100%;padding:24px 48px;display:flex;justify-content:space-between;align-items:center;z-index:10000;transition:all .4s ease;opacity:0}
+    .nav-cx.scrolled{padding:14px 48px;background:rgba(5,5,5,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr)}
+    .n-brand{font-family:var(--head);font-weight:700;font-size:1.4rem;letter-spacing:-1px;color:var(--white);text-decoration:none}
+    .n-links{display:flex;align-items:center;gap:32px}
+    .n-link{color:var(--dim);text-decoration:none;font-size:.875rem;font-weight:500;transition:color .3s}
+    .n-link:hover{color:var(--white)}
+    .n-cta{padding:10px 28px;background:var(--white);color:var(--bg);border-radius:100px;text-decoration:none;font-size:.875rem;font-weight:600;transition:all .3s}
+    .n-cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,255,255,.1);color:var(--bg)}
 
-        /* Hero Section */
-        .hero {
-            padding: 120px 0 80px;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            position: relative;
-        }
+    /* ===== FIDELITY HERO (Pinning 2.0) ===== */
+    .pin-wrap{height:1200vh;position:relative;z-index:1}
+    .pin-panel{position:sticky;top:0;height:100vh;width:100%;overflow:hidden;display:flex;align-items:center;justify-content:center}
+    
+    /* Brand Zoom Layer */
+    .brand-base{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:100;pointer-events:none}
+    .brand-zoom-el{font-family:var(--head);font-size:clamp(120px, 20vw, 300px);font-weight:800;letter-spacing:-12px;color:var(--white);white-space:nowrap;will-change:transform, opacity, filter}
 
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            line-height: 1.2;
-        }
+    /* Hero Background & Overlay */
+    .hero-base{position:absolute;inset:0;z-index:10;opacity:0;visibility:hidden}
+    .h-visual{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1586528116311-ad8ed7c663be?auto=format&fit=crop&w=1920&q=80') center/cover;filter:brightness(.25) saturate(1.1)}
+    .h-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%, rgba(59,130,246,0.1) 0%, transparent 80%)}
+    .h-vignette{position:absolute;inset:0;background:radial-gradient(circle at center, transparent 0%, var(--bg) 100%)}
+    
+    /* Sequential Titles */
+    .h-titles-wrap{position:relative;z-index:20;width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 24px}
+    .h-seq-title{position:absolute;font-family:var(--head);font-size:clamp(2.8rem,7.5vw,6.5rem);font-weight:800;line-height:1;letter-spacing:-3px;opacity:0;transform:translateY(60px);max-width:900px}
+    
+    /* Final CTA */
+    .h-final-box{position:absolute;bottom:10vh;opacity:0;transform:translateY(30px);display:flex;gap:16px;z-index:30}
+    .btn-p{padding:16px 40px;background:var(--white);color:var(--bg);border-radius:100px;font-weight:700;text-decoration:none;transition:all .4s}
+    .btn-s{padding:16px 40px;background:rgba(255,255,255,0.05);color:var(--white);border:1px solid var(--bdr);border-radius:100px;font-weight:600;text-decoration:none;backdrop-filter:blur(10px);transition:all .4s}
+    .btn-p:hover{transform:translateY(-4px);box-shadow:0 15px 35px rgba(255,255,255,0.1)}
+    .btn-s:hover{background:rgba(255,255,255,0.1);border-color:var(--white)}
 
-        .hero .lead {
-            font-size: 1.25rem;
-            font-weight: 400;
-            color: #64748b;
-        }
+    /* ===== TYPOGRAPHY & SECTIONS ===== */
+    .sec{padding:160px 48px;position:relative;z-index:100;background:var(--bg)}
+    .sec-lab{font-size:.75rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--blue);margin-bottom:20px;display:block}
+    .sec-tit{font-family:var(--head);font-size:clamp(2.5rem,6vw,4.5rem);font-weight:850;letter-spacing:-4px;line-height:.95;margin-bottom:30px}
+    .sec-sub{font-size:1.15rem;color:var(--dim);line-height:1.7;max-width:580px}
 
-        /* Blob Background Animation for Hero */
-        .blob {
-            position: absolute;
-            filter: blur(80px);
-            z-index: 0;
-            border-radius: 50%;
-            animation: float 8s ease-in-out infinite;
-        }
+    /* SERVICES */
+    .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:80px}
+    .svc-c{background:var(--bg2);border:1px solid var(--bdr);border-radius:24px;padding:48px 40px;transition:all .5s cubic-bezier(.16,1,.3,1);opacity:0;transform:translateY(40px)}
+    .svc-c:hover{border-color:var(--white);background:var(--bg3);transform:translateY(-12px)}
+    .svc-i{width:56px;height:56px;border-radius:16px;background:var(--blue-g);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--blue-b);margin-bottom:32px}
+    .svc-c h4{font-family:var(--head);font-weight:700;font-size:1.3rem;margin-bottom:12px}
+    .svc-c p{color:var(--dim);font-size:.95rem;line-height:1.7}
 
-        .blob-1 {
-            top: -100px;
-            right: -100px;
-            width: 400px;
-            height: 400px;
-            background: rgba(49, 130, 206, 0.2);
-        }
+    /* PROCESS */
+    .proc-wrap{margin-top:100px;position:relative;padding-left:100px}
+    .proc-line-bg{position:absolute;left:39px;top:0;width:2px;height:100%;background:var(--bdr)}
+    .proc-line-active{position:absolute;left:39px;top:0;width:2px;height:0%;background:var(--blue);z-index:2;box-shadow:0 0 20px var(--blue)}
+    .proc-item{position:relative;padding:60px 0;opacity:0;transform:translateX(40px);transition:all .8s cubic-bezier(.16,1,.3,1)}
+    .p-node{position:absolute;left:-100px;top:60px;width:78px;height:78px;border-radius:50%;background:var(--bg);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-family:var(--head);font-size:1.5rem;font-weight:800;z-index:10;transition:all .5s}
+    .proc-item.active .p-node{border-color:var(--blue);color:var(--white);background:var(--blue-g);box-shadow:0 0 40px var(--blue-g)}
+    .proc-item h4{font-family:var(--head);font-size:1.6rem;font-weight:700;margin-bottom:10px}
+    .proc-item p{color:var(--dim);max-width:480px}
 
-        .blob-2 {
-            bottom: -100px;
-            left: -100px;
-            width: 300px;
-            height: 300px;
-            background: rgba(66, 153, 225, 0.2);
-            animation-delay: 2s;
-        }
+    /* STATS */
+    .stat-sec{border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);padding:100px 48px}
+    .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:40px;text-align:center}
+    .st-v{font-family:var(--head);font-size:5rem;font-weight:800;letter-spacing:-4px;line-height:1}
+    .st-l{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:15px}
 
-        @keyframes float {
-            0% {
-                transform: translateY(0px) scale(1);
-            }
+    /* MASK REVEAL */
+    .mask-wrap{height:250vh;position:relative}
+    .mask-sticky{position:sticky;top:0;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .mask-full-img{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1590247813693-5541d1c609fd?auto=format&fit=crop&w=2400&q=80') center/cover;filter:brightness(.4);clip-path:circle(0% at 50% 50%)}
+    .mask-inner-txt{position:relative;z-index:10;text-align:center;padding:0 24px}
+    .mask-inner-txt h2{font-family:var(--head);font-size:clamp(3rem,8vw,7rem);font-weight:850;letter-spacing:-5px;line-height:.9;opacity:0;transform:translateY(60px)}
 
-            50% {
-                transform: translateY(-20px) scale(1.05);
-            }
+    /* TRACKING */
+    .trk-terminal{max-width:800px;margin:80px auto 0;background:linear-gradient(135deg,rgba(15,15,15,1),rgba(10,10,10,1));border:1px solid var(--bdr);border-radius:40px;padding:80px 60px;position:relative;overflow:hidden}
+    .trk-terminal::before{content:'';position:absolute;inset:0;background:url('https://www.transparenttextures.com/patterns/carbon-fibre.png');opacity:.05}
+    .trk-input{width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--bdr);border-radius:20px;padding:24px;font-family:var(--head);font-size:1.5rem;font-weight:700;color:var(--white);text-align:center;letter-spacing:8px;margin-bottom:24px}
+    .trk-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 30px var(--blue-g)}
+    .trk-go{width:100%;padding:20px;background:var(--white);color:var(--bg);border-radius:18px;border:none;font-weight:800;font-size:1.1rem;cursor:pointer;transition:all .3s}
+    .trk-go:hover{background:var(--blue);color:white;transform:translateY(-2px)}
 
-            100% {
-                transform: translateY(0px) scale(1);
-            }
-        }
+    /* FOOTER */
+    .footer{padding:120px 48px 60px;border-top:1px solid var(--bdr)}
+    .f-huge{font-family:var(--head);font-size:clamp(3rem,14vw,14rem);font-weight:850;letter-spacing:-10px;line-height:.8;text-align:center;margin-top:100px;background:linear-gradient(180deg,#fff,rgba(255,255,255,0.05));-webkit-background-clip:text;-webkit-text-fill-color:transparent;opacity:0;transform:translateY(80px)}
 
-        /* Tracking Component (Glassmorphism concept for SaaS, distinctly *not* neumorphism) */
-        .glass-track {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
-            z-index: 2;
-            position: relative;
-        }
+    /* REVEALS */
+    .reveal-box{opacity:0;transform:translateY(50px);transition:all 1s cubic-bezier(.16,1,.3,1)}
+    .reveal-box.reveal-active{opacity:1;transform:translateY(0)}
 
-        /* Features */
-        .feature-card {
-            border: none;
-            border-radius: 16px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background: #fff;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
-        }
-
-        .icon-box {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Testimonials Slider Customizations */
-        .carousel-item {
-            padding: 40px 0;
-        }
-
-        .testimonial-text {
-            font-size: 1.2rem;
-            font-style: italic;
-            color: #475569;
-        }
-
-        .carousel-indicators [data-bs-target] {
-            background-color: #3182ce;
-        }
-
-        /* Footer */
-        .footer {
-            background: #0f172a;
-            color: #94a3b8;
-            padding: 80px 0 40px;
-        }
-
-        .footer a {
-            color: #cbd5e1;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-
-        .footer a:hover {
-            color: #fff;
-        }
+    @media(max-width:992px){.svc-grid{grid-template-columns:repeat(2,1fr)}.stat-row{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:768px){.svc-grid,.stat-row{grid-template-columns:1fr}.nav-cx{padding:20px}.n-links{display:none}}
     </style>
 </head>
-
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top shadow-sm py-3">
-        <div class="container">
-            <a class="navbar-brand text-primary fs-3" href="#">ConsignX</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center gap-3">
-                    <li class="nav-item"><a class="nav-link text-dark" href="#features">Features</a></li>
-                    <li class="nav-item"><a class="nav-link text-dark" href="#about">About</a></li>
-                    <li class="nav-item"><a class="nav-link text-dark" href="#testimonials">Testimonials</a></li>
+<!-- ULTIMATE PRELOADER -->
+<div id="preloader">
+    <div class="p-glass"></div>
+    <div class="p-circle-wrap">
+        <svg class="p-svg" width="220" height="220">
+            <circle class="p-circle-bg" cx="110" cy="110" r="100"></circle>
+            <circle class="p-circle-val" id="pVal" cx="110" cy="110" r="100"></circle>
+        </svg>
+        <div class="p-truck-node" id="pTruck">🚚</div>
+        <div class="p-counter" id="pCount">0</div>
+    </div>
+    <div class="p-label">Initializing Terminal</div>
+</div>
 
-                    <?php if ($is_logged_in): ?>
-                        <li class="nav-item">
-                            <a class="btn btn-primary px-4 fw-bold rounded-pill" href="<?= $dashboard_link ?>">Go to
-                                Dashboard</a>
-                        </li>
-                    <?php else: ?>
-                        <li class="nav-item"><a class="nav-link fw-bold text-dark" href="auth/login.php">Login</a></li>
-                        <li class="nav-item">
-                            <a class="btn btn-primary px-4 fw-bold rounded-pill" href="auth/register.php">Register
-                                Company</a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
+<nav class="nav-cx" id="nav">
+    <a href="#" class="n-brand">CONSIGNX</a>
+    <div class="n-links">
+        <a href="#services" class="n-link">Services</a>
+        <a href="#process" class="n-link">Process</a>
+        <a href="#track" class="n-link">Track</a>
+        <a href="<?= $dashboard_link ?>" class="n-cta"><?= $is_logged_in ? 'Dashboard' : 'Login' ?></a>
+    </div>
+</nav>
+
+<div id="mainContent">
+    <!-- HERO PINNING 2.0 -->
+    <div class="pin-wrap">
+        <div class="pin-panel">
+            <!-- Brand Zoom Layer -->
+            <div class="brand-base">
+                <div class="brand-zoom-el" id="zBrand">CONSIGNX</div>
+            </div>
+
+            <!-- Hero Panels -->
+            <div class="hero-base" id="hBase">
+                <div class="h-visual"></div>
+                <div class="h-glow"></div>
+                <div class="h-vignette"></div>
+                <div class="h-titles-wrap">
+                    <h1 class="h-seq-title" id="t1">The Future Of<br>Global Enterprise Logistics.</h1>
+                    <h1 class="h-seq-title" id="t2">Intelligent Tracking.<br>Digital-First Delivery.</h1>
+                    <h1 class="h-seq-title" id="t3">Autonomous Node<br>Route Optimization.</h1>
+                    <h1 class="h-seq-title" id="t4">Built For Scales That<br>Demand Absolute Precision.</h1>
+                    <div class="h-final-box" id="hCTA">
+                        <a href="auth/register.php" class="btn-p">Start Enterprise Trial</a>
+                        <a href="#services" class="btn-s">Explore Features</a>
+                    </div>
+                </div>
             </div>
         </div>
-    </nav>
+    </div>
 
-    <!-- Hero Section -->
-    <section class="hero d-flex align-items-center" id="home">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
-        <div class="container relative">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6 z-1">
-                    <h1 class="text-dark mb-4">The Operating System for Modern <span
-                            class="text-primary">Couriers</span></h1>
-                    <p class="lead mb-5">Seamlessly manage agents, track shipments globally, and delight your customers
-                        with our enterprise-grade logistics platform.</p>
-                    <div class="d-flex gap-3">
-                        <a href="#track" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm">Track
-                            Package</a>
-                        <a href="#features"
-                            class="btn btn-outline-dark btn-lg rounded-pill px-5 fw-bold bg-white shadow-sm">Learn
-                            More</a>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <!-- Tracking Glass Widget -->
-                    <div class="glass-track p-5" id="track">
-                        <h3 class="fw-bold mb-2">Track & Trace</h3>
-                        <p class="text-muted mb-4 small">Enter your Global Tracking Number right away.</p>
-                        <form action="customer/track.php" method="GET" id="quickTrackForm">
-                            <div class="mb-4">
-                                <input type="text" name="id" id="tracking_id"
-                                    class="form-control form-control-lg bg-white bg-opacity-75 border-0 shadow-sm rounded-3 py-3 px-4 fw-bold fs-5"
-                                    placeholder="e.g. C-ABCD-1234" required pattern="C-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}">
-                                <div class="invalid-feedback fw-bold mt-2">Invalid format. Must be C-XXXX-XXXX.</div>
-                            </div>
-                            <button type="submit"
-                                class="btn btn-primary w-100 btn-lg rounded-3 fw-bold shadow-sm py-3">Locate
-                                Shipment</button>
-                        </form>
-                        <div class="mt-4 border-top pt-3">
-                            <small class="text-muted"><i class="bi bi-shield-check me-1 text-success"></i> 256-bit
-                                Secure Transport Node</small>
-                        </div>
-                    </div>
-                </div>
+    <!-- SERVICES -->
+    <section class="sec" id="services">
+        <div class="container-fluid">
+            <span class="sec-lab reveal-box">Platform Ecosystem</span>
+            <h2 class="sec-tit reveal-box">Next-Generation<br>Delivery Logic.</h2>
+            <div class="svc-grid">
+                <div class="svc-c reveal-box"><div class="svc-i"><i class="bi bi-cpu"></i></div><h4>Neural Routing</h4><p>Machine learning pathways that evolve with every successful delivery across the globe.</p></div>
+                <div class="svc-c reveal-box"><div class="svc-i"><i class="bi bi-shield-lock"></i></div><h4>Encrypted Chain</h4><p>End-to-end cryptographic security for every shipment ledger and client transaction.</p></div>
+                <div class="svc-c reveal-box"><div class="svc-i"><i class="bi bi-kanban"></i></div><h4>Fleet Control</h4><p>Unified command center for managing thousands of autonomous and human nodes.</p></div>
+                <div class="svc-c reveal-box"><div class="svc-i"><i class="bi bi-lightning"></i></div><h4>Zero-Delay Express</h4><p>Priority lane processing for urgent medical, legal, and enterprise-critical assets.</p></div>
+                <div class="svc-c reveal-box"><div class="svc-i"><i class="bi bi-box-fill"></i></div><h4>Adaptive Storage</h4><p>Self-optimizing warehouse modules that reconfigure based on real-time demand flux.</p></div>
+                <div class="svc-c reveal-box"><div class="svc-i"><i class="bi bi-graph-up"></i></div><h4>Hyper Analytics</h4><p>Predictive KPI modeling for logistics companies targeting 100% efficiency.</p></div>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="py-5 my-5 bg-white" id="features">
-        <div class="container">
-            <div class="text-center mb-5 pb-3">
-                <span class="text-primary fw-bold text-uppercase tracking-wider small">Capabilities</span>
-                <h2 class="fw-bold mt-2 display-6 text-dark">Built for Scale and Speed</h2>
-                <p class="lead text-muted mx-auto" style="max-width: 600px;">ConsignX brings commercial grade
-                    infrastructure directly to your logistics network without the heavy lifting.</p>
-            </div>
-
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card feature-card p-4 h-100 shadow-sm border border-light">
-                        <div class="icon-box bg-primary bg-opacity-10 text-primary">
-                            <i class="bi bi-diagram-3"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Multi-Agent Network</h4>
-                        <p class="text-muted mb-0">Onboard hundreds of third-party courier companies under your brand
-                            umbrella. Manage quotas, revenues, and routing dynamically.</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card feature-card p-4 h-100 shadow-sm border border-light">
-                        <div class="icon-box bg-success bg-opacity-10 text-success">
-                            <i class="bi bi-geo-alt"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Real-time Tracking</h4>
-                        <p class="text-muted mb-0">Provide customers with precision tracking data, estimated delivery
-                            timelines, and transit location pins every step of the way.</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card feature-card p-4 h-100 shadow-sm border border-light">
-                        <div class="icon-box bg-warning bg-opacity-10 text-warning">
-                            <i class="bi bi-graph-up-arrow"></i>
-                        </div>
-                        <h4 class="fw-bold mb-3">Insightful Reporting</h4>
-                        <p class="text-muted mb-0">Generate comprehensive Excel and CSV reporting on shipments, delays,
-                            and agent performance to optimize your supply chain.</p>
-                    </div>
-                </div>
+    <!-- PROCESS -->
+    <section class="sec bg2" id="process">
+        <div class="container-fluid">
+            <span class="sec-lab reveal-box">The Workflow</span>
+            <h2 class="sec-tit reveal-box">Autonomous<br>Pathfinding.</h2>
+            <div class="proc-wrap" id="procWrap">
+                <div class="proc-line-bg"></div>
+                <div class="proc-line-active" id="procLine"></div>
+                <div class="proc-item reveal-box"><div class="p-node">01</div><h4>Node Integration</h4><p>Shipment enters the digital mesh. Immediate path calculation triggered across all global nodes.</p></div>
+                <div class="proc-item reveal-box"><div class="p-node">02</div><h4>Dynamic Pickup</h4><p>Proximity-based node assignment ensures pickup within minutes, not hours.</p></div>
+                <div class="proc-item reveal-box"><div class="p-node">03</div><h4>In-Mesh Transit</h4><p>Package flows through optimized transit gates. Real-time telemetry broadcasted over 5G.</p></div>
+                <div class="proc-item reveal-box"><div class="p-node">04</div><h4>Final Mile Logic</h4><p>Automated terminal handover for the last phase of the journey. Consumer notified via secure push.</p></div>
+                <div class="proc-item reveal-box"><div class="p-node">05</div><h4>Ledger Settlement</h4><p>Delivery verified. Proof-of-arrival written to secondary ledger. Mission complete.</p></div>
             </div>
         </div>
     </section>
 
-    <!-- About Section -->
-    <section class="py-5 bg-light" id="about">
-        <div class="container py-5">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6">
-                    <!-- Aesthetic placeholder for Company Image -->
-                    <div class="position-relative rounded-4 overflow-hidden shadow-lg"
-                        style="height: 400px; background: url('https://images.unsplash.com/photo-1586528116311-ad8ed7c663be?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80') center/cover;">
-                        <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-25"></div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <span class="text-primary fw-bold text-uppercase tracking-wider small">The ConsignX Story</span>
-                    <h2 class="fw-bold mt-2 display-6 text-dark mb-4">Connecting the Global Supply Chain</h2>
-                    <p class="text-muted fs-5 mb-4">Founded with a vision to democratize logistics software, ConsignX
-                        empowers local couriers with the technological leverage previously reserved for multinational
-                        titans.</p>
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-check-circle-fill text-primary me-3 fs-5"></i>
-                        <span class="fw-medium">Trusted by 500+ Regional Delivery Networks</span>
-                    </div>
-                    <div class="d-flex align-items-center mb-3">
-                        <i class="bi bi-check-circle-fill text-primary me-3 fs-5"></i>
-                        <span class="fw-medium">Handling 10M+ Packages Annually</span>
-                    </div>
-                    <div class="d-flex align-items-center mb-5">
-                        <i class="bi bi-check-circle-fill text-primary me-3 fs-5"></i>
-                        <span class="fw-medium">99.99% Guaranteed SLA Uptime</span>
-                    </div>
-                    <a href="#contact" class="fw-bold text-decoration-none border-bottom border-primary pb-1">Get in
-                        touch with our founders &rarr;</a>
-                </div>
+    <!-- STATS -->
+    <section class="stat-sec">
+        <div class="container-fluid">
+            <div class="stat-row">
+                <div class="reveal-box"><div class="st-v" data-v="10" data-s="K+">0</div><div class="st-l">Active Shipments</div></div>
+                <div class="reveal-box"><div class="st-v" data-v="200" data-s="+">0</div><div class="st-l">Platform Partners</div></div>
+                <div class="reveal-box"><div class="st-v" data-v="50" data-s="+">0</div><div class="st-l">Global Nodes</div></div>
+                <div class="reveal-box"><div class="st-v" data-v="99" data-s=".9%">0</div><div class="st-l">Reliability Matrix</div></div>
             </div>
         </div>
     </section>
 
-    <!-- Testimonials Slider Section -->
-    <section class="py-5 my-5" id="testimonials">
-        <div class="container">
-            <div class="text-center mb-5 pb-3">
-                <h2 class="fw-bold display-6 text-dark">Don't Take Our Word For It</h2>
+    <!-- MASK REVEAL -->
+    <div class="mask-wrap">
+        <div class="mask-sticky">
+            <div class="mask-full-img" id="mImg"></div>
+            <div class="mask-inner-txt">
+                <h2 id="mTit">Absolute Visibility.<br>Universal Control.</h2>
             </div>
+        </div>
+    </div>
 
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
-                        <div class="carousel-indicators mb-0 pb-0" style="bottom: -20px;">
-                            <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="0"
-                                class="active" aria-current="true" aria-label="Slide 1"></button>
-                            <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="1"
-                                aria-label="Slide 2"></button>
-                            <button type="button" data-bs-target="#testimonialCarousel" data-bs-slide-to="2"
-                                aria-label="Slide 3"></button>
-                        </div>
-                        <div class="carousel-inner text-center px-4">
-                            <div class="carousel-item active">
-                                <i class="bi bi-quote text-primary opacity-25" style="font-size: 4rem;"></i>
-                                <p class="testimonial-text mb-4">"ConsignX transformed how we manage our 50+ regional
-                                    fleets. The automated tracking and customer transparency alone cut our support calls
-                                    by 40%."</p>
-                                <h6 class="fw-bold mb-0">Sarah Jenkins</h6>
-                                <small class="text-muted">Operations Director, SwiftLine Logistics</small>
-                            </div>
-                            <div class="carousel-item">
-                                <i class="bi bi-quote text-primary opacity-25" style="font-size: 4rem;"></i>
-                                <p class="testimonial-text mb-4">"The Agent Portal is phenomenal. Our third-party
-                                    vendors can now issue shipments on our network flawlessly without touching a
-                                    difficult interface."</p>
-                                <h6 class="fw-bold mb-0">Marcus Thorne</h6>
-                                <small class="text-muted">CEO, Global Freight Co.</small>
-                            </div>
-                            <div class="carousel-item">
-                                <i class="bi bi-quote text-primary opacity-25" style="font-size: 4rem;"></i>
-                                <p class="testimonial-text mb-4">"As a customer, having a standalone tracking timeline
-                                    that is beautiful and accurate makes me trust the courier company handling my
-                                    valuable items."</p>
-                                <h6 class="fw-bold mb-0">Emily R.</h6>
-                                <small class="text-muted">Frequent Sender</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <!-- TRACKING TERMINAL -->
+    <section class="sec" id="track">
+        <div class="container-fluid text-center">
+            <span class="sec-lab reveal-box">Terminal Access</span>
+            <h2 class="sec-tit reveal-box">Track Shipment.</h2>
+            <div class="trk-terminal reveal-box">
+                <form action="customer/track.php" method="GET">
+                    <input type="text" name="id" class="trk-input" placeholder="CX-TRACE-000" required>
+                    <button type="submit" class="trk-go">INITIALIZE TRACE →</button>
+                </form>
             </div>
         </div>
     </section>
 
-    <!-- Contact Form Section -->
-    <section class="py-5 bg-light" id="contact">
-        <div class="container py-5">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 text-center">
-                    <h2 class="fw-bold display-6 text-dark mb-4">Ready to Modernize?</h2>
-                    <p class="text-muted mb-5">Leave your details below and a solution architect will get in touch
-                        within 24 hours.</p>
-
-                    <form class="bg-white p-4 p-md-5 rounded-4 shadow-sm border border-light text-start"
-                        onsubmit="event.preventDefault(); alert('We will reach out soon!');">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Name</label>
-                                <input type="text" class="form-control py-2 bg-light border-0" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Company Name</label>
-                                <input type="text" class="form-control py-2 bg-light border-0" required>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold">Work Email</label>
-                                <input type="email" class="form-control py-2 bg-light border-0" required>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label small fw-bold">Message / Questions</label>
-                                <textarea class="form-control py-2 bg-light border-0" rows="3"></textarea>
-                            </div>
-                            <div class="col-12 mt-4 text-center">
-                                <button type="submit" class="btn btn-primary px-5 py-3 fw-bold rounded-pill w-100">Send
-                                    Inquiry</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
+    <!-- FOOTER -->
     <footer class="footer">
-        <div class="container">
-            <div class="row g-5">
-                <div class="col-lg-4">
-                    <h4 class="text-white fw-bold mb-4">ConsignX</h4>
-                    <p class="small opacity-75 mb-4 pe-md-5">The enterprise-grade logistics and courier management
-                        platform. Managing fleets, empowering agents, and delighting customers.</p>
-                    <div class="d-flex gap-3 fs-5">
-                        <a href="#"><i class="bi bi-twitter"></i></a>
-                        <a href="#"><i class="bi bi-linkedin"></i></a>
-                        <a href="#"><i class="bi bi-github"></i></a>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-start reveal-box">
+                <div>
+                    <h3 class="n-brand" style="font-size:2rem">CONSIGNX</h3>
+                    <p style="color:var(--muted);max-width:300px;margin-top:10px">The operating system for physical world connectivity.</p>
+                </div>
+                <div class="d-flex gap-5">
+                    <div>
+                        <h6 class="st-l">Platform</h6>
+                        <a href="auth/login.php" class="n-link d-block mt-2">Login</a>
+                        <a href="auth/register.php" class="n-link d-block mt-2">Create Account</a>
+                        <a href="#" class="n-link d-block mt-2">Network Status</a>
                     </div>
                 </div>
-                <div class="col-lg-2 col-6">
-                    <h6 class="text-white fw-bold mb-4">Product</h6>
-                    <ul class="list-unstyled d-flex flex-column gap-2 small">
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#">Pricing</a></li>
-                        <li><a href="#">API Documentation</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-2 col-6">
-                    <h6 class="text-white fw-bold mb-4">Company</h6>
-                    <ul class="list-unstyled d-flex flex-column gap-2 small">
-                        <li><a href="#about">About Us</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-4">
-                    <h6 class="text-white fw-bold mb-4">Portals</h6>
-                    <div class="d-flex gap-2 mb-2">
-                        <a href="auth/login.php" class="btn btn-sm btn-outline-light rounded-pill px-3">Agent Login</a>
-                        <a href="auth/register.php"
-                            class="btn btn-sm btn-light text-dark rounded-pill px-3 fw-bold">Agent Register</a>
-                    </div>
-                    <a href="auth/login.php"
-                        class="btn btn-sm btn-outline-secondary border-0 text-decoration-underline p-0 mt-2">Admin
-                        Access</a>
-                </div>
             </div>
-            <div class="text-center mt-5 pt-4 border-top border-secondary border-opacity-25 small">
-                &copy;
-                <?= date('Y') ?> ConsignX Ltd. All rights reserved.
-            </div>
+            <h1 class="f-huge" id="fHuge">CONSIGNX</h1>
+            <p style="text-align:center;color:var(--muted);font-size:.7rem;margin-top:80px">© <?= date('Y') ?> ConsignX Intelligence. Unified Core v4.0</p>
         </div>
     </footer>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/main.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// 1. FIDELITY PRELOADER
+(function(){
+    const pVal = document.getElementById('pVal');
+    const pCount = document.getElementById('pCount');
+    const pTruck = document.getElementById('pTruck');
+    const preloader = document.getElementById('preloader');
+    const mainContent = document.getElementById('mainContent');
+    const nav = document.getElementById('nav');
+    
+    const circ = 2 * Math.PI * 100;
+    let p = 0;
+    
+    const interval = setInterval(() => {
+        p += Math.floor(Math.random() * 3) + 1;
+        if (p > 100) p = 100;
+        
+        // Circular progress
+        const offset = circ - (p / 100 * circ);
+        pVal.style.strokeDashoffset = offset;
+        
+        // Counter
+        pCount.textContent = p;
+        
+        // Truck rotation path
+        const angle = (p / 100 * 360) - 90;
+        const rad = angle * (Math.PI / 180);
+        const tx = Math.cos(rad) * 100;
+        const ty = Math.sin(rad) * 100;
+        pTruck.style.transform = `translate(${tx}px, ${ty}px) rotate(${angle + 90}deg)`;
+        
+        if (p >= 100) {
+            clearInterval(interval);
+            setTimeout(onLoadingDone, 500);
+        }
+    }, 30);
+
+    function onLoadingDone() {
+        const tl = gsap.timeline();
+        tl.to(preloader, {
+            yPercent: -100,
+            duration: 1.4,
+            ease: 'expo.inOut'
+        })
+        .set(mainContent, { visibility: 'visible' }, '-=1')
+        .to(mainContent, {
+            opacity: 1,
+            duration: 1.2,
+            ease: 'power2.out'
+        }, '-=0.8')
+        .to(nav, { opacity: 1, duration: 1 }, '-=0.6')
+        .add(() => {
+            ScrollTrigger.refresh();
+            // Refresher failsafes
+            setTimeout(() => ScrollTrigger.refresh(), 500);
+            setTimeout(() => ScrollTrigger.refresh(), 1500);
+        });
+    }
+    
+    // Safety
+    setTimeout(() => { if(p < 100) { clearInterval(interval); onLoadingDone(); } }, 7000);
+})();
+
+// 2. ULTIMATE HERO PINNING & ZOOM
+const masterTl = gsap.timeline({
+    scrollTrigger: {
+        trigger: '.pin-wrap',
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 1,
+        pin: true,
+        anticipatePin: 1
+    }
+});
+
+// Brand Zoom (Phase 1) - Extreme speed pass-through
+masterTl.to('#zBrand', {
+    scale: 150,
+    opacity: 0,
+    filter: 'blur(20px)',
+    duration: 5,
+    ease: 'power2.in'
+});
+
+// Reveal Hero Background (Phase 2)
+masterTl.to('#hBase', {
+    autoAlpha: 1,
+    duration: 1,
+    ease: 'power2.out'
+}, '-=3.5');
+
+// Sequential Storytelling (Phase 3)
+const titles = ['#t1', '#t2', '#t3', '#t4'];
+titles.forEach((t, i) => {
+    masterTl.fromTo(t, 
+        { opacity: 0, y: 100, filter: 'blur(10px)' }, 
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 2, ease: 'power3.out' },
+        `+=0.5`
+    );
+    if(i < titles.length - 1) {
+        masterTl.to(t, 
+            { opacity: 0, y: -100, filter: 'blur(10px)', duration: 2, ease: 'power3.in' },
+            `+=2`
+        );
+    }
+});
+
+// Final CTA (Phase 4)
+masterTl.fromTo('#hCTA', 
+    { opacity: 0, y: 40 }, 
+    { opacity: 1, y: 0, duration: 1.5, ease: 'back.out(1.7)' },
+    '+=0.5'
+);
+
+// 3. NAV SCROLL
+window.addEventListener('scroll', () => {
+    document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 80);
+});
+
+// 4. SECTION REVEALS (Intersection Observer)
+const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+        if (e.isIntersecting) {
+            e.target.classList.add('reveal-active');
+            obs.unobserve(e.target);
+        }
+    });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal-box').forEach(el => obs.observe(el));
+
+// 5. PROCESS LINE
+gsap.to('#procLine', {
+    height: '100%',
+    ease: 'none',
+    scrollTrigger: {
+        trigger: '#procWrap',
+        start: 'top 60%',
+        end: 'bottom 60%',
+        scrub: true
+    }
+});
+document.querySelectorAll('.proc-item').forEach(item => {
+    ScrollTrigger.create({
+        trigger: item,
+        start: 'top 65%',
+        onEnter: () => item.classList.add('active')
+    });
+});
+
+// 6. STATS COUNTER
+document.querySelectorAll('.st-v').forEach(st => {
+    const v = parseFloat(st.dataset.v);
+    const s = st.dataset.s || '';
+    ScrollTrigger.create({
+        trigger: st,
+        start: 'top 90%',
+        once: true,
+        onEnter: () => {
+            gsap.to({ val: 0 }, {
+                val: v,
+                duration: 3,
+                ease: 'power2.out',
+                onUpdate: function() {
+                    const current = Math.floor(this.targets()[0].val);
+                    st.textContent = current + s;
+                }
+            });
+        }
+    });
+});
+
+// 7. MASK REVEAL
+gsap.to('#mImg', {
+    clipPath: 'circle(100% at 50% 50%)',
+    ease: 'none',
+    scrollTrigger: {
+        trigger: '.mask-wrap',
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 1
+    }
+});
+gsap.to('#mTit', {
+    opacity: 1,
+    y: 0,
+    duration: 1.5,
+    scrollTrigger: {
+        trigger: '.mask-wrap',
+        start: 'center center',
+        scrub: 1
+    }
+});
+
+// 8. FOOTER REVEAL
+gsap.to('#fHuge', {
+    opacity: 1,
+    y: 0,
+    duration: 1.5,
+    ease: 'power4.out',
+    scrollTrigger: {
+        trigger: '.footer',
+        start: 'top 70%'
+    }
+});
+
+// 9. RE-INVENT HOVERS
+document.querySelectorAll('.btn-p, .btn-s, .trk-go, .svc-c').forEach(el => {
+    el.addEventListener('mouseenter', () => gsap.to(el, { scale: 1.03, duration: 0.4, ease: 'power2.out' }));
+    el.addEventListener('mouseleave', () => gsap.to(el, { scale: 1, duration: 0.4, ease: 'power2.out' }));
+});
+
+</script>
 </body>
-
 </html>

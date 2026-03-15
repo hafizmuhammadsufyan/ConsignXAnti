@@ -71,6 +71,72 @@ function get_cities()
 }
 
 /**
+ * Calculates distance between two points using Haversine formula
+ */
+function get_distance($lat1, $lon1, $lat2, $lon2)
+{
+    $earth_radius = 6371; // km
+    $dLat = deg2rad($lat2 - $lat1);
+    $dLon = deg2rad($lon2 - $lon1);
+    $a = sin($dLat / 2) * sin($dLat / 2) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) * sin($dLon / 2);
+    $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    return $earth_radius * $c;
+}
+
+/**
+ * Automatically calculates shipment price based on weight and cities
+ */
+function calculate_shipment_price($origin_id, $dest_id, $weight)
+{
+    global $pdo;
+    
+    // Sample coordinates for Pakistani cities (stored in code or could be in DB)
+    $coords = [
+        'Karachi' => [24.86, 67.00],
+        'Lahore' => [31.52, 74.35],
+        'Islamabad' => [33.68, 73.04],
+        'Rawalpindi' => [33.56, 73.01],
+        'Faisalabad' => [31.45, 73.13],
+        'Multan' => [30.15, 71.52],
+        'Peshawar' => [34.01, 71.52],
+        'Quetta' => [30.17, 66.97],
+        'Hyderabad' => [25.39, 68.37],
+        'Sialkot' => [32.49, 74.52],
+        'Gujranwala' => [32.18, 74.19],
+        'Bahawalpur' => [29.35, 71.69]
+    ];
+
+    $stmt = $pdo->prepare("SELECT id, name FROM cities WHERE id IN (?, ?)");
+$stmt->execute([$origin_id, $dest_id]);
+$city_names = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    
+    $origin_name = '';
+    $dest_name = '';
+    
+    // Manual mapping check (simple way since IDs might vary)
+    // Better: Add coordinates to the 'cities' table.
+    
+    // Fetching from DB again to be sure of order
+    $stmt = $pdo->prepare("SELECT id, name FROM cities WHERE id = ?");
+    $stmt->execute([$origin_id]);
+    $origin_name = $stmt->fetchColumn();
+    $stmt->execute([$dest_id]);
+    $dest_name = $stmt->fetchColumn();
+
+    $distance = 100; // Default if not found
+    if (isset($coords[$origin_name]) && isset($coords[$dest_name])) {
+        $distance = get_distance($coords[$origin_name][0], $coords[$origin_name][1], $coords[$dest_name][0], $coords[$dest_name][1]);
+    }
+
+    $base_price = 150.00;
+    $rate_per_kg = 80.00;
+    $rate_per_km = 0.50;
+
+    $total = $base_price + ($weight * $rate_per_kg) + ($distance * $rate_per_km);
+    return round($total, 2);
+}
+
+/**
  * Helper to display alert messages securely
  */
 function display_alert($message, $type = 'success')
@@ -87,11 +153,11 @@ function display_alert($message, $type = 'success')
 }
 
 /**
- * Formats a given amount into USD currency string
+ * Formats a given amount into PKR currency string
  */
 function format_currency($amount)
 {
-    return '$' . number_format((float) $amount, 2);
+    return 'Rs. ' . number_format((float) $amount, 2);
 }
 
 /**

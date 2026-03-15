@@ -59,44 +59,22 @@ try {
 
 <body class="glass-bg">
 
-    <!-- Simple Top Navbar for Customers -->
-    <nav
-        class="navbar navbar-expand-lg border-bottom border-light border-opacity-10 mb-5 py-3 shadow-sm bg-transparent">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-primary fs-4" href="dashboard.php">ConsignX</a>
-            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navCustomer">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navCustomer">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link fw-medium active" href="dashboard.php">My Shipments</a>
-                    </li>
-                </ul>
-                <div class="d-flex align-items-center gap-4">
-                    <div class="theme-switch-wrapper">
-                        <span class="text-muted small fw-bold me-2">Dark Mode</span>
-                        <label class="theme-switch">
-                            <input type="checkbox">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-                    <div class="dropdown">
-                        <a class="btn glass-btn dropdown-toggle fw-bold" href="#" role="button"
-                            data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle me-1"></i>
-                            <?= escape($customer_name) ?>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-3 p-2 rounded-3">
-                            <li><a class="dropdown-item fw-bold text-danger" href="../auth/logout.php"><i
-                                        class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <div class="admin-wrapper">
+        <!-- Mobile Sidebar Toggle -->
+        <button class="btn btn-primary sidebar-toggle-btn shadow-sm" type="button">
+            <i class="bi bi-list fs-4"></i>
+        </button>
+
+        <!-- Sidebar Navigation -->
+        <?php 
+        $role = 'customer';
+        $active_page = 'dashboard.php';
+        require_once '../includes/sidebar.php'; 
+        ?>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
 
     <div class="container pb-5">
         <div class="row mb-5 align-items-center">
@@ -218,10 +196,8 @@ try {
             </div>
         </div>
 
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/main.js"></script>
-</body>
+        </div>
+    </main>
+</div>
 
 </html>

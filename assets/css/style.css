@@ -72,69 +72,69 @@ body {
     overflow-x: hidden;
 }
 
-/* Sidebar Toggle Button (Mobile/Tablet) */
-.sidebar-toggle-btn {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    z-index: 1050;
-    display: none; /* Hidden on desktop by default */
-}
-
-/* Sidebar Toggle Button (Desktop) */
-.desktop-toggle-btn {
-    position: absolute;
-    top: 20px;
-    right: -20px;
-    z-index: 1060;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    background-color: var(--bg-color);
-    border: 1px solid rgba(0,0,0,0.1);
-    box-shadow: var(--shadow-hover);
-    transition: transform 0.3s ease;
-}
-
-[data-theme="dark"] .desktop-toggle-btn {
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
+/* Unified Sidebar (Off-canvas on all screens) */
 .sidebar {
-    width: 250px;
-    flex-shrink: 0;
-    height: calc(100vh - 2rem);
-    position: sticky;
-    top: 1rem;
-    transition: all 0.3s ease-in-out;
-    z-index: 1040;
+    width: 280px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: -320px; /* Hidden by default */
+    margin: 0 !important;
+    border-radius: 0 !important;
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2000;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.1);
 }
 
-/* Sidebar Collapsed State */
-.sidebar.collapsed {
-    width: 80px;
+.sidebar.show {
+    left: 0;
 }
 
-.sidebar.collapsed .text-center h3,
-.sidebar.collapsed .text-center small,
-.sidebar.collapsed .nav-link span,
-.sidebar.collapsed .mt-auto span.text-muted,
-.sidebar.collapsed .mt-auto a {
+/* Sidebar Overlay */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(4px);
+    z-index: 1999;
     display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.show {
+    display: block;
+    opacity: 1;
+}
+
+.sidebar-toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1100;
+    display: flex;
+    box-shadow: var(--shadow-light-up) !important;
+}
+
+.desktop-toggle-btn {
+    display: none; /* Removed desktop-specific toggle */
 }
 
 .sidebar.collapsed .nav-link {
-    text-align: center;
-    padding: 10px;
+    padding-left: 0;
+    padding-right: 0;
+    display: flex;
+    justify-content: center;
 }
 
 .sidebar.collapsed .nav-link i {
-    margin: 0 !important;
-    font-size: 1.25rem;
+    margin-right: 0 !important;
+    font-size: 1.4rem;
 }
 
 .sidebar.collapsed .desktop-toggle-btn i {
@@ -143,42 +143,156 @@ body {
 
 .main-content {
     flex-grow: 1;
-    padding: 2rem;
-    max-width: calc(100vw - 250px);
-    transition: all 0.3s ease-in-out;
+    padding: 2.5rem;
+    margin-left: 0 !important;
+    width: 100% !important;
+    transition: all 0.3s ease;
+    min-height: 100vh;
+    padding-top: 5rem; /* Space for the toggle button */
 }
 
-.admin-wrapper:has(.sidebar.collapsed) .main-content {
-    max-width: calc(100vw - 80px);
+/* New Login Layout (Neumorphic & Centered) */
+.login-screen-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-color);
+    overflow: hidden; /* Prevent page scroll */
+    padding: 2vh;
+}
+
+.login-card-container {
+    width: 100%;
+    max-width: 1100px;
+    height: 90vh;
+    display: flex;
+    background-color: var(--bg-color);
+    border-radius: var(--border-radius-card);
+    box-shadow: var(--shadow-light-up);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.login-left {
+    flex: 1.2;
+    position: relative;
+    display: block;
+    background: #000;
 }
 
 @media (max-width: 991.98px) {
-    .desktop-toggle-btn {
-        display: none;
-    }
+    .login-left { display: none; }
+}
 
-    .sidebar-toggle-btn {
-        display: block;
-    }
-    
-    .sidebar {
-        position: fixed;
-        left: -280px; /* Hide off-screen */
-        width: 250px;
-        height: 100vh;
-        top: 0;
-        margin: 0 !important;
-        border-radius: 0;
-    }
-    
-    .sidebar.show {
-        left: 0;
-    }
+.login-carousel, .login-carousel .carousel-inner, .login-carousel .carousel-item {
+    height: 100%;
+}
 
-    .main-content {
-        max-width: 100vw;
-        padding-top: 4rem; /* Space for toggle button */
-    }
+.login-carousel img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    filter: brightness(0.7);
+    transition: transform 0.5s ease;
+}
+
+.carousel-caption-custom {
+    position: absolute;
+    bottom: 10%;
+    left: 10%;
+    right: 10%;
+    z-index: 10;
+    color: #fff;
+}
+
+.login-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    background-color: var(--bg-color);
+    position: relative;
+    overflow-y: auto; /* Allow form scroll if needed within 90vh */
+}
+
+@media (max-width: 991.98px) {
+    .login-right { width: 100%; padding: 2rem; }
+}
+
+.login-form-box {
+    width: 100%;
+    max-width: 380px;
+}
+
+/* Role Selector Buttons */
+.role-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 2rem;
+}
+
+.role-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: #a0aec0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-align: center;
+}
+
+.role-btn.active {
+    background: #6366f1;
+    color: #fff;
+    border-color: #6366f1;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.login-input-group {
+    margin-bottom: 1.5rem;
+}
+
+.login-input {
+    background: var(--bg-color) !important;
+    border: 1px solid rgba(255,255,255,0.05) !important;
+    color: var(--text-primary) !important;
+    padding: 12px 18px !important;
+    border-radius: var(--border-radius-input) !important;
+    box-shadow: var(--shadow-light-in) !important;
+}
+
+.login-input:focus {
+    box-shadow: inset 8px 8px 12px rgba(163, 177, 198, 0.7), inset -8px -8px 12px rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-theme="dark"] .login-input:focus {
+    box-shadow: inset 8px 8px 12px rgba(0, 0, 0, 0.5), inset -8px -8px 12px rgba(45, 55, 72, 0.7) !important;
+}
+
+.btn-login-new {
+    background: #6366f1;
+    border: none;
+    color: #fff;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    width: 100%;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-login-new:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
 }
 
 /* Link Resets */
@@ -188,6 +302,45 @@ a {
 a:hover {
     color: var(--primary-hover);
 }
+
+/* Table Alignment & Spacing Improvements */
+.table th {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    border-top: none;
+    padding: 1.25rem 1rem;
+}
+
+.table td {
+    padding: 1.25rem 1rem;
+    vertical-align: middle;
+    font-weight: 500;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.04);
+}
+
+.table-responsive {
+    border-radius: var(--border-radius-card);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Badge Styles */
+.badge {
+    padding: 0.5em 0.8em;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.bg-pending { background-color: #ffc107; color: #000; }
+.bg-delivered { background-color: #198754; color: #fff; }
+.bg-transit { background-color: #0dcaf0; color: #fff; }
+.bg-returning { background-color: #6c757d; color: #fff; }
 
 /* Utilities */
 .fw-medium { font-weight: 500; }

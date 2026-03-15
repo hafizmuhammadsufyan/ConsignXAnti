@@ -50,20 +50,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 if ($customer) {
                     $customer_id = $customer['id'];
+                    $is_new_customer = false;
                 } else {
                     $temp_password = strtolower(str_replace(' ', '', $customer_name)) . rand(100, 999);
                     $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
                     $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, password_hash) VALUES (:name, :email, :phone, :pass)");
                     $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $hashed_password]);
                     $customer_id = $pdo->lastInsertId();
+                    $is_new_customer = true;
                 }
 
                 // 2. Generate Tracking
                 $tracking_number = generate_tracking_number();
 
-                if (isset($temp_password)) {
-                    // Trigger Email to customer with auto-gen pass
-                    send_customer_welcome_email($customer_email, $customer_name, $temp_password, $tracking_number);
+                // 3. Trigger Email
+                if ($is_new_customer) {
+                    send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
+                } else {
+                    send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
                 }
 
                 // 3. Create Shipment (Agent ID is null since admin created it)
@@ -167,9 +171,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Fetch all shipments
+// Filtering Logic
+$where_clauses = ["1=1"];
+$params = [];
+
+if (!empty($_GET['date_from'])) {
+    $where_clauses[] = "s.created_at >= ?";
+    $params[] = $_GET['date_from'] . ' 00:00:00';
+}
+if (!empty($_GET['date_to'])) {
+    $where_clauses[] = "s.created_at <= ?";
+    $params[] = $_GET['date_to'] . ' 23:59:59';
+}
+if (!empty($_GET['agent_id'])) {
+    $where_clauses[] = "s.agent_id = ?";
+    $params[] = $_GET['agent_id'];
+}
+if (!empty($_GET['city_id'])) {
+    $where_clauses[] = "(s.origin_city_id = ? OR s.destination_city_id = ?)";
+    $params[] = $_GET['city_id'];
+    $params[] = $_GET['city_id'];
+}
+if (!empty($_GET['status'])) {
+    $where_clauses[] = "s.status = ?";
+    $params[] = $_GET['status'];
+}
+
+$where_sql = implode(" AND ", $where_clauses);
+
 try {
-    $stmt = $pdo->query("
+    $stmt = $pdo->prepare("
         SELECT s.*, 
                a.company_name as agent_name, 
                c.name as customer_name, c.email as customer_email,
@@ -179,10 +210,15 @@ try {
         LEFT JOIN customers c ON s.customer_id = c.id
         LEFT JOIN cities orig ON s.origin_city_id = orig.id
         LEFT JOIN cities dest ON s.destination_city_id = dest.id
+        WHERE $where_sql
         ORDER BY s.created_at DESC
     ");
+    $stmt->execute($params);
     $shipments = $stmt->fetchAll();
 
+    // Fetch agents for filter dropdown
+    $agents = $pdo->query("SELECT id, company_name FROM agents WHERE status = 'active' ORDER BY company_name ASC")->fetchAll();
+    
     $cities = get_cities();
 } catch (PDOException $e) {
     $msg = display_alert("Error loading data: " . escape($e->getMessage()), 'danger');
@@ -212,56 +248,12 @@ try {
         </button>
 
         <!-- Main Sidebar -->
-        <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card m-3 border-0">
-            <!-- Desktop Sidebar Toggle -->
-            <div class="desktop-toggle-btn text-muted">
-                <i class="bi bi-chevron-left fs-5"></i>
-            </div>
-            <div>
-                <div class="text-center mb-4">
-                    <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
-                    <small class="text-muted">Admin Portal</small>
-                </div>
-                <ul class="nav flex-column gap-2 mt-4">
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="dashboard.php">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn btn-primary text-center text-white active"
-                            href="manage_shipments.php">
-                            <i class="bi bi-box-seam me-2"></i> Shipments
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_agents.php">
-                            <i class="bi bi-building me-2"></i> Agents
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="company_requests.php">
-                            <i class="bi bi-person-lines-fill me-2"></i> Requests
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="reports.php">
-                            <i class="bi bi-graph-up me-2"></i> Reports
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
-                <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-                    <span class="text-muted small fw-bold">Dark Mode</span>
-                    <label class="theme-switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <a href="../auth/logout.php" class="btn neumorphic-btn btn-danger w-100 fw-bold">Logout</a>
-            </div>
-        </nav>
+        <?php 
+        $role = 'admin';
+        $active_page = 'manage_shipments.php';
+        require_once '../includes/sidebar.php'; 
+        ?>
+
 
         <!-- Main Content -->
         <main class="main-content">
@@ -274,6 +266,63 @@ try {
             </div>
 
             <?= $msg ?>
+
+            <!-- Filters Section -->
+            <div class="neumorphic-card p-4 mb-4">
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">From Date</label>
+                        <input type="date" name="date_from" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_from'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">To Date</label>
+                        <input type="date" name="date_to" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_to'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">Agent</label>
+                        <select name="agent_id" class="form-select neumorphic-input py-2">
+                            <option value="">All Agents</option>
+                            <?php foreach ($agents as $ag): ?>
+                                <option value="<?= $ag['id'] ?>" <?= (isset($_GET['agent_id']) && $_GET['agent_id'] == $ag['id']) ? 'selected' : '' ?>>
+                                    <?= escape($ag['company_name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">City</label>
+                        <select name="city_id" class="form-select neumorphic-input py-2">
+                            <option value="">All Cities</option>
+                            <?php foreach ($cities as $ct): ?>
+                                <option value="<?= $ct['id'] ?>" <?= (isset($_GET['city_id']) && $_GET['city_id'] == $ct['id']) ? 'selected' : '' ?>>
+                                    <?= escape($ct['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">Status</label>
+                        <select name="status" class="form-select neumorphic-input py-2">
+                            <option value="">All Statuses</option>
+                            <option value="Pending" <?= ($_GET['status'] ?? '') == 'Pending' ? 'selected' : '' ?>>Pending</option>
+                            <option value="Picked Up" <?= ($_GET['status'] ?? '') == 'Picked Up' ? 'selected' : '' ?>>Picked Up</option>
+                            <option value="In Transit" <?= ($_GET['status'] ?? '') == 'In Transit' ? 'selected' : '' ?>>In Transit</option>
+                            <option value="Out For Delivery" <?= ($_GET['status'] ?? '') == 'Out For Delivery' ? 'selected' : '' ?>>Out For Delivery</option>
+                            <option value="Delivered" <?= ($_GET['status'] ?? '') == 'Delivered' ? 'selected' : '' ?>>Delivered</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary neumorphic-btn flex-grow-1"><i class="bi bi-filter"></i> Filter</button>
+                        <a href="manage_shipments.php" class="btn btn-secondary neumorphic-btn"><i class="bi bi-arrow-clockwise"></i></a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="d-flex justify-content-end mb-3">
+                <a href="../includes/export_excel.php?<?= http_build_query($_GET) ?>" class="btn btn-success neumorphic-btn fw-bold">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Export to Excel
+                </a>
+            </div>
 
             <div class="neumorphic-card p-4">
                 <div class="table-responsive">
@@ -508,9 +557,12 @@ try {
                                             class="form-control neumorphic-input py-2" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small">Price/Fee ($)</label>
-                                        <input type="number" step="0.01" name="price"
-                                            class="form-control neumorphic-input py-2" required>
+                                        <label class="form-label small">Shipping Fee (PKR)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text border-0 bg-transparent text-muted small fw-bold">Rs.</span>
+                                            <input type="text" name="price" id="admin_price_display"
+                                                class="form-control neumorphic-input py-2" required readonly placeholder="Auto-calculated">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -528,6 +580,57 @@ try {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script>
+        // Auto-pricing logic for Admin Modal
+        const coords = {
+            'Karachi': [24.86, 67.00], 'Lahore': [31.52, 74.35], 'Islamabad': [33.68, 73.04],
+            'Rawalpindi': [33.56, 73.01], 'Faisalabad': [31.45, 73.13], 'Multan': [30.15, 71.52],
+            'Peshawar': [34.01, 71.52], 'Quetta': [30.17, 66.97], 'Hyderabad': [25.39, 68.37],
+            'Sialkot': [32.49, 74.52], 'Gujranwala': [32.18, 74.19], 'Bahawalpur': [29.35, 71.69]
+        };
+
+        function calculateAdminPrice() {
+            const modal = document.querySelector('#createShipmentModal');
+            const originEl = modal.querySelector('select[name="origin_city_id"] option:checked');
+            const destEl = modal.querySelector('select[name="destination_city_id"] option:checked');
+            const weightEl = modal.querySelector('input[name="weight"]');
+            const priceOut = modal.querySelector('#admin_price_display');
+            
+            if(!originEl || !destEl || !weightEl || !priceOut) return;
+
+            const origin = originEl.text.split(',')[0].trim();
+            const dest = destEl.text.split(',')[0].trim();
+            const weight = parseFloat(weightEl.value) || 0;
+            
+            if(!origin || !dest || weight <= 0) {
+                priceOut.value = '';
+                return;
+            }
+
+            let distance = 100;
+            if(coords[origin] && coords[dest]) {
+                const lat1 = coords[origin][0], lon1 = coords[origin][1];
+                const lat2 = coords[dest][0], lon2 = coords[dest][1];
+                const R = 6371;
+                const dLat = (lat2-lat1) * Math.PI / 180;
+                const dLon = (lon2-lon1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                        Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                distance = R * c;
+            }
+
+            const base = 150, rWeight = 80, rDist = 0.5;
+            const total = base + (weight * rWeight) + (distance * rDist);
+            priceOut.value = total.toFixed(2);
+        }
+
+        document.querySelectorAll('#createShipmentModal select, #createShipmentModal input[name="weight"]').forEach(el => {
+            el.addEventListener('change', calculateAdminPrice);
+            el.addEventListener('input', calculateAdminPrice);
+        });
+    </script>
 </body>
 
 </html>

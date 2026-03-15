@@ -6,6 +6,7 @@ require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 require_once '../includes/auth.php';
+require_once '../includes/mailer.php';
 
 // Secure the route
 require_role('agent');
@@ -33,7 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $origin_city = (int) $_POST['origin_city_id'];
         $dest_city = (int) $_POST['destination_city_id'];
         $weight = (float) $_POST['weight'];
-        $price = (float) $_POST['price'];
+        
+        // Use auto-calculated price server-side for integrity
+        $price = calculate_shipment_price($origin_city, $dest_city, $weight);
 
         try {
             $pdo->beginTransaction();
@@ -45,22 +48,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($customer) {
                 $customer_id = $customer['id'];
+                $is_new_customer = false;
             } else {
                 // Auto-generate password for new customer
-                $plain_pass = substr(md5(uniqid()), 0, 8);
-                $temp_password = hash_password($plain_pass);
+                $temp_password = strtolower(str_replace(' ', '', $customer_name)) . rand(100, 999);
+                $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
 
                 $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, password_hash) VALUES (:name, :email, :phone, :pass)");
-                $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $temp_password]);
+                $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $hashed_password]);
                 $customer_id = $pdo->lastInsertId();
-
-                // TODO: Send Email via PHPMailer with $plain_pass
+                $is_new_customer = true;
             }
 
             // 2. Generate Tracking
             $tracking_number = generate_tracking_number();
 
-            // 3. Create Shipment linked to AGENT
+            // 3. Trigger Email
+            if ($is_new_customer) {
+                send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
+            } else {
+                send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
+            }
+
+            // 4. Create Shipment linked to AGENT
             $stmt = $pdo->prepare("
                 INSERT INTO shipments 
                 (tracking_number, agent_id, customer_id, origin_city_id, destination_city_id, recipient_name, recipient_phone, recipient_address, weight, price, status) 
@@ -80,18 +90,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             $shipment_id = $pdo->lastInsertId();
 
-            // 4. Create Initial Status History
+            // 5. Create Initial Status History
             $stmt = $pdo->prepare("INSERT INTO shipment_status_history (shipment_id, status, remarks, changed_by_role, changed_by_id) VALUES (?, ?, ?, ?, ?)");
             $stmt->execute([$shipment_id, 'Pending', 'Shipment Created by Agent', 'agent', $agent_id]);
 
             $pdo->commit();
-            $msg = display_alert("Shipment ($tracking_number) created successfully.", "success");
+            $msg = display_alert("Shipment ($tracking_number) created successfully. Price calculated: " . format_currency($price), "success");
 
             // Clear selections but keep msg
             $_POST = array();
 
         } catch (PDOException $e) {
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) $pdo->rollBack();
             $msg = display_alert("Failed to create shipment: " . escape($e->getMessage()), "danger");
         }
     }
@@ -114,50 +124,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="admin-wrapper">
         <!-- Sidebar -->
-        <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card m-3 border-0">
-            <div>
-                <div class="text-center mb-4">
-                    <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
-                    <small class="text-muted">Agent Portal</small>
-                </div>
+        <?php 
+        $role = 'agent';
+        $active_page = 'create_shipment.php';
+        require_once '../includes/sidebar.php'; 
+        ?>
 
-                <div class="text-center mt-3 mb-4">
-                    <span class="badge rounded-pill bg-primary px-3 py-2 fw-medium text-uppercase shadow-sm">
-                        <i class="bi bi-building me-1"></i>
-                        <?= escape($company_name) ?>
-                    </span>
-                </div>
-
-                <ul class="nav flex-column gap-2 mt-4">
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="dashboard.php">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn btn-primary text-center text-white active"
-                            href="create_shipment.php">
-                            <i class="bi bi-plus-circle me-2"></i> New Shipment
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_shipments.php">
-                            <i class="bi bi-box-seam me-2"></i> Manage Shipments
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
-                <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-                    <span class="text-muted small fw-bold">Dark Mode</span>
-                    <label class="theme-switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <a href="../auth/logout.php" class="btn neumorphic-btn btn-danger w-100 fw-bold">Logout</a>
-            </div>
-        </nav>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -258,13 +230,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small fw-bold">Shipping Fee ($)</label>
+                                    <label class="form-label small fw-bold">Shipping Fee (PKR)</label>
                                     <div class="input-group neumorphic-inset p-0 overflow-hidden"
                                         style="border-radius: var(--border-radius-input);">
                                         <span
-                                            class="input-group-text border-0 bg-transparent fw-bold text-muted">$</span>
-                                        <input type="number" step="0.01" name="price"
-                                            class="form-control border-0 bg-transparent shadow-none" required
+                                            class="input-group-text border-0 bg-transparent fw-bold text-muted">Rs.</span>
+                                        <input type="text" name="price" id="price_display"
+                                            class="form-control border-0 bg-transparent shadow-none" readonly
+                                            placeholder="Auto-calculated"
                                             value="<?= escape($_POST['price'] ?? '') ?>">
                                     </div>
                                 </div>
@@ -284,6 +257,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/main.js"></script>
+    <script>
+        const coords = {
+            'Karachi': [24.86, 67.00], 'Lahore': [31.52, 74.35], 'Islamabad': [33.68, 73.04],
+            'Rawalpindi': [33.56, 73.01], 'Faisalabad': [31.45, 73.13], 'Multan': [30.15, 71.52],
+            'Peshawar': [34.01, 71.52], 'Quetta': [30.17, 66.97], 'Hyderabad': [25.39, 68.37],
+            'Sialkot': [32.49, 74.52], 'Gujranwala': [32.18, 74.19], 'Bahawalpur': [29.35, 71.69]
+        };
+
+        function calculatePrice() {
+            const originEl = document.querySelector('select[name="origin_city_id"] option:checked');
+            const destEl = document.querySelector('select[name="destination_city_id"] option:checked');
+            const weightEl = document.querySelector('input[name="weight"]');
+            
+            if(!originEl || !destEl || !weightEl) return;
+
+            const origin = originEl.text.split(',')[0].trim();
+            const dest = destEl.text.split(',')[0].trim();
+            const weight = parseFloat(weightEl.value) || 0;
+            
+            if(!origin || !dest || weight <= 0) {
+                document.getElementById('price_display').value = '';
+                return;
+            }
+
+            let distance = 100;
+            if(coords[origin] && coords[dest]) {
+                const lat1 = coords[origin][0], lon1 = coords[origin][1];
+                const lat2 = coords[dest][0], lon2 = coords[dest][1];
+                const R = 6371;
+                const dLat = (lat2-lat1) * Math.PI / 180;
+                const dLon = (lon2-lon1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                        Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                distance = R * c;
+            }
+
+            const base = 150, rWeight = 80, rDist = 0.5;
+            const total = base + (weight * rWeight) + (distance * rDist);
+            document.getElementById('price_display').value = total.toFixed(2);
+        }
+
+        document.querySelectorAll('select[name="origin_city_id"], select[name="destination_city_id"], input[name="weight"]').forEach(el => {
+            el.addEventListener('change', calculatePrice);
+            el.addEventListener('keyup', calculatePrice);
+            el.addEventListener('input', calculatePrice);
+        });
+    </script>
 </body>
+
 
 </html>

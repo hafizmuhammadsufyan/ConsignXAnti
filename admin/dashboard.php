@@ -12,6 +12,8 @@ require_role('admin');
 $admin_id = current_user_id();
 $admin_name = $_SESSION['user_name'];
 
+
+
 // Fetch KPIs
 try {
     // Total Revenue (From delivered shipments or generally recorded)
@@ -112,6 +114,8 @@ try {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/neumorphism.css">
+    <!-- ApexCharts JS -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 
 <body class="neumorphic-bg">
@@ -123,61 +127,12 @@ try {
         </button>
 
         <!-- Main Sidebar Navigation -->
-        <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card m-3 border-0">
-            <!-- Desktop Sidebar Toggle -->
-            <div class="desktop-toggle-btn text-muted">
-                <i class="bi bi-chevron-left fs-5"></i>
-            </div>
-            <div>
-                <div class="text-center mb-4">
-                    <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
-                    <small class="text-muted">Admin Portal</small>
-                </div>
+        <?php 
+        $role = 'admin';
+        $active_page = 'dashboard.php';
+        require_once '../includes/sidebar.php'; 
+        ?>
 
-                <ul class="nav flex-column gap-2 mt-4">
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn btn-primary text-center text-white active"
-                            href="dashboard.php">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_shipments.php">
-                            <i class="bi bi-box-seam me-2"></i> Shipments
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_agents.php">
-                            <i class="bi bi-building me-2"></i> Agents
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="company_requests.php">
-                            <i class="bi bi-person-lines-fill me-2"></i> Requests
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="reports.php">
-                            <i class="bi bi-graph-up me-2"></i> Reports
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Bottom Controls -->
-            <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
-                <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-                    <span class="text-muted small fw-bold">Dark Mode</span>
-                    <label class="theme-switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <a href="../auth/logout.php" class="btn neumorphic-btn btn-danger w-100 fw-bold">
-                    <i class="bi bi-box-arrow-right me-2"></i> Logout
-                </a>
-            </div>
-        </nav>
 
         <!-- Main Content Area -->
         <main class="main-content">
@@ -240,25 +195,19 @@ try {
                 <div class="col-md-6">
                     <div class="neumorphic-card p-4">
                         <h5 class="fw-bold mb-4">Shipments Overview (Monthly)</h5>
-                        <div style="height: 250px;">
-                            <canvas id="shipmentsChart"></canvas>
-                        </div>
+                        <div id="shipmentsChart" style="min-height: 250px; width:100%;"></div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="neumorphic-card p-4">
                         <h5 class="fw-bold mb-4">Revenue Overview (Monthly)</h5>
-                        <div style="height: 250px;">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
+                        <div id="revenueChart" style="min-height: 250px; width:100%;"></div>
                     </div>
                 </div>
                 <div class="col-12 mt-4">
                     <div class="neumorphic-card p-4">
                         <h5 class="fw-bold mb-4">Shipments Comparison (Total, Delivered, Pending, In Transit)</h5>
-                        <div style="height: 250px;">
-                            <canvas id="compChart"></canvas>
-                        </div>
+                        <div id="compChart" style="min-height: 250px; width:100%;"></div>
                     </div>
                 </div>
             </div>
@@ -330,89 +279,77 @@ try {
 
         </main>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const ctxP = document.getElementById('shipmentsChart')?.getContext('2d');
-        const ctxR = document.getElementById('revenueChart')?.getContext('2d');
-        const ctxC = document.getElementById('compChart')?.getContext('2d');
+        document.addEventListener("DOMContentLoaded", function () {
+            const chartOptions = {
+                chart: {
+                    height: 300,
+                    type: 'area',
+                    toolbar: { show: false },
+                    zoom: { enabled: false },
+                    fontFamily: 'inherit'
+                },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 3 },
+                grid: {
+                    borderColor: 'rgba(0,0,0,0.05)',
+                    xaxis: { lines: { show: true } }
+                },
+                markers: { size: 4 },
+                xaxis: {
+                    categories: <?= json_encode($chart_labels) ?>,
+                    axisBorder: { show: false },
+                    axisTicks: { show: false }
+                },
+                colors: ['#0d6efd', '#198754', '#ffc107', '#0dcaf0'],
+                noData: {
+                    text: 'No data available',
+                    align: 'center',
+                    verticalAlign: 'middle',
+                    style: { fontSize: '14px' }
+                }
+            };
 
-        if(ctxC) {
-            new Chart(ctxC, {
-                type: 'line',
-                data: {
-                    labels: <?= json_encode($chart_labels) ?>,
-                    datasets: [
-                        {
-                            label: 'Total Shipments',
-                            data: <?= json_encode($chart_total) ?>,
-                            borderColor: '#0d6efd',
-                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Delivered',
-                            data: <?= json_encode($chart_delivered) ?>,
-                            borderColor: '#198754',
-                            backgroundColor: 'transparent',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Pending',
-                            data: <?= json_encode($chart_pending) ?>,
-                            borderColor: '#ffc107',
-                            backgroundColor: 'transparent',
-                            tension: 0.4
-                        },
-                        {
-                            label: 'In Transit',
-                            data: <?= json_encode($chart_transit) ?>,
-                            borderColor: '#0dcaf0',
-                            backgroundColor: 'transparent',
-                            tension: 0.4
+            // 1. Total Shipments Chart
+            new ApexCharts(document.querySelector("#shipmentsChart"), {
+                ...chartOptions,
+                series: [{
+                    name: 'Total Shipments',
+                    data: <?= json_encode($chart_total) ?>
+                }],
+                colors: ['#0d6efd']
+            }).render();
+
+            // 2. Revenue Overview Chart
+            new ApexCharts(document.querySelector("#revenueChart"), {
+                ...chartOptions,
+                series: [{
+                    name: 'Revenue (PKR)',
+                    data: <?= json_encode($rev_data) ?>
+                }],
+                colors: ['#198754'],
+                yaxis: {
+                    labels: {
+                        formatter: function (value) {
+                            return "Rs." + value.toLocaleString();
                         }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
+                    }
+                }
+            }).render();
 
-        if(ctxP) {
-            new Chart(ctxP, {
-                type: 'bar',
-                data: {
-                    labels: <?= json_encode($chart_labels) ?>,
-                    datasets: [{
-                        label: 'Total Shipments',
-                        data: <?= json_encode($chart_total) ?>,
-                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
-                        borderRadius: 5
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-
-        if(ctxR) {
-            new Chart(ctxR, {
-                type: 'line',
-                data: {
-                    labels: <?= json_encode($rev_labels) ?>,
-                    datasets: [{
-                        label: 'Monthly Revenue ($)',
-                        data: <?= json_encode($rev_data) ?>,
-                        borderColor: '#198754',
-                        backgroundColor: 'rgba(25, 135, 84, 0.2)',
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
+            // 3. Status Comparison Chart
+            new ApexCharts(document.querySelector("#compChart"), {
+                ...chartOptions,
+                series: [
+                    { name: 'Total', data: <?= json_encode($chart_total) ?> },
+                    { name: 'Delivered', data: <?= json_encode($chart_delivered) ?> },
+                    { name: 'Pending', data: <?= json_encode($chart_pending) ?> },
+                    { name: 'In Transit', data: <?= json_encode($chart_transit) ?> }
+                ]
+            }).render();
+        });
     </script>
+
     <script src="../assets/js/main.js"></script>
 </body>
 
