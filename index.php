@@ -736,7 +736,7 @@
     .hs-msg {
         position: absolute;
         left: 8%;
-        top: 40%;
+        top: 20vh;
         transform: translateY(-50%) translateY(60px);
         max-width: 700px;
         opacity: 0;

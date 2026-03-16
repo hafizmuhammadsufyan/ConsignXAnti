@@ -27,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($action === 'create_shipment') {
             // Admin created shipment (direct customer interaction or oversight)
-            $customer_name = filter_input(INPUT_POST, 'customer_name', FILTER_SANITIZE_STRING);
+            $customer_name = filter_input(INPUT_POST, 'customer_name');
             $customer_email = filter_input(INPUT_POST, 'customer_email', FILTER_SANITIZE_EMAIL);
-            $customer_phone = filter_input(INPUT_POST, 'customer_phone', FILTER_SANITIZE_STRING);
+            $customer_phone = filter_input(INPUT_POST, 'customer_phone');
 
-            $recipient_name = filter_input(INPUT_POST, 'recipient_name', FILTER_SANITIZE_STRING);
-            $recipient_phone = filter_input(INPUT_POST, 'recipient_phone', FILTER_SANITIZE_STRING);
-            $recipient_address = filter_input(INPUT_POST, 'recipient_address', FILTER_SANITIZE_STRING);
+            $recipient_name = filter_input(INPUT_POST, 'recipient_name');
+            $recipient_phone = filter_input(INPUT_POST, 'recipient_phone');
+            $recipient_address = filter_input(INPUT_POST, 'recipient_address');
 
             $origin_city = (int) $_POST['origin_city_id'];
             $dest_city = (int) $_POST['destination_city_id'];
@@ -104,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } elseif ($action === 'update_status') {
             $shipment_id = (int) $_POST['shipment_id'];
             $new_status = $_POST['new_status'];
-            $remarks = filter_input(INPUT_POST, 'remarks', FILTER_SANITIZE_STRING) ?? '';
-            $location = filter_input(INPUT_POST, 'location', FILTER_SANITIZE_STRING) ?? '';
+            $remarks = filter_input(INPUT_POST, 'remarks') ?? '';
+            $location = filter_input(INPUT_POST, 'location') ?? '';
 
             try {
                 // Check if already delivered

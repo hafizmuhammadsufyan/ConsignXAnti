@@ -27,21 +27,22 @@ try {
     $stmt->execute([$customer_id]);
     $shipments = $stmt->fetchAll();
 
-    // Calculate Active vs Delivered
-    $active = 0;
-    $delivered = 0;
+
+    // // Calculate Active vs Delivered
+    $active1 = 0;
+    $delivered1 = 0;
     foreach ($shipments as $s) {
         if ($s['status'] === 'Delivered') {
-            $delivered++;
+            $delivered1++;
         } else {
-            $active++;
+            $active1++;
         }
     }
 } catch (PDOException $e) {
     $msg = display_alert("Failed to load your shipments.", "danger");
     $shipments = [];
-    $active = 0;
-    $delivered = 0;
+    $active1 = 0;
+    $delivered1 = 0;
 }
 ?>
 <!DOCTYPE html>
@@ -66,138 +67,141 @@ try {
         </button>
 
         <!-- Sidebar Navigation -->
-        <?php 
+        <?php
         $role = 'customer';
         $active_page = 'dashboard.php';
-        require_once '../includes/sidebar.php'; 
+        require_once '../includes/sidebar.php';
         ?>
 
         <!-- Main Content Area -->
         <main class="main-content">
 
 
-    <div class="container pb-5">
-        <div class="row mb-5 align-items-center">
-            <div class="col-md-6">
-                <h2 class="fw-bold text-primary mb-1">Welcome back,
-                    <?= escape($customer_name) ?>!
-                </h2>
-                <p class="text-muted">Track and manage your incoming and outgoing shipments.</p>
-            </div>
-            <div class="col-md-6">
-                <!-- Quick Track Input -->
-                <form action="track.php" method="GET"
-                    class="d-flex glass-card p-2 rounded-pill shadow-sm"
-                    style="max-width: 450px; margin-left: auto;">
-                    <input type="text" name="id" class="form-control border-0 bg-transparent shadow-none px-3"
-                        placeholder="Enter Tracking Number (e.g. C-XXXX-XXXX)" required
-                        pattern="C-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}">
-                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-none"
-                        style="white-space: nowrap;">Track</button>
-                </form>
-            </div>
-        </div>
-
-        <?= $msg ?>
-
-        <!-- Summary Cards -->
-        <div class="row g-4 mb-5">
-            <div class="col-md-6">
-                <div class="glass-card p-4 d-flex align-items-center">
-                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-4">
-                        <i class="bi bi-box-seam fs-3"></i>
+            <div class="container pb-5">
+                <div class="row mb-5 align-items-center">
+                    <div class="col-md-6">
+                        <h2 class="fw-bold text-primary mb-1">Welcome back,
+                            <?= escape($customer_name) ?>!
+                        </h2>
+                        <p class="text-muted">Track and manage your incoming and outgoing shipments.</p>
                     </div>
-                    <div>
-                        <h3 class="fw-bold text-primary mb-0">
-                            <?= number_format($active) ?>
-                        </h3>
-                        <span class="text-muted fw-medium text-uppercase small">Active Shipments</span>
+                    <div class="col-md-6">
+                        <!-- Quick Track Input -->
+                        <form action="track.php" method="GET"
+                            class="d-flex glass-card p-2 rounded-pill shadow-sm"
+                            style="max-width: 450px; margin-left: auto;">
+                            <input type="text" name="id" class="form-control border-0 bg-transparent shadow-none px-3"
+                                placeholder="Enter Tracking Number (e.g. C-XXXX-XXXX)" required
+                                pattern="C-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-none"
+                                style="white-space: nowrap;">Track</button>
+                        </form>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="glass-card p-4 d-flex align-items-center">
-                    <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success me-4">
-                        <i class="bi bi-check-circle fs-3"></i>
+
+                <?= $msg ?>
+
+                <!-- Summary Cards -->
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-4">
+                                <i class="bi bi-box-seam fs-3"></i>
+                            </div>
+                            <div>
+                                <h3 class="fw-bold text-primary mb-0">
+                                    <?= number_format($active1) ?>
+                                </h3>
+                                <span class="text-muted fw-medium text-uppercase small">Active Shipments</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="fw-bold text-success mb-0">
-                            <?= number_format($delivered) ?>
-                        </h3>
-                        <span class="text-muted fw-medium text-uppercase small">Delivered Shipments</span>
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 d-flex align-items-center">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success me-4">
+                                <i class="bi bi-check-circle fs-3"></i>
+                            </div>
+                            <div>
+                                <h3 class="fw-bold text-success mb-0">
+                                    <?= number_format($delivered1) ?>
+                                </h3>
+                                <span class="text-muted fw-medium text-uppercase small">Delivered Shipments</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Shipment History Table -->
-        <div class="glass-card p-4 p-md-5">
-            <h5 class="fw-bold mb-4"><i class="bi bi-clock-history me-2"></i>Shipment History</h5>
+                <!-- Shipment History Table -->
+                <div class="glass-card p-4 p-md-5">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-clock-history me-2"></i>Shipment History</h5>
 
-            <div class="table-responsive">
-                <table class="table glass-table table-borderless align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>Tracking Number</th>
-                            <th>Created Date</th>
-                            <th>Origin</th>
-                            <th>Destination</th>
-                            <th>Recipient</th>
-                            <th>Status</th>
-                            <th class="text-end">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($shipments)): ?>
-                            <tr>
-                                <td colspan="7" class="text-center text-muted py-5 border-0">You don't have any shipments
-                                    linked to your account yet.</td>
-                            </tr>
-                        <?php else: ?>
-                            <?php foreach ($shipments as $ship): ?>
+                    <div class="table-responsive">
+                        <table class="table glass-table table-borderless align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <td class="fw-bold text-primary">
-                                        <?= escape($ship['tracking_number']) ?>
-                                    </td>
-                                    <td>
-                                        <?= date('M d, Y', strtotime($ship['created_at'])) ?>
-                                    </td>
-                                    <td>
-                                        <?= escape($ship['origin_city']) ?>
-                                    </td>
-                                    <td><span class="fw-medium">
-                                            <?= escape($ship['dest_city']) ?>
-                                        </span></td>
-                                    <td>
-                                        <?= escape($ship['recipient_name']) ?>
-                                    </td>
-                                    <td>
-                                        <?php
-                                        $bg = match ($ship['status']) {
-                                            'Pending' => 'bg-warning text-dark',
-                                            'Picked Up', 'In Transit', 'Out For Delivery' => 'bg-info text-white',
-                                            'Delivered' => 'bg-success text-white',
-                                            default => 'bg-secondary'
-                                        };
-                                        ?>
-                                        <span class="badge rounded-pill <?= $bg ?> px-3 py-2">
-                                            <?= escape($ship['status']) ?>
-                                        </span>
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="track.php?id=<?= urlencode($ship['tracking_number']) ?>"
-                                            class="btn btn-sm glass-btn btn-primary px-3 fw-bold">Track Details</a>
-                                    </td>
+                                    <th>Tracking Number</th>
+                                    <th>Created Date</th>
+                                    <th>Origin</th>
+                                    <th>Destination</th>
+                                    <th>Recipient</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($shipments)): ?>
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-5 border-0">You don't have any shipments
+                                            linked to your account yet.</td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($shipments as $ship): ?>
+                                        <tr>
+                                            <td class="fw-bold text-primary">
+                                                <?= escape($ship['tracking_number']) ?>
+                                            </td>
+                                            <td>
+                                                <?= date('M d, Y', strtotime($ship['created_at'])) ?>
+                                            </td>
+                                            <td>
+                                                <?= escape($ship['origin_city']) ?>
+                                            </td>
+                                            <td><span class="fw-medium">
+                                                    <?= escape($ship['dest_city']) ?>
+                                                </span></td>
+                                            <td>
+                                                <?= escape($ship['recipient_name']) ?>
+                                            </td>
+                                            <td>
+                                                <?php
+                                                $bg = match ($ship['status']) {
+                                                    'Pending' => 'bg-warning text-dark',
+                                                    'Picked Up', 'In Transit', 'Out For Delivery' => 'bg-info text-white',
+                                                    'Delivered' => 'bg-success text-white',
+                                                    default => 'bg-secondary'
+                                                };
+                                                ?>
+                                                <span class="badge rounded-pill <?= $bg ?> px-3 py-2">
+                                                    <?= escape($ship['status']) ?>
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="track.php?id=<?= urlencode($ship['tracking_number']) ?>"
+                                                    class="btn btn-sm glass-btn btn-primary px-3 fw-bold">Track Details</a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-        </div>
-    </main>
-</div>
+            </div>
+        </main>
+    </div>
+    <script src="../assets/js/main.js"></script>
+
+</body>
 
 </html>
