@@ -12,49 +12,66 @@ require_role('admin');
 $admin_name = $_SESSION['user_name'];
 $msg = '';
 
-$start_date = $_GET['start_date'] ?? date('Y-m-d', strtotime('-30 days'));
-$end_date = $_GET['end_date'] ?? date('Y-m-d');
+// 1. Calculate Date Ranges (Default 7 days)
+$end_date = !empty($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
+$start_date = !empty($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-7 days'));
 $city_filter = $_GET['city'] ?? '';
+$is_filtered = !empty($_GET['start_date']) || !empty($_GET['city']);
 
-// Build Query
-$query = "
-    SELECT s.tracking_number, s.created_at, s.status, s.weight, s.price,
-           a.company_name as agent_name, 
-           c.name as customer_name,
-           orig.name as origin_city, dest.name as dest_city
-    FROM shipments s
-    LEFT JOIN agents a ON s.agent_id = a.id
-    LEFT JOIN customers c ON s.customer_id = c.id
-    LEFT JOIN cities orig ON s.origin_city_id = orig.id
-    LEFT JOIN cities dest ON s.destination_city_id = dest.id
-    WHERE DATE(s.created_at) BETWEEN :start_date AND :end_date
-";
+// 2. AJAX Load More Logic
+$limit = 15;
+$offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
-$params = [
-    'start_date' => $start_date,
-    'end_date' => $end_date
-];
+$where = ["s.created_at BETWEEN ? AND ?"];
+$params = [$start_date . ' 00:00:00', $end_date . ' 23:59:59'];
 
 if (!empty($city_filter)) {
-    $query .= " AND (s.origin_city_id = :city OR s.destination_city_id = :city)";
-    $params['city'] = $city_filter;
+    $where[] = "(s.origin_city_id = ? OR s.destination_city_id = ?)";
+    $params[] = (int)$city_filter;
+    $params[] = (int)$city_filter;
 }
 
-$query .= " ORDER BY s.created_at DESC";
+$where_sql = implode(" AND ", $where);
 
 try {
-    $stmt = $pdo->prepare($query);
+    // We need to get all cities for the filter dropdown
+    $cities = get_cities();
+
+    $sql = "SELECT s.*, 
+                   c.name as customer_name,
+                   orig.name as origin_city, 
+                   dest.name as dest_city,
+                   a.company_name as agent_company
+            FROM shipments s
+            LEFT JOIN customers c ON s.customer_id = c.id
+            LEFT JOIN cities orig ON s.origin_city_id = orig.id
+            LEFT JOIN cities dest ON s.destination_city_id = dest.id
+            LEFT JOIN agents a ON s.agent_id = a.id
+            WHERE $where_sql
+            ORDER BY s.created_at DESC
+            LIMIT $limit OFFSET $offset";
+            
+    $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $reports = $stmt->fetchAll();
 
-    $cities = get_cities();
+    // If AJAX request, return only table rows and exit
+    if (isset($_GET['ajax'])) {
+        if (empty($reports)) {
+            exit(''); // No more data
+        }
+        foreach ($reports as $ship) {
+            include '../includes/report_row_template.php';
+        }
+        exit;
+    }
+
 } catch (PDOException $e) {
-    $msg = display_alert("Data error: " . escape($e->getMessage()), "danger");
+    $msg = display_alert("Query Error: " . $e->getMessage(), 'danger');
     $reports = [];
-    $cities = [];
 }
 
-// Handle Export to CSV (Readable by Excel as XLSX alternative natively in PHP without bloat)
+// Handle Export to CSV
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $filename = "consignx_report_" . date('Ymd') . ".csv";
 
@@ -62,15 +79,26 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     header('Content-Disposition: attachment; filename="' . $filename . '"');
 
     $output = fopen('php://output', 'w');
-    // headers
-    fputcsv($output, ['Tracking ID', 'Date', 'Customer', 'Agent', 'Origin', 'Destination', 'Weight(kg)', 'Price($)', 'Status']);
+    fputcsv($output, ['Tracking ID', 'Date', 'Customer', 'Agent', 'Origin', 'Destination', 'Weight(kg)', 'Price(PKR)', 'Status']);
 
-    foreach ($reports as $row) {
+    // For export, we fetch EVERYTHING matching filters (no limit)
+    $export_sql = "SELECT s.*, c.name as customer_name, orig.name as origin_city, dest.name as dest_city, a.company_name as agent_company
+                   FROM shipments s
+                   LEFT JOIN customers c ON s.customer_id = c.id
+                   LEFT JOIN cities orig ON s.origin_city_id = orig.id
+                   LEFT JOIN cities dest ON s.destination_city_id = dest.id
+                   LEFT JOIN agents a ON s.agent_id = a.id
+                   WHERE $where_sql
+                   ORDER BY s.created_at DESC";
+    $export_stmt = $pdo->prepare($export_sql);
+    $export_stmt->execute($params);
+    
+    while ($row = $export_stmt->fetch()) {
         fputcsv($output, [
             $row['tracking_number'],
             $row['created_at'],
             $row['customer_name'],
-            $row['agent_name'] ?? 'Admin',
+            $row['agent_company'] ?? 'Admin',
             $row['origin_city'],
             $row['dest_city'],
             $row['weight'],
@@ -81,11 +109,9 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     fclose($output);
     exit;
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -95,72 +121,31 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/neumorphism.css">
 </head>
-
 <body class="neumorphic-bg">
-
     <div class="admin-wrapper">
-        <!-- Mobile Sidebar Toggle -->
-        <button class="btn btn-primary sidebar-toggle-btn shadow-sm" type="button">
-            <i class="bi bi-list fs-4"></i>
-        </button>
+        <?php 
+        $role = 'admin';
+        $active_page = 'reports.php';
+        require_once '../includes/sidebar.php'; 
+        ?>
 
-        <!-- Main Sidebar -->
-        <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card m-3 border-0">
-            <!-- Desktop Sidebar Toggle -->
-            <div class="desktop-toggle-btn text-muted">
-                <i class="bi bi-chevron-left fs-5"></i>
-            </div>
-            <div>
-                <div class="text-center mb-4">
-                    <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
-                    <small class="text-muted">Admin Portal</small>
-                </div>
-                <ul class="nav flex-column gap-2 mt-4">
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="dashboard.php">
-                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_shipments.php">
-                            <i class="bi bi-box-seam me-2"></i> Shipments
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_agents.php">
-                            <i class="bi bi-building me-2"></i> Agents
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link neumorphic-btn btn-primary text-center text-white active" href="reports.php">
-                            <i class="bi bi-graph-up me-2"></i> Reports
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
-                <div class="d-flex justify-content-between align-items-center mb-3 px-2">
-                    <span class="text-muted small fw-bold">Dark Mode</span>
-                    <label class="theme-switch">
-                        <input type="checkbox">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-                <a href="../auth/logout.php" class="btn neumorphic-btn btn-danger w-100 fw-bold">Logout</a>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
         <main class="main-content">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold text-primary mb-0">Shipment Reports</h2>
-                <a href="?export=csv&start_date=<?= urlencode($start_date) ?>&end_date=<?= urlencode($end_date) ?>&city=<?= urlencode($city_filter) ?>"
-                    class="btn neumorphic-btn btn-success fw-bold">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Export Data
-                </a>
-            </div>
+            <?php 
+            $page_title = 'Shipment Reports';
+            require_once '../includes/top_header.php'; 
+            ?>
 
             <?= $msg ?>
+
+            <div class="d-flex justify-content-end gap-2 mb-3">
+                <a href="reports.php" class="btn btn-sm neumorphic-btn text-muted fw-bold">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Reset
+                </a>
+                <a href="?export=csv&start_date=<?= urlencode($start_date) ?>&end_date=<?= urlencode($end_date) ?>&city=<?= urlencode($city_filter) ?>"
+                    class="btn btn-sm neumorphic-btn text-success fw-bold">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Export CSV
+                </a>
+            </div>
 
             <!-- Filters -->
             <div class="neumorphic-card p-4 mb-4">
@@ -181,25 +166,28 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                             <option value="">All Cities</option>
                             <?php foreach ($cities as $city): ?>
                                 <option value="<?= $city['id'] ?>" <?= $city_filter == $city['id'] ? 'selected' : '' ?>>
-                                    <?= escape($city['name']) ?>,
-                                    <?= escape($city['state']) ?>
+                                    <?= escape($city['name']) ?>, <?= escape($city['state']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn neumorphic-btn btn-primary w-100 py-2">Generate</button>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn neumorphic-btn btn-primary flex-grow-1 py-2">Generate</button>
+                        <a href="reports.php" class="btn neumorphic-btn btn-secondary py-2" data-bs-toggle="tooltip" title="Reset Filters">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
                     </div>
                 </form>
             </div>
 
             <!-- Results Table -->
-            <div class="neumorphic-card p-4">
-                <h6 class="fw-bold mb-4">Showing
-                    <?= count($reports) ?> Results
-                </h6>
+            <div class="premium-table-container">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="fw-bold mb-0">Analysis Results</h6>
+                    <div class="small text-muted">Default: Last 7 Days</div>
+                </div>
                 <div class="table-responsive">
-                    <table class="table neumorphic-table table-borderless align-middle mb-0">
+                    <table class="premium-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -213,45 +201,68 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                         <tbody>
                             <?php if (empty($reports)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">No records found for this period.</td>
+                                    <td colspan="6" class="text-center text-muted py-5">No records found for this period.</td>
                                 </tr>
                             <?php else: ?>
-                                <?php foreach ($reports as $row): ?>
-                                    <tr>
-                                        <td class="fw-bold text-primary">
-                                            <?= escape($row['tracking_number']) ?>
-                                        </td>
-                                        <td>
-                                            <?= date('M d, Y', strtotime($row['created_at'])) ?>
-                                        </td>
-                                        <td>
-                                            <?= escape($row['customer_name']) ?>
-                                        </td>
-                                        <td>
-                                            <?= escape($row['origin_city']) ?> &rarr;
-                                            <?= escape($row['dest_city']) ?>
-                                        </td>
-                                        <td class="fw-bold">
-                                            <?= format_currency($row['price']) ?>
-                                        </td>
-                                        <td>
-                                            <span class="badge rounded-pill bg-light text-dark border">
-                                                <?= escape($row['status']) ?>
-                                            </span>
-                                        </td>
-                                    </tr>
+                                <?php foreach ($reports as $ship): ?>
+                                    <?php include '../includes/report_row_template.php'; ?>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
+
+                <?php if (count($reports) >= $limit): ?>
+                    <div class="text-center mt-5">
+                        <button id="loadMoreBtn" class="btn neumorphic-btn px-5 py-3 fw-bold text-primary">
+                            <i class="bi bi-arrow-down-circle me-2"></i> Load More Shipments
+                        </button>
+                    </div>
+                <?php endif; ?>
             </div>
 
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    let offset = <?= $limit ?>;
+                    const loadMoreBtn = document.getElementById('loadMoreBtn');
+                    const tableBody = document.querySelector('.premium-table tbody');
+
+                    if (loadMoreBtn) {
+                        loadMoreBtn.addEventListener('click', function() {
+                            const originalText = loadMoreBtn.innerHTML;
+                            loadMoreBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Loading...';
+                            loadMoreBtn.disabled = true;
+
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('ajax', '1');
+                            url.searchParams.set('offset', offset);
+
+                            fetch(url)
+                                .then(response => response.text())
+                                .then(data => {
+                                    if (data.trim() === '') {
+                                        loadMoreBtn.innerHTML = 'All Records Loaded';
+                                        loadMoreBtn.classList.add('text-muted');
+                                        loadMoreBtn.disabled = true;
+                                        return;
+                                    }
+                                    tableBody.insertAdjacentHTML('beforeend', data);
+                                    offset += <?= $limit ?>;
+                                    loadMoreBtn.innerHTML = originalText;
+                                    loadMoreBtn.disabled = false;
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                    loadMoreBtn.innerHTML = 'Error Loading More';
+                                    loadMoreBtn.disabled = false;
+                                });
+                        });
+                    }
+                });
+            </script>
         </main>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/main.js"></script>
 </body>
-
 </html>

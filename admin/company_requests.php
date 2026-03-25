@@ -154,9 +154,12 @@ try {
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold text-primary mb-0">Pending Company Requests</h2>
-            </div>
+            <header class="top-header">
+                <div>
+                    <h2 class="fw-bold text-primary mb-0">Company Requests</h2>
+                    <p class="text-muted mb-0 small">Review and approve registration requests.</p>
+                </div>
+            </header>
 
             <?= $msg ?>
 

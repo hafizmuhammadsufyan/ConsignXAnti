@@ -11,8 +11,9 @@
 
     /* Neumorphic Shadows (Light) */
     --shadow-light-up: 9px 9px 16px rgba(163, 177, 198, 0.6), -9px -9px 16px rgba(255, 255, 255, 0.5);
-    --shadow-light-in: inset 6px 6px 10px rgba(163, 177, 198, 0.6), inset -6px -6px 10px rgba(255, 255, 255, 0.5);
+    --shadow-light-in: inset 6px 6px 12px rgba(163, 177, 198, 0.5), inset -6px -6px 12px rgba(255, 255, 255, 0.8);
     --shadow-hover: 4px 4px 8px rgba(163, 177, 198, 0.6), -4px -4px 8px rgba(255, 255, 255, 0.5);
+    --placeholder-color: rgba(0, 0, 0, 0.4);
 
     /* Border/Input Constants */
     --border-radius-card: 20px;
@@ -30,8 +31,9 @@
 
     /* Neumorphic Shadows (Dark) */
     --shadow-light-up: 7px 7px 15px rgba(0, 0, 0, 0.4), -7px -7px 15px rgba(45, 55, 72, 0.6);
-    --shadow-light-in: inset 5px 5px 10px rgba(0, 0, 0, 0.4), inset -5px -5px 10px rgba(45, 55, 72, 0.6);
+    --shadow-light-in: inset 6px 6px 14px rgba(0, 0, 0, 0.6), inset -6px -6px 14px rgba(45, 55, 72, 0.6);
     --shadow-hover: 3px 3px 8px rgba(0, 0, 0, 0.4), -3px -3px 8px rgba(45, 55, 72, 0.6);
+    --placeholder-color: rgba(255, 255, 255, 0.45);
 }
 
 body {
@@ -71,6 +73,8 @@ body {
 .btn-primary {
     background-color: var(--primary-color);
     border: none;
+    padding: 10px 24px;
+    border-radius: var(--border-radius-btn);
 }
 
 .btn-primary:hover {
@@ -166,6 +170,41 @@ body {
     min-height: 100vh;
     padding-top: 5rem;
     /* Space for the toggle button */
+}
+
+/* Premium Top Header */
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    background: var(--bg-color);
+    border-radius: var(--border-radius-card);
+    box-shadow: var(--shadow-light-up);
+    margin-bottom: 2.5rem;
+    position: sticky;
+    top: 1rem;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.top-header h2 {
+    font-size: 1.75rem;
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.5px;
+}
+
+.top-header .btn {
+    transition: all 0.3s ease;
+}
+
+.top-header .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+}
+
+[data-theme="dark"] .top-header {
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* New Login Layout (Neumorphic & Centered) */
@@ -384,6 +423,17 @@ a:hover {
     color: #fff;
 }
 
+.status-returned {
+    background-color: #ffc107; /* Amber */
+    color: #212529;
+}
+
+.status-cancelled {
+    background-color: #dc3545; /* Red */
+    color:
+     #fff;
+}
+
 /* Utilities */
 .fw-medium {
     font-weight: 500;
@@ -391,4 +441,42 @@ a:hover {
 
 .cursor-pointer {
     cursor: pointer;
+}
+
+/* Dark Mode Polish */
+[data-theme="dark"] .dropdown-menu {
+    background-color: var(--bg-color);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .neumorphic-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .apexcharts-text tspan,
+[data-theme="dark"] .apexcharts-legend-text,
+[data-theme="dark"] .apexcharts-xaxis-label,
+[data-theme="dark"] .apexcharts-yaxis-label {
+    fill: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .apexcharts-tooltip {
+    background: var(--bg-color) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--primary-color) !important;
+}
+
+[data-theme="dark"] .badge.bg-primary-subtle {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+    color: #6ea8fe !important;
+    border-color: rgba(13, 110, 253, 0.2) !important;
 }

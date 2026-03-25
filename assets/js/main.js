@@ -113,4 +113,61 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 7. Global Table Search Utility
+    const initSearch = (inputId, tableId) => {
+        const input = document.getElementById(inputId);
+        const table = document.getElementById(tableId);
+        if (input && table) {
+            input.addEventListener('keyup', function() {
+                const filter = input.value.toLowerCase();
+                const rows = table.getElementsByTagName('tr');
+                for (let i = 1; i < rows.length; i++) {
+                    let found = false;
+                    const cells = rows[i].getElementsByTagName('td');
+                    for (let j = 0; j < cells.length; j++) {
+                        if (cells[j]) {
+                            const textValue = cells[j].textContent || cells[j].innerText;
+                            if (textValue.toLowerCase().indexOf(filter) > -1) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    rows[i].style.display = found ? "" : "none";
+                }
+            });
+        }
+    };
+
+    initSearch('shipmentSearch', 'recentShipmentsTable');
+    initSearch('agentSearch', 'agentsTable');
+
+    // 8. Advanced Dashboard Filters Handler (REMOVED: Handled per-dashboard via AJAX)
+    /* 
+    const applyFiltersBtn = document.getElementById('applyAdvancedFilters');
+    ...
+    */
+
+    // 9. Sync placeholders for Neumorphic Inputs in Dark Mode
+    const updateInputStyle = (theme) => {
+        const inputs = document.querySelectorAll('.neumorphic-input');
+        inputs.forEach(input => {
+            if (theme === 'dark') {
+                input.style.setProperty('--placeholder-color', 'rgba(255,255,255,0.3)');
+            } else {
+                input.style.setProperty('--placeholder-color', 'rgba(0,0,0,0.4)');
+            }
+        });
+    };
+    updateInputStyle(currentTheme);
+
+    // 8. ApexCharts Theme Sync (Force refresh charts on theme change if they exist)
+    if (toggleSwitch) {
+        toggleSwitch.addEventListener('change', () => {
+            // ApexCharts often needs a small delay or explicit update for theme changes 
+            // if handled purely via CSS. Most modern charts react to CSS vars if defined.
+            // We'll also use CSS injection for chart labels in style.css
+        });
+    }
+
 });

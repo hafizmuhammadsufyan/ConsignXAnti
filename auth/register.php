@@ -17,11 +17,10 @@ $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Collect and sanitize inputs
-    $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-    $company_name = filter_input(INPUT_POST, 'company_name', FILTER_SANITIZE_STRING);
+    $name = trim($_POST['name'] ?? '');
+    $company_name = trim($_POST['company_name'] ?? '');
     $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-    $phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_STRING);
-    $phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_STRING);
+    $phone = trim($_POST['phone'] ?? '');
     $csrf = $_POST['csrf_token'] ?? '';
 
     // Validate inputs
@@ -42,8 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->fetch()) {
             $error = "An account with this email already exists.";
         } else {
-            // Hash password and insert agent
-            $hash = hash_password($password);
+
 
             try {
                 // Insert into company_requests instead of agents directly

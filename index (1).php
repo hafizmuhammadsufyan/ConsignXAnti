@@ -12,6 +12,11 @@ if ($is_logged_in) {
     elseif ($user_role === 'agent') $dashboard_link = 'agent/dashboard.php';
     elseif ($user_role === 'customer') $dashboard_link = 'customer/dashboard.php';
 }
+
+
+// searching shipments by tracking ID in dashboards / panels
+// dark theme visibility proper set
+// tracking page functionality of backing and showing shipments
 ?>
 <!DOCTYPE html>
 <html lang="en">

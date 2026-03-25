@@ -5,6 +5,7 @@ require_once '../includes/config.php';
 require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
+require_once '../includes/auth.php';
 
 // Secure the route
 if (!is_logged_in()) {
@@ -23,6 +24,9 @@ elseif ($role === 'customer') $table = 'customers';
 
 // Fetch current details
 try {
+    // Migration: ensure profile_image column exists
+    $pdo->exec("ALTER TABLE $table ADD COLUMN IF NOT EXISTS profile_image VARCHAR(255) DEFAULT NULL");
+    
     $stmt = $pdo->prepare("SELECT * FROM $table WHERE id = ?");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch();
@@ -35,60 +39,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validate_csrf_token($csrf)) {
         $msg = display_alert("Invalid security token.", "danger");
     } else {
-        $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-        $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
-        $phone = filter_input(INPUT_POST, 'phone', FILTER_SANITIZE_STRING);
-        $new_password = $_POST['new_password'] ?? '';
-        
-        try {
-            // Check email uniqueness
-            $checkStmt = $pdo->prepare("SELECT id FROM $table WHERE email = ? AND id != ?");
-            $checkStmt->execute([$email, $user_id]);
-            if ($checkStmt->fetch()) {
-                throw new Exception("Email address is already in use by another account.");
+        // Handle Image Removal
+        if (isset($_POST['remove_image'])) {
+            try {
+                if (!empty($user['profile_image'])) {
+                    $old_path = '../assets/uploads/profiles/' . $user['profile_image'];
+                    if (file_exists($old_path)) unlink($old_path);
+                }
+                $stmt = $pdo->prepare("UPDATE $table SET profile_image = NULL WHERE id = ?");
+                $stmt->execute([$user_id]);
+                $msg = display_alert("Profile image removed.", "success");
+            } catch (Exception $e) {
+                $msg = display_alert($e->getMessage(), "danger");
             }
+        } else {
+            $name = filter_input(INPUT_POST, 'name');
+            $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+            $phone = filter_input(INPUT_POST, 'phone');
+            $new_password = $_POST['new_password'] ?? '';
+            
+            try {
+                // Handle Image Upload
+                $profile_image = $user['profile_image'];
+                if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
+                    $upload_dir = '../assets/uploads/profiles/';
+                    if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
 
-            $update_fields = [];
-            $params = [];
+                    $ext = pathinfo($_FILES['profile_image']['name'], PATHINFO_EXTENSION);
+                    $filename = uniqid('profile_') . '.' . $ext;
+                    $target = $upload_dir . $filename;
 
-            if ($role === 'admin') {
-                $update_fields[] = "username = ?";
-                $params[] = $name; // Admin uses username field for 'name'
-            } else {
-                $update_fields[] = "name = ?";
-                $params[] = $name;
-                $update_fields[] = "phone = ?";
-                $params[] = $phone;
+                    if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $target)) {
+                        // Delete old image
+                        if (!empty($profile_image)) {
+                            $old_path = $upload_dir . $profile_image;
+                            if (file_exists($old_path)) unlink($old_path);
+                        }
+                        $profile_image = $filename;
+                    }
+                }
+
+                // Check email uniqueness
+                $checkStmt = $pdo->prepare("SELECT id FROM $table WHERE email = ? AND id != ?");
+                $checkStmt->execute([$email, $user_id]);
+                if ($checkStmt->fetch()) {
+                    throw new Exception("Email address is already in use by another account.");
+                }
+
+                $update_fields = [];
+                $params = [];
+
+                if ($role === 'admin') {
+                    $update_fields[] = "username = ?";
+                    $params[] = $name;
+                } else {
+                    $update_fields[] = "name = ?";
+                    $params[] = $name;
+                    $update_fields[] = "phone = ?";
+                    $params[] = $phone;
+                }
+
+                $update_fields[] = "email = ?";
+                $params[] = $email;
+
+                $update_fields[] = "profile_image = ?";
+                $params[] = $profile_image;
+
+                if (!empty($new_password)) {
+                    $update_fields[] = "password_hash = ?";
+                    $params[] = password_hash($new_password, PASSWORD_DEFAULT);
+                }
+
+                $params[] = $user_id;
+                $fields_sql = implode(", ", $update_fields);
+                
+                $stmt = $pdo->prepare("UPDATE $table SET $fields_sql WHERE id = ?");
+                $stmt->execute($params);
+
+                // Update session
+                $_SESSION['user_name'] = $name;
+
+                $msg = display_alert("Profile updated successfully.", "success");
+            } catch (Exception $e) {
+                $msg = display_alert($e->getMessage(), "danger");
             }
-
-            $update_fields[] = "email = ?";
-            $params[] = $email;
-
-            if (!empty($new_password)) {
-                $update_fields[] = "password_hash = ?";
-                $params[] = password_hash($new_password, PASSWORD_DEFAULT);
-            }
-
-            $params[] = $user_id;
-            $fields_sql = implode(", ", $update_fields);
-            
-            $stmt = $pdo->prepare("UPDATE $table SET $fields_sql WHERE id = ?");
-            $stmt->execute($params);
-
-            // Update session if needed
-            if ($role === 'admin') $_SESSION['user_name'] = $name;
-            else $_SESSION['user_name'] = $name;
-
-            $msg = display_alert("Profile updated successfully.", "success");
-            
-            // Refresh local user data
-            $stmt = $pdo->prepare("SELECT * FROM $table WHERE id = ?");
-            $stmt->execute([$user_id]);
-            $user = $stmt->fetch();
-            
-        } catch (Exception $e) {
-            $msg = display_alert($e->getMessage(), "danger");
         }
+        
+        // Refresh local user data
+        $stmt = $pdo->prepare("SELECT * FROM $table WHERE id = ?");
+        $stmt->execute([$user_id]);
+        $user = $stmt->fetch();
     }
 }
 
@@ -108,12 +148,9 @@ $back_link = ($role === 'admin') ? '../admin/dashboard.php' : (($role === 'agent
 </head>
 <body class="neumorphic-bg">
     <div class="admin-wrapper">
-        <button class="btn btn-primary sidebar-toggle-btn shadow-sm" type="button">
-            <i class="bi bi-list fs-4"></i>
-        </button>
-
         <?php 
         $active_page = 'profile.php';
+        $is_shared = true;
         require_once '../includes/sidebar.php'; 
         ?>
 
@@ -129,8 +166,38 @@ $back_link = ($role === 'admin') ? '../admin/dashboard.php' : (($role === 'agent
                         <?= $msg ?>
 
                         <div class="neumorphic-card p-4 p-md-5">
-                            <form method="POST">
+                            <form method="POST" enctype="multipart/form-data">
                                 <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
+                                
+                                <div class="row g-4 align-items-center mb-5">
+                                    <div class="col-md-4 text-center">
+                                        <div class="profile-img-wrapper mx-auto mb-3" style="width: 150px; height: 150px;">
+                                            <?php if (!empty($user['profile_image'])): ?>
+                                                <img src="../assets/uploads/profiles/<?= escape($user['profile_image']) ?>" 
+                                                     alt="Profile" class="w-100 h-100 object-fit-cover rounded-circle shadow-sm border border-3 border-white">
+                                            <?php else: ?>
+                                                <div class="w-100 h-100 rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary border border-3 border-white shadow-sm">
+                                                    <i class="bi bi-person fs-1"></i>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        <label class="btn btn-sm neumorphic-btn btn-outline-primary fw-bold">
+                                            <i class="bi bi-camera me-1"></i> Change Photo
+                                            <input type="file" name="profile_image" class="d-none" accept="image/*" onchange="this.form.submit()">
+                                        </label>
+                                        <?php if (!empty($user['profile_image'])): ?>
+                                            <button type="submit" name="remove_image" class="btn btn-sm text-danger border-0 bg-transparent fw-bold d-block mx-auto mt-2 p-0 h-auto w-auto shadow-none">
+                                                <i class="bi bi-trash me-1"></i> Remove
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="ps-md-4">
+                                            <h4 class="fw-bold mb-1"><?= escape($user['username'] ?? $user['name']) ?></h4>
+                                            <p class="text-muted mb-0 small text-uppercase fw-bold letter-spacing-1"><?= ucfirst($role) ?> Account</p>
+                                        </div>
+                                    </div>
+                                </div>
                                 
                                 <div class="row g-4">
                                     <div class="col-md-6">

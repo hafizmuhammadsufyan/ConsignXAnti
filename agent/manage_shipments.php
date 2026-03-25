@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if (validate_csrf_token($csrf)) {
         $shipment_id = (int) $_POST['shipment_id'];
         $new_status = $_POST['new_status'];
-        $location = filter_input(INPUT_POST, 'location', FILTER_SANITIZE_STRING) ?? '';
-        $remarks = filter_input(INPUT_POST, 'remarks', FILTER_SANITIZE_STRING) ?? '';
+        $location = trim($_POST['location'] ?? '');
+        $remarks = trim($_POST['remarks'] ?? '');
 
         try {
             // Verify ownership first
@@ -84,20 +84,34 @@ if (!empty($_GET['status'])) {
 
 $where_sql = implode(" AND ", $where_clauses);
 
+// AJAX Load More Logic
+$limit = 15;
+$offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+
 try {
-    $stmt = $pdo->prepare("
-        SELECT s.*, 
-               c.name as customer_name, c.email as customer_email,
-               orig.name as origin_city, dest.name as dest_city
-        FROM shipments s
-        LEFT JOIN customers c ON s.customer_id = c.id
-        LEFT JOIN cities orig ON s.origin_city_id = orig.id
-        LEFT JOIN cities dest ON s.destination_city_id = dest.id
-        WHERE $where_sql
-        ORDER BY s.created_at DESC
-    ");
+    $sql = "SELECT s.*, 
+                   c.name as customer_name, c.email as customer_email,
+                   orig.name as origin_city, dest.name as dest_city
+            FROM shipments s
+            LEFT JOIN customers c ON s.customer_id = c.id
+            LEFT JOIN cities orig ON s.origin_city_id = orig.id
+            LEFT JOIN cities dest ON s.destination_city_id = dest.id
+            WHERE $where_sql
+            ORDER BY s.created_at DESC
+            LIMIT $limit OFFSET $offset";
+            
+    $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $shipments = $stmt->fetchAll();
+
+    // AJAX Response
+    if (isset($_GET['ajax'])) {
+        if (empty($shipments)) exit('');
+        foreach ($shipments as $ship) {
+            include '../includes/agent_shipment_row_template.php';
+        }
+        exit;
+    }
     
     $cities = get_cities();
 } catch (PDOException $e) {
@@ -132,12 +146,15 @@ try {
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold text-primary mb-0">Manage Your Shipments</h2>
+            <header class="top-header">
+                <div>
+                    <h2 class="fw-bold text-primary mb-0">Manage Your Shipments</h2>
+                    <p class="text-muted mb-0 small">Track and update processed packages.</p>
+                </div>
                 <a href="create_shipment.php" class="btn neumorphic-btn btn-primary fw-bold">
                     <i class="bi bi-plus-lg me-1"></i> New Shipment
                 </a>
-            </div>
+            </header>
 
             <?= $msg ?>
 
@@ -187,13 +204,12 @@ try {
                 </a>
             </div>
 
-            <div class="neumorphic-card p-4">
+            <div class="premium-table-container">
                 <div class="table-responsive">
-                    <table class="table neumorphic-table table-borderless align-middle mb-0">
+                    <table class="premium-table">
                         <thead>
                             <tr>
-                                <th>Tracking ID</th>
-                                <th>Date</th>
+                                <th>Tracking ID <br> Date</th>
                                 <th>Customer</th>
                                 <th>Route</th>
                                 <th>Status</th>
@@ -203,93 +219,65 @@ try {
                         <tbody>
                             <?php if (empty($shipments)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">No shipments found.</td>
+                                    <td colspan="6" class="text-center text-muted py-5">No shipments found.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($shipments as $ship): ?>
-                                    <tr>
-                                        <td class="fw-bold text-primary">
-                                            <?= escape($ship['tracking_number']) ?>
-                                        </td>
-                                        <td><small class="text-muted">
-                                                <?= date('M d, Y', strtotime($ship['created_at'])) ?>
-                                            </small></td>
-                                        <td>
-                                            <div class="fw-bold">
-                                                <?= escape($ship['customer_name']) ?>
-                                            </div>
-                                            <small class="text-muted">
-                                                <?= escape($ship['customer_email']) ?>
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <span class="text-muted">
-                                                    <?= escape($ship['origin_city']) ?>
-                                                </span>
-                                                <i class="bi bi-arrow-right mx-2 text-primary"></i>
-                                                <span class="fw-medium">
-                                                    <?= escape($ship['dest_city']) ?>
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <?php
-                                            $bg = match ($ship['status']) {
-                                                'Pending' => 'bg-warning text-dark',
-                                                'Picked Up', 'In Transit', 'Out For Delivery' => 'bg-info text-dark',
-                                                'Delivered' => 'bg-success text-white',
-                                                default => 'bg-secondary'
-                                            };
-                                            ?>
-                                            <span class="badge rounded-pill <?= $bg ?> px-3 py-2">
-                                                <?= escape($ship['status']) ?>
-                                            </span>
-                                        </td>
-                                        <td class="text-end">
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm neumorphic-btn" type="button"
-                                                    data-bs-toggle="dropdown" <?= $ship['status'] === 'Delivered' ? 'disabled' : '' ?>>
-                                                    <i class="bi bi-pencil-square me-1"></i> Update
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 p-2 rounded-3"
-                                                    style="width: 250px;">
-                                                    <li>
-                                                        <form method="POST" class="px-2 py-1">
-                                                            <input type="hidden" name="csrf_token"
-                                                                value="<?= escape($_SESSION['csrf_token']) ?>">
-                                                            <input type="hidden" name="action" value="update_status">
-                                                            <input type="hidden" name="shipment_id" value="<?= $ship['id'] ?>">
-
-                                                            <label class="form-label small fw-bold">New Status</label>
-                                                            <select name="new_status" class="form-select form-select-sm mb-2"
-                                                                required>
-                                                                <option value="" disabled>Select Status...</option>
-                                                                <option value="Picked Up" <?= $ship['status'] == 'Picked Up' ? 'selected' : '' ?>>Picked Up</option>
-                                                                <option value="In Transit" <?= $ship['status'] == 'In Transit' ? 'selected' : '' ?>>In Transit</option>
-                                                                <option value="Out For Delivery"
-                                                                    <?= $ship['status'] == 'Out For Delivery' ? 'selected' : '' ?>>Out
-                                                                    For Delivery</option>
-                                                                <option value="Delivered">Delivered</option>
-                                                            </select>
-
-                                                            <input type="text" name="location"
-                                                                class="form-control form-control-sm mb-2"
-                                                                placeholder="Current City/Location">
-                                                            <input type="text" name="remarks"
-                                                                class="form-control form-control-sm mb-2"
-                                                                placeholder="Notes (Optional)">
-
-                                                            <button type="submit" class="btn btn-sm btn-primary w-100">Save
-                                                                Update</button>
-                                                        </form>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <?php include '../includes/agent_shipment_row_template.php'; ?>
                                 <?php endforeach; ?>
                             <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <?php if (count($shipments) >= $limit): ?>
+                    <div class="text-center mt-4">
+                        <button id="loadMoreBtn" class="btn neumorphic-btn px-5 py-2 fw-bold text-primary">
+                            <i class="bi bi-arrow-down-circle me-1"></i> Load More
+                        </button>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    let offset = <?= $limit ?>;
+                    const loadMoreBtn = document.getElementById('loadMoreBtn');
+                    const tableBody = document.querySelector('.premium-table tbody');
+
+                    if (loadMoreBtn) {
+                        loadMoreBtn.addEventListener('click', function() {
+                            const originalText = loadMoreBtn.innerHTML;
+                            loadMoreBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Loading...';
+                            loadMoreBtn.disabled = true;
+
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('ajax', '1');
+                            url.searchParams.set('offset', offset);
+
+                            fetch(url)
+                                .then(response => response.text())
+                                .then(data => {
+                                    if (data.trim() === '') {
+                                        loadMoreBtn.innerHTML = 'All Records Loaded';
+                                        loadMoreBtn.classList.add('text-muted');
+                                        loadMoreBtn.disabled = true;
+                                        return;
+                                    }
+                                    tableBody.insertAdjacentHTML('beforeend', data);
+                                    offset += <?= $limit ?>;
+                                    loadMoreBtn.innerHTML = originalText;
+                                    loadMoreBtn.disabled = false;
+                                })
+                                .catch(err => {
+                                    console.error(err);
+                                    loadMoreBtn.innerHTML = 'Error Loading More';
+                                    loadMoreBtn.disabled = false;
+                                });
+                        });
+                    }
+                });
+            </script>
                         </tbody>
                     </table>
                 </div>

@@ -167,4 +167,20 @@ function format_date($timestamp)
 {
     return date('M d, Y h:i A', strtotime($timestamp));
 }
+
+/**
+ * Gets the profile image path for a user
+ */
+function get_user_profile_image($image_name)
+{
+    if (!empty($image_name)) {
+        $path = 'assets/uploads/profiles/' . $image_name;
+        // Adjust path if called from deep directory
+        if (!file_exists($path)) {
+            $path = '../' . $path;
+        }
+        if (file_exists($path)) return $path;
+    }
+    return '../assets/images/default-avatar.png'; // Placeholder if no image set
+}
 ?>

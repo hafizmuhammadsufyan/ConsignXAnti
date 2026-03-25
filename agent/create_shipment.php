@@ -23,13 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validate_csrf_token($csrf)) {
         $msg = display_alert("Invalid security token.", "danger");
     } else {
-        $customer_name = filter_input(INPUT_POST, 'customer_name', FILTER_SANITIZE_STRING);
+        $customer_name = trim($_POST['customer_name'] ?? '');
         $customer_email = filter_input(INPUT_POST, 'customer_email', FILTER_SANITIZE_EMAIL);
-        $customer_phone = filter_input(INPUT_POST, 'customer_phone', FILTER_SANITIZE_STRING);
+        $customer_phone = trim($_POST['customer_phone'] ?? '');
 
-        $recipient_name = filter_input(INPUT_POST, 'recipient_name', FILTER_SANITIZE_STRING);
-        $recipient_phone = filter_input(INPUT_POST, 'recipient_phone', FILTER_SANITIZE_STRING);
-        $recipient_address = filter_input(INPUT_POST, 'recipient_address', FILTER_SANITIZE_STRING);
+        $recipient_name = trim($_POST['recipient_name'] ?? '');
+        $recipient_phone = trim($_POST['recipient_phone'] ?? '');
+        $recipient_address = trim($_POST['recipient_address'] ?? '');
 
         $origin_city = (int) $_POST['origin_city_id'];
         $dest_city = (int) $_POST['destination_city_id'];
@@ -133,9 +133,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold text-primary mb-0">Create Shipment</h2>
-            </div>
+            <header class="top-header">
+                <div>
+                    <h2 class="fw-bold text-primary mb-0">Create Shipment</h2>
+                    <p class="text-muted mb-0 small">Generate new shipping waybills.</p>
+                </div>
+            </header>
 
             <?= $msg ?>
 

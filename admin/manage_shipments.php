@@ -27,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($action === 'create_shipment') {
             // Admin created shipment (direct customer interaction or oversight)
-            $customer_name = filter_input(INPUT_POST, 'customer_name');
+            $customer_name = trim($_POST['customer_name'] ?? '');
             $customer_email = filter_input(INPUT_POST, 'customer_email', FILTER_SANITIZE_EMAIL);
-            $customer_phone = filter_input(INPUT_POST, 'customer_phone');
+            $customer_phone = trim($_POST['customer_phone'] ?? '');
 
-            $recipient_name = filter_input(INPUT_POST, 'recipient_name');
-            $recipient_phone = filter_input(INPUT_POST, 'recipient_phone');
-            $recipient_address = filter_input(INPUT_POST, 'recipient_address');
+            $recipient_name = trim($_POST['recipient_name'] ?? '');
+            $recipient_phone = trim($_POST['recipient_phone'] ?? '');
+            $recipient_address = trim($_POST['recipient_address'] ?? '');
 
             $origin_city = (int) $_POST['origin_city_id'];
             $dest_city = (int) $_POST['destination_city_id'];
@@ -104,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } elseif ($action === 'update_status') {
             $shipment_id = (int) $_POST['shipment_id'];
             $new_status = $_POST['new_status'];
-            $remarks = filter_input(INPUT_POST, 'remarks') ?? '';
-            $location = filter_input(INPUT_POST, 'location') ?? '';
+            $remarks = trim($_POST['remarks'] ?? '');
+            $location = trim($_POST['location'] ?? '');
 
             try {
                 // Check if already delivered
@@ -199,22 +199,36 @@ if (!empty($_GET['status'])) {
 
 $where_sql = implode(" AND ", $where_clauses);
 
+// AJAX Load More Logic
+$limit = 15;
+$offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+
 try {
-    $stmt = $pdo->prepare("
-        SELECT s.*, 
-               a.company_name as agent_name, 
-               c.name as customer_name, c.email as customer_email,
-               orig.name as origin_city, dest.name as dest_city
-        FROM shipments s
-        LEFT JOIN agents a ON s.agent_id = a.id
-        LEFT JOIN customers c ON s.customer_id = c.id
-        LEFT JOIN cities orig ON s.origin_city_id = orig.id
-        LEFT JOIN cities dest ON s.destination_city_id = dest.id
-        WHERE $where_sql
-        ORDER BY s.created_at DESC
-    ");
+    $sql = "SELECT s.*, 
+                   a.company_name as agent_name, 
+                   c.name as customer_name, c.email as customer_email,
+                   orig.name as origin_city, dest.name as dest_city
+            FROM shipments s
+            LEFT JOIN agents a ON s.agent_id = a.id
+            LEFT JOIN customers c ON s.customer_id = c.id
+            LEFT JOIN cities orig ON s.origin_city_id = orig.id
+            LEFT JOIN cities dest ON s.destination_city_id = dest.id
+            WHERE $where_sql
+            ORDER BY s.created_at DESC
+            LIMIT $limit OFFSET $offset";
+            
+    $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $shipments = $stmt->fetchAll();
+
+    // AJAX Response
+    if (isset($_GET['ajax'])) {
+        if (empty($shipments)) exit('');
+        foreach ($shipments as $ship) {
+            include '../includes/shipment_row_template.php';
+        }
+        exit;
+    }
 
     // Fetch agents for filter dropdown
     $agents = $pdo->query("SELECT id, company_name FROM agents WHERE status = 'active' ORDER BY company_name ASC")->fetchAll();
@@ -242,10 +256,6 @@ try {
 <body class="neumorphic-bg">
 
     <div class="admin-wrapper">
-        <!-- Mobile Sidebar Toggle -->
-        <button class="btn btn-primary sidebar-toggle-btn shadow-sm" type="button">
-            <i class="bi bi-list fs-4"></i>
-        </button>
 
         <!-- Main Sidebar -->
         <?php 
@@ -257,13 +267,16 @@ try {
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold text-primary mb-0">Manage Shipments</h2>
+            <header class="top-header">
+                <div>
+                    <h2 class="fw-bold text-primary mb-0">Manage Shipments</h2>
+                    <p class="text-muted mb-0 small">Overview and tracking of all logistics.</p>
+                </div>
                 <button class="btn neumorphic-btn btn-primary fw-bold" data-bs-toggle="modal"
                     data-bs-target="#createShipmentModal">
                     <i class="bi bi-plus-lg me-1"></i> New Shipment
                 </button>
-            </div>
+            </header>
 
             <?= $msg ?>
 
@@ -272,20 +285,23 @@ try {
                 <form method="GET" class="row g-3 align-items-end">
                     <div class="col-md-2">
                         <label class="form-label small fw-bold">From Date</label>
-                        <input type="date" name="date_from" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_from'] ?? '') ?>">
+                        <input type="date" name="date_from" class="form-control neumorphic-input py-2"
+                            value="<?= escape($_GET['date_from'] ?? '') ?>">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small fw-bold">To Date</label>
-                        <input type="date" name="date_to" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_to'] ?? '') ?>">
+                        <input type="date" name="date_to" class="form-control neumorphic-input py-2"
+                            value="<?= escape($_GET['date_to'] ?? '') ?>">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small fw-bold">Agent</label>
                         <select name="agent_id" class="form-select neumorphic-input py-2">
                             <option value="">All Agents</option>
                             <?php foreach ($agents as $ag): ?>
-                                <option value="<?= $ag['id'] ?>" <?= (isset($_GET['agent_id']) && $_GET['agent_id'] == $ag['id']) ? 'selected' : '' ?>>
-                                    <?= escape($ag['company_name']) ?>
-                                </option>
+                            <option value="<?= $ag['id'] ?>"
+                                <?= (isset($_GET['agent_id']) && $_GET['agent_id'] == $ag['id']) ? 'selected' : '' ?>>
+                                <?= escape($ag['company_name']) ?>
+                            </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -294,9 +310,10 @@ try {
                         <select name="city_id" class="form-select neumorphic-input py-2">
                             <option value="">All Cities</option>
                             <?php foreach ($cities as $ct): ?>
-                                <option value="<?= $ct['id'] ?>" <?= (isset($_GET['city_id']) && $_GET['city_id'] == $ct['id']) ? 'selected' : '' ?>>
-                                    <?= escape($ct['name']) ?>
-                                </option>
+                            <option value="<?= $ct['id'] ?>"
+                                <?= (isset($_GET['city_id']) && $_GET['city_id'] == $ct['id']) ? 'selected' : '' ?>>
+                                <?= escape($ct['name']) ?>
+                            </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -304,163 +321,116 @@ try {
                         <label class="form-label small fw-bold">Status</label>
                         <select name="status" class="form-select neumorphic-input py-2">
                             <option value="">All Statuses</option>
-                            <option value="Pending" <?= ($_GET['status'] ?? '') == 'Pending' ? 'selected' : '' ?>>Pending</option>
-                            <option value="Picked Up" <?= ($_GET['status'] ?? '') == 'Picked Up' ? 'selected' : '' ?>>Picked Up</option>
-                            <option value="In Transit" <?= ($_GET['status'] ?? '') == 'In Transit' ? 'selected' : '' ?>>In Transit</option>
-                            <option value="Out For Delivery" <?= ($_GET['status'] ?? '') == 'Out For Delivery' ? 'selected' : '' ?>>Out For Delivery</option>
-                            <option value="Delivered" <?= ($_GET['status'] ?? '') == 'Delivered' ? 'selected' : '' ?>>Delivered</option>
+                            <option value="Pending" <?= ($_GET['status'] ?? '') == 'Pending' ? 'selected' : '' ?>>
+                                Pending</option>
+                            <option value="Picked Up" <?= ($_GET['status'] ?? '') == 'Picked Up' ? 'selected' : '' ?>>
+                                Picked Up</option>
+                            <option value="In Transit" <?= ($_GET['status'] ?? '') == 'In Transit' ? 'selected' : '' ?>>
+                                In Transit</option>
+                            <option value="Out For Delivery"
+                                <?= ($_GET['status'] ?? '') == 'Out For Delivery' ? 'selected' : '' ?>>Out For Delivery
+                            </option>
+                            <option value="Delivered" <?= ($_GET['status'] ?? '') == 'Delivered' ? 'selected' : '' ?>>
+                                Delivered</option>
                         </select>
                     </div>
                     <div class="col-md-2 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary neumorphic-btn flex-grow-1"><i class="bi bi-filter"></i> Filter</button>
-                        <a href="manage_shipments.php" class="btn btn-secondary neumorphic-btn"><i class="bi bi-arrow-clockwise"></i></a>
+                        <button type="submit" class="btn btn-primary neumorphic-btn flex-grow-1"><i
+                                class="bi bi-filter"></i> Filter</button>
+                        <a href="manage_shipments.php" class="btn btn-secondary neumorphic-btn"><i
+                                class="bi bi-arrow-clockwise"></i></a>
                     </div>
                 </form>
             </div>
 
             <div class="d-flex justify-content-end mb-3">
-                <a href="../includes/export_excel.php?<?= http_build_query($_GET) ?>" class="btn btn-success neumorphic-btn fw-bold">
+                <a href="../includes/export_excel.php?<?= http_build_query($_GET) ?>"
+                    class="btn btn-success neumorphic-btn fw-bold">
                     <i class="bi bi-file-earmark-excel me-1"></i> Export to Excel
                 </a>
             </div>
 
-            <div class="neumorphic-card p-4">
+            <div class="premium-table-container">
                 <div class="table-responsive">
-                    <table class="table neumorphic-table table-borderless align-middle mb-0">
+                    <table class="premium-table">
                         <thead>
                             <tr>
-                                <th>Tracking ID</th>
-                                <th>Date</th>
+                                <th>Tracking ID <br> Date</th>
                                 <th>Customer</th>
                                 <th>Agent</th>
                                 <th>Route</th>
                                 <th>Status</th>
-                                <th class="text-end">Actions</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($shipments)): ?>
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted">No shipments found.</td>
-                                </tr>
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">No shipments found matching your
+                                    criteria.</td>
+                            </tr>
                             <?php else: ?>
-                                <?php foreach ($shipments as $ship): ?>
-                                    <tr>
-                                        <td class="fw-bold text-primary">
-                                            <?= escape($ship['tracking_number']) ?>
-                                        </td>
-                                        <td><small class="text-muted">
-                                                <?= date('M d, Y', strtotime($ship['created_at'])) ?>
-                                            </small></td>
-                                        <td>
-                                            <div class="fw-bold">
-                                                <?= escape($ship['customer_name']) ?>
-                                            </div>
-                                            <small class="text-muted">
-                                                <?= escape($ship['customer_email']) ?>
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <?= escape($ship['agent_name'] ?? 'Direct Admin') ?>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <span class="text-muted">
-                                                    <?= escape($ship['origin_city']) ?>
-                                                </span>
-                                                <i class="bi bi-arrow-right mx-2 text-primary"></i>
-                                                <span class="fw-medium">
-                                                    <?= escape($ship['dest_city']) ?>
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <?php
-                                            $bg = match ($ship['status']) {
-                                                'Pending' => 'bg-warning text-dark',
-                                                'Picked Up', 'In Transit', 'Out For Delivery' => 'bg-info text-dark',
-                                                'Delivered' => 'bg-success text-white',
-                                                default => 'bg-secondary'
-                                            };
-                                            ?>
-                                            <span class="badge rounded-pill <?= $bg ?> px-3 py-2">
-                                                <?= escape($ship['status']) ?>
-                                            </span>
-                                        </td>
-                                        <td class="text-end">
-                                            <?php if ($ship['status'] === 'Delivered'): ?>
-                                                <button class="btn btn-sm neumorphic-btn" disabled data-bs-toggle="tooltip" title="Shipment is locked">
-                                                    <i class="bi bi-lock-fill text-muted"></i>
-                                                </button>
-                                            <?php else: ?>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm neumorphic-btn" type="button"
-                                                        data-bs-toggle="dropdown">
-                                                        <i class="bi bi-three-dots-vertical"></i>
-                                                    </button>
-                                                <ul
-                                                    class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 p-2 rounded-3">
-                                                    <!-- Form for Status Update inside Dropdown -->
-                                                    <li>
-                                                        <h6 class="dropdown-header">Update Status</h6>
-                                                    </li>
-                                                    <li>
-                                                        <form method="POST" class="px-3 py-1">
-                                                            <input type="hidden" name="csrf_token"
-                                                                value="<?= escape($_SESSION['csrf_token']) ?>">
-                                                            <input type="hidden" name="action" value="update_status">
-                                                            <input type="hidden" name="shipment_id" value="<?= $ship['id'] ?>">
-
-                                                            <select name="new_status" class="form-select form-select-sm mb-2"
-                                                                required>
-                                                                <option value="" disabled>Select Status...</option>
-                                                                <option value="Picked Up" <?= $ship['status'] == 'Picked Up' ? 'selected' : '' ?>>Picked Up</option>
-                                                                <option value="In Transit" <?= $ship['status'] == 'In Transit' ? 'selected' : '' ?>>In Transit</option>
-                                                                <option value="Out For Delivery"
-                                                                    <?= $ship['status'] == 'Out For Delivery' ? 'selected' : '' ?>>Out
-                                                                    For Delivery</option>
-                                                                <option value="Delivered" <?= $ship['status'] == 'Delivered' ? 'selected' : '' ?>>Delivered</option>
-                                                            </select>
-
-                                                            <input type="text" name="location"
-                                                                class="form-control form-control-sm mb-2"
-                                                                placeholder="Current Location (Optional)">
-                                                            <input type="text" name="remarks"
-                                                                class="form-control form-control-sm mb-2"
-                                                                placeholder="Remarks (Optional)">
-
-                                                            <button type="submit"
-                                                                class="btn btn-sm btn-primary w-100">Save</button>
-                                                        </form>
-                                                    </li>
-                                                    <li>
-                                                        <hr class="dropdown-divider">
-                                                    </li>
-                                                    <li>
-                                                        <form method="POST" class="px-3"
-                                                            onsubmit="return confirm('WARNING: Are you sure you want to delete this shipment? This cannot be undone.');">
-                                                            <input type="hidden" name="csrf_token"
-                                                                value="<?= escape($_SESSION['csrf_token']) ?>">
-                                                            <input type="hidden" name="action" value="delete_shipment">
-                                                            <input type="hidden" name="shipment_id" value="<?= $ship['id'] ?>">
-                                                            <button type="submit"
-                                                                class="btn btn-sm text-danger text-start w-100 p-0 border-0 bg-transparent">
-                                                                <i class="bi bi-trash me-2"></i> Delete Shipment
-                                                            </button>
-                                                        </form>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
+                            <?php foreach ($shipments as $ship): ?>
+                            <?php include '../includes/shipment_row_template.php'; ?>
+                            <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
+
+                <?php if (count($shipments) >= $limit): ?>
+                <div class="text-center mt-4">
+                    <button id="loadMoreBtn" class="btn neumorphic-btn px-5 py-2 fw-bold text-primary">
+                        <i class="bi bi-arrow-down-circle me-1"></i> Load More
+                    </button>
+                </div>
+                <?php endif; ?>
             </div>
-        </main>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                let offset = <?= $limit ?>;
+                const loadMoreBtn = document.getElementById('loadMoreBtn');
+                const tableBody = document.querySelector('.premium-table tbody');
+                if (loadMoreBtn) {
+                    loadMoreBtn.addEventListener('click', function() {
+                        const originalText = loadMoreBtn.innerHTML;
+                        loadMoreBtn.innerHTML =
+                            '<span class="spinner-border spinner-border-sm me-2"></span> Loading...';
+                        loadMoreBtn.disabled = true;
+
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('ajax', '1');
+                        url.searchParams.set('offset', offset);
+
+                        fetch(url)
+                            .then(response => response.text())
+                            .then(data => {
+                                if (data.trim() === '') {
+                                    loadMoreBtn.innerHTML = 'All Records Loaded';
+                                    loadMoreBtn.classList.add('text-muted');
+                                    loadMoreBtn.disabled = true;
+                                    return;
+                                }
+                                tableBody.insertAdjacentHTML('beforeend', data);
+                                offset += <?= $limit ?>;
+                                loadMoreBtn.innerHTML = originalText;
+                                loadMoreBtn.disabled = false;
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                loadMoreBtn.innerHTML = 'Error Loading More';
+                                loadMoreBtn.disabled = false;
+                            });
+                    });
+                }
+            });
+            </script>
+            </tbody>
+            </table>
+    </div>
+    </div>
+    </main>
     </div>
 
     <!-- Create Shipment Modal -->
@@ -531,10 +501,10 @@ try {
                                             required>
                                             <option value="">Select Origin...</option>
                                             <?php foreach ($cities as $city): ?>
-                                                <option value="<?= $city['id'] ?>">
-                                                    <?= escape($city['name']) ?>,
-                                                    <?= escape($city['state']) ?>
-                                                </option>
+                                            <option value="<?= $city['id'] ?>">
+                                                <?= escape($city['name']) ?>,
+                                                <?= escape($city['state']) ?>
+                                            </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
@@ -544,10 +514,10 @@ try {
                                             required>
                                             <option value="">Select Destination...</option>
                                             <?php foreach ($cities as $city): ?>
-                                                <option value="<?= $city['id'] ?>">
-                                                    <?= escape($city['name']) ?>,
-                                                    <?= escape($city['state']) ?>
-                                                </option>
+                                            <option value="<?= $city['id'] ?>">
+                                                <?= escape($city['name']) ?>,
+                                                <?= escape($city['state']) ?>
+                                            </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
@@ -559,9 +529,11 @@ try {
                                     <div class="col-md-6">
                                         <label class="form-label small">Shipping Fee (PKR)</label>
                                         <div class="input-group">
-                                            <span class="input-group-text border-0 bg-transparent text-muted small fw-bold">Rs.</span>
+                                            <span
+                                                class="input-group-text border-0 bg-transparent text-muted small fw-bold">Rs.</span>
                                             <input type="text" name="price" id="admin_price_display"
-                                                class="form-control neumorphic-input py-2" required readonly placeholder="Auto-calculated">
+                                                class="form-control neumorphic-input py-2" required readonly
+                                                placeholder="Auto-calculated">
                                         </div>
                                     </div>
                                 </div>
@@ -581,55 +553,67 @@ try {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/main.js"></script>
     <script>
-        // Auto-pricing logic for Admin Modal
-        const coords = {
-            'Karachi': [24.86, 67.00], 'Lahore': [31.52, 74.35], 'Islamabad': [33.68, 73.04],
-            'Rawalpindi': [33.56, 73.01], 'Faisalabad': [31.45, 73.13], 'Multan': [30.15, 71.52],
-            'Peshawar': [34.01, 71.52], 'Quetta': [30.17, 66.97], 'Hyderabad': [25.39, 68.37],
-            'Sialkot': [32.49, 74.52], 'Gujranwala': [32.18, 74.19], 'Bahawalpur': [29.35, 71.69]
-        };
+    // Auto-pricing logic for Admin Modal
+    const coords = {
+        'Karachi': [24.86, 67.00],
+        'Lahore': [31.52, 74.35],
+        'Islamabad': [33.68, 73.04],
+        'Rawalpindi': [33.56, 73.01],
+        'Faisalabad': [31.45, 73.13],
+        'Multan': [30.15, 71.52],
+        'Peshawar': [34.01, 71.52],
+        'Quetta': [30.17, 66.97],
+        'Hyderabad': [25.39, 68.37],
+        'Sialkot': [32.49, 74.52],
+        'Gujranwala': [32.18, 74.19],
+        'Bahawalpur': [29.35, 71.69]
+    };
 
-        function calculateAdminPrice() {
-            const modal = document.querySelector('#createShipmentModal');
-            const originEl = modal.querySelector('select[name="origin_city_id"] option:checked');
-            const destEl = modal.querySelector('select[name="destination_city_id"] option:checked');
-            const weightEl = modal.querySelector('input[name="weight"]');
-            const priceOut = modal.querySelector('#admin_price_display');
-            
-            if(!originEl || !destEl || !weightEl || !priceOut) return;
+    function calculateAdminPrice() {
+        const modal = document.querySelector('#createShipmentModal');
+        const originEl = modal.querySelector('select[name="origin_city_id"] option:checked');
+        const destEl = modal.querySelector('select[name="destination_city_id"] option:checked');
+        const weightEl = modal.querySelector('input[name="weight"]');
+        const priceOut = modal.querySelector('#admin_price_display');
 
-            const origin = originEl.text.split(',')[0].trim();
-            const dest = destEl.text.split(',')[0].trim();
-            const weight = parseFloat(weightEl.value) || 0;
-            
-            if(!origin || !dest || weight <= 0) {
-                priceOut.value = '';
-                return;
-            }
+        if (!originEl || !destEl || !weightEl || !priceOut) return;
 
-            let distance = 100;
-            if(coords[origin] && coords[dest]) {
-                const lat1 = coords[origin][0], lon1 = coords[origin][1];
-                const lat2 = coords[dest][0], lon2 = coords[dest][1];
-                const R = 6371;
-                const dLat = (lat2-lat1) * Math.PI / 180;
-                const dLon = (lon2-lon1) * Math.PI / 180;
-                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                        Math.sin(dLon/2) * Math.sin(dLon/2);
-                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                distance = R * c;
-            }
+        const origin = originEl.text.split(',')[0].trim();
+        const dest = destEl.text.split(',')[0].trim();
+        const weight = parseFloat(weightEl.value) || 0;
 
-            const base = 150, rWeight = 80, rDist = 0.5;
-            const total = base + (weight * rWeight) + (distance * rDist);
-            priceOut.value = total.toFixed(2);
+        if (!origin || !dest || weight <= 0) {
+            priceOut.value = '';
+            return;
         }
 
-        document.querySelectorAll('#createShipmentModal select, #createShipmentModal input[name="weight"]').forEach(el => {
-            el.addEventListener('change', calculateAdminPrice);
-            el.addEventListener('input', calculateAdminPrice);
-        });
+        let distance = 100;
+        if (coords[origin] && coords[dest]) {
+            const lat1 = coords[origin][0],
+                lon1 = coords[origin][1];
+            const lat2 = coords[dest][0],
+                lon2 = coords[dest][1];
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            distance = R * c;
+        }
+
+        const base = 150,
+            rWeight = 80,
+            rDist = 0.5;
+        const total = base + (weight * rWeight) + (distance * rDist);
+        priceOut.value = total.toFixed(2);
+    }
+
+    document.querySelectorAll('#createShipmentModal select, #createShipmentModal input[name="weight"]').forEach(el => {
+        el.addEventListener('change', calculateAdminPrice);
+        el.addEventListener('input', calculateAdminPrice);
+    });
     </script>
 </body>
 
