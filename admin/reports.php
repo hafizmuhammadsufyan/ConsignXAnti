@@ -16,7 +16,9 @@ $msg = '';
 $end_date = !empty($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $start_date = !empty($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-7 days'));
 $city_filter = $_GET['city'] ?? '';
-$is_filtered = !empty($_GET['start_date']) || !empty($_GET['city']);
+$agent_filter = $_GET['agent_id'] ?? '';
+$status_filter = $_GET['status'] ?? '';
+$is_filtered = !empty($_GET['start_date']) || !empty($_GET['city']) || !empty($agent_filter) || !empty($status_filter);
 
 // 2. AJAX Load More Logic
 $limit = 15;
@@ -31,11 +33,22 @@ if (!empty($city_filter)) {
     $params[] = (int)$city_filter;
 }
 
+if (!empty($agent_filter)) {
+    $where[] = "s.agent_id = ?";
+    $params[] = (int)$agent_filter;
+}
+
+if (!empty($status_filter)) {
+    $where[] = "s.status = ?";
+    $params[] = $status_filter;
+}
+
 $where_sql = implode(" AND ", $where);
 
 try {
-    // We need to get all cities for the filter dropdown
+    // We need to get all cities and agents for the filter dropdowns
     $cities = get_cities();
+    $agents = $pdo->query("SELECT id, company_name FROM agents WHERE status = 'active' ORDER BY company_name ASC")->fetchAll();
 
     $sql = "SELECT s.*, 
                    c.name as customer_name,
@@ -141,7 +154,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                 <a href="reports.php" class="btn btn-sm neumorphic-btn text-muted fw-bold">
                     <i class="bi bi-arrow-clockwise me-1"></i> Reset
                 </a>
-                <a href="?export=csv&start_date=<?= urlencode($start_date) ?>&end_date=<?= urlencode($end_date) ?>&city=<?= urlencode($city_filter) ?>"
+                <a href="?export=csv&start_date=<?= urlencode($start_date) ?>&end_date=<?= urlencode($end_date) ?>&city=<?= urlencode($city_filter) ?>&agent_id=<?= urlencode($agent_filter) ?>&status=<?= urlencode($status_filter) ?>"
                     class="btn btn-sm neumorphic-btn text-success fw-bold">
                     <i class="bi bi-file-earmark-excel me-1"></i> Export CSV
                 </a>
@@ -150,29 +163,53 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             <!-- Filters -->
             <div class="neumorphic-card p-4 mb-4">
                 <form method="GET" class="row align-items-end g-3">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label small fw-bold text-muted">Date From</label>
                         <input type="date" name="start_date" class="form-control neumorphic-input py-2"
                             value="<?= escape($start_date) ?>">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label small fw-bold text-muted">Date To</label>
                         <input type="date" name="end_date" class="form-control neumorphic-input py-2"
                             value="<?= escape($end_date) ?>">
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold text-muted">Filter by City (Origin/Dest)</label>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">City</label>
                         <select name="city" class="form-select neumorphic-input py-2">
                             <option value="">All Cities</option>
                             <?php foreach ($cities as $city): ?>
                                 <option value="<?= $city['id'] ?>" <?= $city_filter == $city['id'] ? 'selected' : '' ?>>
-                                    <?= escape($city['name']) ?>, <?= escape($city['state']) ?>
+                                    <?= escape($city['name']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">Agent</label>
+                        <select name="agent_id" class="form-select neumorphic-input py-2">
+                            <option value="">All Agents</option>
+                            <?php foreach ($agents as $agent): ?>
+                                <option value="<?= $agent['id'] ?>" <?= $agent_filter == $agent['id'] ? 'selected' : '' ?>>
+                                    <?= escape($agent['company_name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">Status</label>
+                        <select name="status" class="form-select neumorphic-input py-2">
+                            <option value="">All Statuses</option>
+                            <option value="Pending" <?= $status_filter === 'Pending' ? 'selected' : '' ?>>Pending</option>
+                            <option value="Picked Up" <?= $status_filter === 'Picked Up' ? 'selected' : '' ?>>Picked Up</option>
+                            <option value="In Transit" <?= $status_filter === 'In Transit' ? 'selected' : '' ?>>In Transit</option>
+                            <option value="Out For Delivery" <?= $status_filter === 'Out For Delivery' ? 'selected' : '' ?>>Out For Delivery</option>
+                            <option value="Delivered" <?= $status_filter === 'Delivered' ? 'selected' : '' ?>>Delivered</option>
+                            <option value="Returned" <?= $status_filter === 'Returned' ? 'selected' : '' ?>>Returned</option>
+                            <option value="Cancelled" <?= $status_filter === 'Cancelled' ? 'selected' : '' ?>>Cancelled</option>
+                        </select>
+                    </div>
                     <div class="col-md-2 d-flex gap-2">
-                        <button type="submit" class="btn neumorphic-btn btn-primary flex-grow-1 py-2">Generate</button>
+                        <button type="submit" class="btn neumorphic-btn btn-primary flex-grow-1 py-2">Apply</button>
                         <a href="reports.php" class="btn neumorphic-btn btn-secondary py-2" data-bs-toggle="tooltip" title="Reset Filters">
                             <i class="bi bi-x-lg"></i>
                         </a>
@@ -190,10 +227,10 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                     <table class="premium-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Date</th>
+                                <th>ID <br> Date</th>
                                 <th>Customer</th>
                                 <th>Route</th>
+                                <th>Agent</th>
                                 <th>Amount</th>
                                 <th>Status</th>
                             </tr>

@@ -19,21 +19,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $csrf = $_POST['csrf_token'] ?? '';
     if (validate_csrf_token($csrf)) {
         $shipment_id = (int) $_POST['shipment_id'];
-        $new_status = $_POST['new_status'];
+        $new_status = trim($_POST['new_status'] ?? '');
         $location = trim($_POST['location'] ?? '');
         $remarks = trim($_POST['remarks'] ?? '');
 
         try {
+            if (empty($new_status)) {
+                throw new Exception("Status cannot be empty");
+            }
+
+            $allowed_statuses = ['Pending', 'Picked Up', 'In Transit', 'Out For Delivery', 'Delivered', 'Returned', 'Cancelled'];
+
+            if (!in_array($new_status, $allowed_statuses)) {
+                throw new Exception("Invalid status value");
+            }
+
             // Verify ownership first
-            $stmt = $pdo->prepare("SELECT id, price FROM shipments WHERE id = ? AND agent_id = ?");
+            $stmt = $pdo->prepare("SELECT id, price, status FROM shipments WHERE id = ? AND agent_id = ?");
             $stmt->execute([$shipment_id, $agent_id]);
             $shipment = $stmt->fetch();
 
             if ($shipment) {
+                $current_status = $shipment['status'];
+
+                if (in_array($current_status, ['Delivered', 'Returned', 'Cancelled'])) {
+                    throw new Exception("This shipment is locked and cannot be modified.");
+                }
+
                 $pdo->beginTransaction();
 
                 $stmt = $pdo->prepare("UPDATE shipments SET status = :status WHERE id = :id");
                 $stmt->execute(['status' => $new_status, 'id' => $shipment_id]);
+
+                if ($stmt->rowCount() === 0) {
+                    throw new Exception("Status update failed or no rows affected.");
+                }
 
                 $stmt = $pdo->prepare("INSERT INTO shipment_status_history (shipment_id, status, location, remarks, changed_by_role, changed_by_id) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$shipment_id, $new_status, $location, $remarks, 'agent', $agent_id]);
@@ -53,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             } else {
                 $msg = display_alert("Unauthorized action or shipment not found.", "danger");
             }
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             $pdo->rollBack();
             $msg = display_alert("Failed to update status: " . escape($e->getMessage()), "danger");
         }
@@ -80,6 +100,10 @@ if (!empty($_GET['city_id'])) {
 if (!empty($_GET['status'])) {
     $where_clauses[] = "s.status = ?";
     $params[] = $_GET['status'];
+}
+if (!empty($_GET['tracking_id'])) {
+    $where_clauses[] = "s.tracking_number LIKE ?";
+    $params[] = "%" . $_GET['tracking_id'] . "%";
 }
 
 $where_sql = implode(" AND ", $where_clauses);
@@ -161,13 +185,17 @@ try {
             <!-- Filters Section -->
             <div class="neumorphic-card p-4 mb-4">
                 <form method="GET" class="row g-3 align-items-end">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label small fw-bold">From Date</label>
                         <input type="date" name="date_from" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_from'] ?? '') ?>">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label small fw-bold">To Date</label>
                         <input type="date" name="date_to" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_to'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">Tracking ID</label>
+                        <input type="text" name="tracking_id" class="form-control neumorphic-input py-2" placeholder="Search by Tracking ID" value="<?= escape($_GET['tracking_id'] ?? '') ?>">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label small fw-bold">City</label>
@@ -189,6 +217,8 @@ try {
                             <option value="In Transit" <?= ($_GET['status'] ?? '') == 'In Transit' ? 'selected' : '' ?>>In Transit</option>
                             <option value="Out For Delivery" <?= ($_GET['status'] ?? '') == 'Out For Delivery' ? 'selected' : '' ?>>Out For Delivery</option>
                             <option value="Delivered" <?= ($_GET['status'] ?? '') == 'Delivered' ? 'selected' : '' ?>>Delivered</option>
+                            <option value="Returned" <?= ($_GET['status'] ?? '') == 'Returned' ? 'selected' : '' ?>>Returned</option>
+                            <option value="Cancelled" <?= ($_GET['status'] ?? '') == 'Cancelled' ? 'selected' : '' ?>>Cancelled</option>
                         </select>
                     </div>
                     <div class="col-md-2 d-flex gap-2">

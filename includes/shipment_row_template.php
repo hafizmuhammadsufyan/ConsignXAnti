@@ -36,7 +36,7 @@
         </span>
     </td>
     <td class="text-end">
-        <?php if ($ship['status'] === 'Delivered'): ?>
+        <?php if (in_array($ship['status'], ['Delivered', 'Returned', 'Cancelled'])): ?>
             <button class="btn btn-sm neumorphic-btn" disabled data-bs-toggle="tooltip" title="Shipment is locked">
                 <i class="bi bi-lock-fill text-muted"></i>
             </button>

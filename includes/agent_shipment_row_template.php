@@ -32,7 +32,7 @@
     </td>
     <td class="text-end">
         <div class="dropdown">
-            <button class="btn btn-sm neumorphic-btn" type="button" data-bs-toggle="dropdown" <?= $ship['status'] === 'Delivered' ? 'disabled' : '' ?>>
+            <button class="btn btn-sm neumorphic-btn" type="button" data-bs-toggle="dropdown" <?= in_array($ship['status'], ['Delivered', 'Returned', 'Cancelled']) ? 'disabled' : '' ?>>
                 <i class="bi bi-pencil-square me-1"></i> Update
             </button>
                 <ul class="dropdown-menu dropdown-menu-end premium-status-dropdown shadow-lg border-0 mt-2">

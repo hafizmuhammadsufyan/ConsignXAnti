@@ -81,6 +81,60 @@ body {
     background-color: var(--primary-hover);
 }
 
+/* Dark Mode Form Elements */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    color: #ffffff !important;
+    background-color: #2d3748 !important;
+    border-color: #4a5568 !important;
+}
+
+[data-theme="dark"] .form-control::placeholder,
+[data-theme="dark"] .form-select::placeholder {
+    color: #a0aec0 !important;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .text-primary {
+    color: #4299e1 !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: #a0aec0 !important;
+}
+
+/* Dark Mode Notifications */
+[data-theme="dark"] .notification-item,
+[data-theme="dark"] .notification-item * {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .notification-item .text-muted {
+    color: #a0aec0 !important;
+}
+
+[data-theme="dark"] .neumorphic-inset,
+[data-theme="dark"] .neumorphic-input {
+    background-color: #2d3748 !important;
+    color: #ffffff !important;
+    border-color: #4a5568 !important;
+}
+
+[data-theme="dark"] .neumorphic-inset::placeholder,
+[data-theme="dark"] .neumorphic-input::placeholder {
+    color: #a0aec0 !important;
+}
+
 /* Sidebar Styling Foundation */
 .admin-wrapper {
     display: flex;

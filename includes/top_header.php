@@ -40,7 +40,7 @@ $initials = strtoupper(substr($u_name, 0, 1));
         <form action="<?= ($u_role === 'customer') ? '../customer/track.php' : '../' . $u_role . '/manage_shipments.php' ?>" method="GET">
             <div class="input-group neumorphic-search px-3 py-1">
                 <span class="input-group-text bg-transparent border-0"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" name="<?= ($u_role === 'customer') ? 'id' : 'search' ?>" class="form-control border-0 bg-transparent shadow-none" placeholder="Search tracking number...">
+                <input type="text" name="<?= ($u_role === 'customer') ? 'id' : 'tracking_id' ?>" class="form-control border-0 bg-transparent shadow-none" placeholder="Search tracking number...">
             </div>
         </form>
     </div>

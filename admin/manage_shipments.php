@@ -103,24 +103,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         } elseif ($action === 'update_status') {
             $shipment_id = (int) $_POST['shipment_id'];
-            $new_status = $_POST['new_status'];
+            $new_status = trim($_POST['new_status'] ?? '');
             $remarks = trim($_POST['remarks'] ?? '');
             $location = trim($_POST['location'] ?? '');
 
             try {
-                // Check if already delivered
+                if (empty($new_status)) {
+                    throw new Exception("Status cannot be empty");
+                }
+
+                $allowed_statuses = [
+                    'Pending',
+                    'Picked Up',
+                    'In Transit',
+                    'Out For Delivery',
+                    'Delivered',
+                    'Returned',
+                    'Cancelled'
+                ];
+
+                if (!in_array($new_status, $allowed_statuses)) {
+                    throw new Exception("Invalid status value");
+                }
+
+                // Check current status from DB
                 $stmt = $pdo->prepare("SELECT status FROM shipments WHERE id = ?");
                 $stmt->execute([$shipment_id]);
                 $current_status = $stmt->fetchColumn();
 
-                if ($current_status === 'Delivered') {
+                if (!$current_status) {
+                    throw new Exception("Shipment not found.");
+                }
+
+                if (in_array($current_status, ['Delivered', 'Returned', 'Cancelled'])) {
                     throw new Exception("This shipment is locked and cannot be modified.");
                 }
 
                 $pdo->beginTransaction();
 
                 $stmt = $pdo->prepare("UPDATE shipments SET status = :status WHERE id = :id");
-                $stmt->execute(['status' => $new_status, 'id' => $shipment_id]);
+                $stmt->execute([
+                    'status' => $new_status,
+                    'id' => $shipment_id
+                ]);
 
                 $stmt = $pdo->prepare("INSERT INTO shipment_status_history (shipment_id, status, location, remarks, changed_by_role, changed_by_id) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$shipment_id, $new_status, $location, $remarks, 'admin', $admin_id]);
@@ -151,20 +176,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } elseif ($action === 'delete_shipment') {
             $shipment_id = (int) $_POST['shipment_id'];
             try {
-                // Check if already delivered
+                // Check current status from DB
                 $stmt = $pdo->prepare("SELECT status FROM shipments WHERE id = ?");
                 $stmt->execute([$shipment_id]);
                 $current_status = $stmt->fetchColumn();
 
-                if ($current_status === 'Delivered') {
-                    throw new Exception("This shipment is locked and cannot be deleted.");
+                if (!$current_status) {
+                    throw new Exception("Shipment not found.");
                 }
+
+                if (in_array($current_status, ['Delivered', 'Returned', 'Cancelled'])) {
+                    throw new Exception("This shipment cannot be deleted.");
+                }
+
+                $pdo->beginTransaction();
 
                 // Cascading delete handles history/revenue
                 $stmt = $pdo->prepare("DELETE FROM shipments WHERE id = :id");
                 $stmt->execute(['id' => $shipment_id]);
+
+                $pdo->commit();
                 $msg = display_alert("Shipment deleted successfully.", "success");
             } catch (Exception $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
                 $msg = display_alert("Failed to delete shipment: " . escape($e->getMessage()), "danger");
             }
         }
@@ -195,6 +231,10 @@ if (!empty($_GET['city_id'])) {
 if (!empty($_GET['status'])) {
     $where_clauses[] = "s.status = ?";
     $params[] = $_GET['status'];
+}
+if (!empty($_GET['tracking_id'])) {
+    $where_clauses[] = "s.tracking_number LIKE ?";
+    $params[] = "%" . $_GET['tracking_id'] . "%";
 }
 
 $where_sql = implode(" AND ", $where_clauses);
@@ -318,6 +358,10 @@ try {
                         </select>
                     </div>
                     <div class="col-md-2">
+                        <label class="form-label small fw-bold">Tracking ID</label>
+                        <input type="text" name="tracking_id" class="form-control neumorphic-input py-2" placeholder="Search by Tracking ID" value="<?= escape($_GET['tracking_id'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label small fw-bold">Status</label>
                         <select name="status" class="form-select neumorphic-input py-2">
                             <option value="">All Statuses</option>
@@ -332,11 +376,15 @@ try {
                             </option>
                             <option value="Delivered" <?= ($_GET['status'] ?? '') == 'Delivered' ? 'selected' : '' ?>>
                                 Delivered</option>
+                            <option value="Returned" <?= ($_GET['status'] ?? '') == 'Returned' ? 'selected' : '' ?>>
+                                Returned</option>
+                            <option value="Cancelled" <?= ($_GET['status'] ?? '') == 'Cancelled' ? 'selected' : '' ?>>
+                                Cancelled</option>
                         </select>
                     </div>
-                    <div class="col-md-2 d-flex gap-2">
+                    <div class="col-md-3 d-flex gap-2">
                         <button type="submit" class="btn btn-primary neumorphic-btn flex-grow-1"><i
-                                class="bi bi-filter"></i> Filter</button>
+                                class="bi bi-filter"></i> Apply Filter</button>
                         <a href="manage_shipments.php" class="btn btn-secondary neumorphic-btn"><i
                                 class="bi bi-arrow-clockwise"></i></a>
                     </div>
@@ -609,11 +657,13 @@ try {
         const total = base + (weight * rWeight) + (distance * rDist);
         priceOut.value = total.toFixed(2);
     }
+                                            
 
     document.querySelectorAll('#createShipmentModal select, #createShipmentModal input[name="weight"]').forEach(el => {
         el.addEventListener('change', calculateAdminPrice);
         el.addEventListener('input', calculateAdminPrice);
     });
+                                            
     </script>
 </body>
 

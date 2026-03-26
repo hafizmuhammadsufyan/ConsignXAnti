@@ -9,6 +9,8 @@ $status_palette = "\n/* Status Palette & Tracking Cards (Phase 9) */\n" .
 ".status-yellow, .status-out-delivery { background: #f1c40f !important; color: #000 !important; }\n" .
 ".status-green, .status-delivered { background: #4CAF50 !important; color: #fff !important; }\n" .
 ".status-transit { background: #7952b3 !important; color: #fff !important; }\n" .
+".status-returned { background: #e74c3c !important; color: #fff !important; }\n" .
+".status-cancelled { background: #95a5a6 !important; color: #fff !important; }\n" .
 "\n.tracking-info-card {\n" .
 "    background: var(--bg-color);\n" .
 "    border-radius: 8px;\n" .
