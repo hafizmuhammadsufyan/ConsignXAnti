@@ -116,8 +116,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("UPDATE $table SET $fields_sql WHERE id = ?");
                 $stmt->execute($params);
 
-                // Update session
+                // Update session with latest profile values (name and email)
                 $_SESSION['user_name'] = $name;
+                $_SESSION['user_email'] = $email;
 
                 $msg = display_alert("Profile updated successfully.", "success");
             } catch (Exception $e) {

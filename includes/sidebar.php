@@ -47,7 +47,7 @@ if ($current_role === 'admin') {
 } elseif ($current_role === 'customer') {
     $menu_items = [
         ['label' => 'My Shipments', 'icon' => 'bi-box-seam', 'link' => 'dashboard.php'],
-        ['label' => 'Track Shipment', 'icon' => 'bi-search', 'link' => 'track.php'],
+        ['label' => 'Track Shipment', 'icon' => 'bi-search', 'link' => 'track_shipment.php'],
     ];
 }
 ?>

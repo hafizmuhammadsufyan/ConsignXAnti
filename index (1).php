@@ -879,8 +879,8 @@ if ($is_logged_in) {
                 <span class="sec-lab reveal-box">Terminal Access</span>
                 <h2 class="sec-tit reveal-box">Track Shipment.</h2>
                 <div class="trk-terminal reveal-box">
-                    <form action="customer/track.php" method="GET">
-                        <input type="text" name="id" class="trk-input" placeholder="CX-TRACE-000" required>
+                    <form action="customer/track_shipment.php" method="GET">
+                        <input type="text" name="tracking_number" class="trk-input" placeholder="CX-TRACE-000" required>
                         <button type="submit" class="trk-go">INITIALIZE TRACE →</button>
                     </form>
                 </div>
