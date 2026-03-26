@@ -20,43 +20,41 @@ $history = [];
 $error = '';
 
 if (!empty($tracking_id)) {
-    if (!is_valid_tracking_number($tracking_id)) {
-        $error = "Invalid tracking number format.";
-    } else {
-        try {
-            // Fetch Shipment Details
-            $stmt = $pdo->prepare("
-                SELECT s.*, 
+    // Tracking number format restrictions are removed by request.
+    // Allow any non-empty string and fetch shipment if it exists.
+    try {
+        // Fetch Shipment Details (include customer, origin, destination, status)
+        $stmt = $pdo->prepare("SELECT s.*, 
+                       c.name as customer_name,
                        orig.name as origin_city, dest.name as dest_city,
                        a.company_name as agent_name
                 FROM shipments s
+                LEFT JOIN customers c ON s.customer_id = c.id
                 LEFT JOIN cities orig ON s.origin_city_id = orig.id
                 LEFT JOIN cities dest ON s.destination_city_id = dest.id
                 LEFT JOIN agents a ON s.agent_id = a.id
-                WHERE s.tracking_number = ?
-            ");
-            $stmt->execute([$tracking_id]);
-            $shipment = $stmt->fetch();
+                WHERE s.tracking_number = ?");
+        $stmt->execute([$tracking_id]);
+        $shipment = $stmt->fetch();
 
-            if ($shipment) {
-                // Security check for logged in customers
-                if ($is_logged_in && $user_role === 'customer' && $shipment['customer_id'] !== $_SESSION['user_id']) {
-                    $error = "You don't have permission to view this shipment.";
-                    $shipment = null;
-                } else {
-                    // Fetch History
-                    $hStmt = $pdo->prepare("SELECT * FROM shipment_status_history WHERE shipment_id = ? ORDER BY created_at DESC");
-                    $hStmt->execute([$shipment['id']]);
-                    $history = $hStmt->fetchAll();
-                }
+        if ($shipment) {
+            // Security check for logged in customers
+            if ($is_logged_in && $user_role === 'customer' && $shipment['customer_id'] !== $_SESSION['user_id']) {
+                $error = "You don't have permission to view this shipment.";
+                $shipment = null;
             } else {
-                $error = "Tracking number $tracking_id not found.";
+                // Fetch History
+                $hStmt = $pdo->prepare("SELECT * FROM shipment_status_history WHERE shipment_id = ? ORDER BY created_at DESC");
+                $hStmt->execute([$shipment['id']]);
+                $history = $hStmt->fetchAll();
             }
-
-        } catch (PDOException $e) {
-            $error = "An error occurred while tracking. Please try again later.";
-            error_log($e->getMessage());
+        } else {
+            $error = "Tracking number {$tracking_id} not found.";
         }
+
+    } catch (PDOException $e) {
+        $error = "An error occurred while tracking. Please try again later.";
+        error_log($e->getMessage());
     }
 }
 ?>

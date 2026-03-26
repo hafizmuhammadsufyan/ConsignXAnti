@@ -9,7 +9,9 @@ require_once '../includes/functions.php';
 // Secure the route
 require_role('agent');
 
-$agent_id = current_user_id();
+// Determine agent id from session explicitly for agent-scoped actions.
+// This ensures data is limited to the logged-in agent.
+$agent_id = $_SESSION['agent_id'] ?? current_user_id();
 $agent_name = $_SESSION['user_name'];
 $company_name = $_SESSION['company_name'];
 
@@ -115,7 +117,7 @@ try {
         LEFT JOIN customers c ON s.customer_id = c.id
         WHERE $where_sql
         ORDER BY s.created_at DESC
-        LIMIT 6
+        LIMIT 10
     ");
     $stmt->execute($params);
     $recent_shipments = $stmt->fetchAll();
