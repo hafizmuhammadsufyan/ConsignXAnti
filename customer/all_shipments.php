@@ -205,7 +205,7 @@ try {
                                                 class="badge-neumorphic <?= $bg ?> small fw-bold"><?= escape($ship['status']) ?></span>
                                         </td>
                                         <td class="text-end">
-                                            <a href="track_shipment.php?id=<?= $ship['id'] ?>" class="btn-track">
+                                            <a href="track_shipment.php?tracking_number=<?= $ship['tracking_number'] ?>" class="btn-track">
                                                 <i class="bi bi-geo-alt-fill me-1"></i> Track
                                             </a>
                                         </td>

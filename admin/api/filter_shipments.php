@@ -30,7 +30,7 @@ try {
         $where[] = "s.status = ?";
         $params[] = $_GET['status'];
     }
-    if (!empty($_GET['agent_id']) && $u_role === 'admin') {
+    if (!empty($_GET['agent_id'])) {
         $where[] = "s.agent_id = ?";
         $params[] = (int)$_GET['agent_id'];
     }
@@ -94,7 +94,7 @@ try {
             echo '<td class="fw-bold">' . format_currency($ship['price']) . '</td>';
             echo '<td><span class="badge-neumorphic ' . $bg . ' small fw-bold">' . escape($ship['status']) . '</span></td>';
             if ($u_role === 'customer') {
-                echo '<td class="text-end"><a href="track_shipment.php?id=' . $ship['id'] . '" class="btn-track"><i class="bi bi-geo-alt-fill me-1"></i> Track</a></td>';
+                echo '<td class="text-end"><a href="track_shipment.php?tracking_number=' . $ship['tracking_number'] . '" class="btn-track"><i class="bi bi-geo-alt-fill me-1"></i> Track</a></td>';
             }
             echo '</tr>';
         }

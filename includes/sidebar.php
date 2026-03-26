@@ -15,7 +15,7 @@ $menu_items = [];
 // Determine base path based on directory depth
 $is_shared = strpos($_SERVER['PHP_SELF'], '/shared/') !== false;
 $is_auth = strpos($_SERVER['PHP_SELF'], '/auth/') !== false;
-$is_root = (substr_count($_SERVER['PHP_SELF'], '/') <= 2); // e.g., /index.php or /track.php
+$is_root = (substr_count($_SERVER['PHP_SELF'], '/') <= 2); // e.g., /index.php or /track_shipment.php
 
 $base = "";
 if ($is_shared || $is_auth) {

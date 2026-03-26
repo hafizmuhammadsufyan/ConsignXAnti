@@ -10,7 +10,7 @@ require_once '../includes/functions.php';
 require_role('customer');
 
 $customer_id = current_user_id();
-$shipment_id = $_GET['id'] ?? 0;
+$tracking_number = trim($_REQUEST['tracking_number'] ?? '');
 $msg = '';
 $ship = null;
 $history = [];
@@ -21,7 +21,7 @@ $active_page = 'dashboard.php';
 $page_title = 'Track Shipment';
 
 // Error Resilience: Attempt data fetch but don't die yet
-if ($shipment_id) {
+if ($tracking_number) {
     try {
         // 1. Fetch Shipment main details
         $stmt = $pdo->prepare("
@@ -35,15 +35,15 @@ if ($shipment_id) {
             LEFT JOIN cities dest ON s.destination_city_id = dest.id
             LEFT JOIN agents a ON s.agent_id = a.id
             LEFT JOIN customers c ON s.customer_id = c.id
-            WHERE s.id = ? AND s.customer_id = ?
+            WHERE s.tracking_number = ? AND s.customer_id = ?
         ");
-        $stmt->execute([$shipment_id, $customer_id]);
+        $stmt->execute([$tracking_number, $customer_id]);
         $ship = $stmt->fetch();
 
         if ($ship) {
             // 2. Fetch Status History
             $stmtH = $pdo->prepare("SELECT * FROM shipment_status_history WHERE shipment_id = ? ORDER BY created_at DESC");
-            $stmtH->execute([$shipment_id]);
+            $stmtH->execute([$ship['id']]);
             $history = $stmtH->fetchAll();
 
             // 3. Fallback: If no history exists, create a virtual 'Pending' entry
@@ -116,6 +116,21 @@ if ($ship) {
                     <a href="javascript:history.back()" class="btn-back me-3">
                         <i class="bi bi-arrow-left me-2"></i> Back
                     </a>
+                </div>
+
+                <!-- Search Form -->
+                <div class="row mb-4">
+                    <div class="col-lg-6 mx-auto">
+                        <div class="search-card neumorphic-card p-4">
+                            <h5 class="text-center mb-3">Track Your Shipment</h5>
+                            <form class="d-flex gap-2" method="GET" action="">
+                                <input type="text" name="tracking_number" class="form-control neumorphic-input" placeholder="Enter Tracking Number" value="<?= escape($tracking_number) ?>" required>
+                                <button type="submit" class="btn btn-primary neumorphic-btn">
+                                    <i class="bi bi-search me-2"></i>Track
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
 
                 <?= $msg ?>
