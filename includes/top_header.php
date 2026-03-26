@@ -36,7 +36,7 @@ $initials = strtoupper(substr($u_name, 0, 1));
         <p class="text-muted mb-0 small text-uppercase fw-bold letter-spacing-1"><?= date('l, F j, Y') ?></p>
     </div>
 
-    <div class="header-search d-none d-lg-block mx-4 flex-grow-1" style="max-width: 400px;">
+    <div class="header-search d-none d-md-flex mx-4 flex-grow-1" style="max-width: 400px;">
         <form action="<?= ($u_role === 'customer') ? '../customer/track_shipment.php' : '../' . $u_role . '/manage_shipments.php' ?>" method="GET">
             <div class="input-group neumorphic-search px-3 py-1">
                 <span class="input-group-text bg-transparent border-0"><i class="bi bi-search text-muted"></i></span>

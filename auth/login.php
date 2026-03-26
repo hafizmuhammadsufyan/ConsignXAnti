@@ -55,7 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             height: 100vh; 
             margin: 0; 
             padding: 0; 
-            overflow: hidden !important; 
+            overflow-x: hidden; 
+            min-width: 0;
             background-color: var(--bg-color); 
         }
 

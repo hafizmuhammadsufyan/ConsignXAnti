@@ -258,6 +258,15 @@
     min-width: 140px; /* Increased min-width to prevent "Out for Delivery" wrap */
 }
 
+@media (max-width: 767.98px) {
+    .premium-table td {
+        min-width: auto;
+    }
+    .premium-table th {
+        min-width: auto;
+    }
+}
+
 .premium-table td:last-child {
     min-width: 100px; /* Actions column doesn't need as much */
 }
@@ -282,8 +291,18 @@
     border: 1px solid rgba(0,0,0,0.08) !important;
     box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08) !important;
     backdrop-filter: blur(10px);
-    min-width: 280px;
+    min-width: 230px;
+    max-width: 100%;
 }
+
+@media (max-width: 767.98px) {
+    .premium-status-dropdown {
+        min-width: unset !important;
+        width: calc(100vw - 2rem) !important;
+        max-width: 100% !important;
+    }
+}
+
 
 [data-theme="dark"] .premium-status-dropdown {
     background: #1e1e1e !important;
@@ -665,6 +684,69 @@ input:checked+.slider:before {
 .table-responsive::-webkit-scrollbar-thumb {
     background: var(--primary-color);
     border-radius: 10px;
+}
+
+/* Small screen strong layout fixes */
+@media (max-width: 767.98px) {
+    .top-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .header-left, .header-right {
+        width: 100%;
+    }
+
+    .header-search {
+        display: block !important;
+        width: 100%;
+        max-width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .neumorphic-card,
+    .premium-table-container,
+    .neumorphic-table,
+    .admin-wrapper,
+    .main-content {
+        padding: 0.75rem !important;
+    }
+
+    .neumorphic-card,
+    .premium-table-container {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .sidebar {
+        width: 260px;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+
+    .btn,
+    .neumorphic-btn {
+        width: 100%;
+        min-width: 0;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .premium-table th,
+    .premium-table td {
+        padding: 0.55rem 0.5rem;
+        font-size: 0.70rem;
+    }
+
+    .premium-table th:nth-child(3),
+    .premium-table td:nth-child(3),
+    .premium-table th:nth-child(5),
+    .premium-table td:nth-child(5) {
+        display: none;
+    }
 }
 
 /* Notification & UI Enhancements */
