@@ -59,6 +59,7 @@ try {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -68,6 +69,7 @@ try {
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/neumorphism.css">
 </head>
+
 <body class="neumorphic-bg">
 
     <div class="admin-wrapper">
@@ -89,7 +91,8 @@ try {
                 <?= $msg ?>
 
                 <div class="neumorphic-card p-4 p-md-5 mb-5">
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div
+                        class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                         <div>
                             <div class="d-flex align-items-center mb-1">
                                 <a href="dashboard.php" class="btn btn-sm neumorphic-btn me-3 px-2">
@@ -100,31 +103,52 @@ try {
                             <p class="text-muted small mb-0 ms-5">Viewing all historical shipment records.</p>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                             <!-- Filter Trigger -->
-                             <div class="dropdown">
-                                <button class="btn btn-sm <?= (isset($_GET['status']) || isset($_GET['agent_id']) || isset($_GET['min_amount'])) ? 'btn-primary' : 'neumorphic-btn' ?> dropdown-toggle px-3 fw-bold" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+                            <!-- Filter Trigger -->
+                            <div class="dropdown">
+                                <button
+                                    class="btn btn-sm <?= (isset($_GET['status']) || isset($_GET['agent_id']) || isset($_GET['min_amount'])) ? 'btn-primary' : 'neumorphic-btn' ?> dropdown-toggle px-3 fw-bold"
+                                    data-bs-toggle="dropdown" data-bs-auto-close="outside">
                                     <i class="bi bi-funnel me-1"></i> Filters
                                 </button>
-                                <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-4 mt-2 glass-dropdown" style="width: 320px;">
+                                <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-4 mt-2 glass-dropdown"
+                                    style="width: 320px;">
                                     <h6 class="fw-bold mb-3 border-bottom pb-2">Refine Archive</h6>
                                     <div class="mb-3">
                                         <label class="smaller fw-bold text-muted mb-1 d-block">By Status</label>
-                                        <select id="filterStatus" class="form-select neumorphic-input py-2 small fw-bold">
+                                        <select id="filterStatus"
+                                            class="form-select neumorphic-input py-2 small fw-bold">
                                             <option value="">All Statuses</option>
-                                            <option value="Pending" <?= ($_GET['status'] ?? '') == 'Pending' ? 'selected' : '' ?>>Pending</option>
-                                            <option value="Picked Up" <?= ($_GET['status'] ?? '') == 'Picked Up' ? 'selected' : '' ?>>Picked Up</option>
-                                            <option value="In Transit" <?= ($_GET['status'] ?? '') == 'In Transit' ? 'selected' : '' ?>>In Transit</option>
-                                            <option value="Out For Delivery" <?= ($_GET['status'] ?? '') == 'Out For Delivery' ? 'selected' : '' ?>>Out For Delivery</option>
-                                            <option value="Delivered" <?= ($_GET['status'] ?? '') == 'Delivered' ? 'selected' : '' ?>>Delivered</option>
-                                            <option value="Cancelled" <?= ($_GET['status'] ?? '') == 'Cancelled' ? 'selected' : '' ?>>Cancelled</option>
-                                            <option value="Returned" <?= ($_GET['status'] ?? '') == 'Returned' ? 'selected' : '' ?>>Returned</option>
+                                            <option value="Pending"
+                                                <?= ($_GET['status'] ?? '') == 'Pending' ? 'selected' : '' ?>>Pending
+                                            </option>
+                                            <option value="Picked Up"
+                                                <?= ($_GET['status'] ?? '') == 'Picked Up' ? 'selected' : '' ?>>Picked
+                                                Up</option>
+                                            <option value="In Transit"
+                                                <?= ($_GET['status'] ?? '') == 'In Transit' ? 'selected' : '' ?>>In
+                                                Transit</option>
+                                            <option value="Out For Delivery"
+                                                <?= ($_GET['status'] ?? '') == 'Out For Delivery' ? 'selected' : '' ?>>
+                                                Out For Delivery</option>
+                                            <option value="Delivered"
+                                                <?= ($_GET['status'] ?? '') == 'Delivered' ? 'selected' : '' ?>>
+                                                Delivered</option>
+                                            <option value="Cancelled"
+                                                <?= ($_GET['status'] ?? '') == 'Cancelled' ? 'selected' : '' ?>>
+                                                Cancelled</option>
+                                            <option value="Returned"
+                                                <?= ($_GET['status'] ?? '') == 'Returned' ? 'selected' : '' ?>>Returned
+                                            </option>
                                         </select>
                                     </div>
                                     <div class="mb-4">
                                         <label class="smaller fw-bold text-muted mb-1 d-block">Min Price (Rs.)</label>
-                                        <input type="number" id="filterMinAmount" class="form-control neumorphic-input py-2 small fw-bold" placeholder="e.g. 500" value="<?= escape($_GET['min_amount'] ?? '') ?>">
+                                        <input type="number" id="filterMinAmount"
+                                            class="form-control neumorphic-input py-2 small fw-bold"
+                                            placeholder="e.g. 500" value="<?= escape($_GET['min_amount'] ?? '') ?>">
                                     </div>
-                                    <button id="applyFilters" class="btn btn-primary w-100 neumorphic-btn py-2 fw-bold">Update View</button>
+                                    <button id="applyFilters"
+                                        class="btn btn-primary w-100 neumorphic-btn py-2 fw-bold">Update View</button>
                                 </div>
                             </div>
                         </div>
@@ -133,31 +157,40 @@ try {
                     <div class="premium-table-container mt-4">
                         <div class="table-responsive" id="archiveTableContainer">
                             <table class="premium-table">
-                            <thead>
-                                <tr>
-                                    <th>Tracking ID <br> Date</th>
-                                    <!-- <th>Date</th> -->
-                                    <th>Agent</th>
-                                    <th>Customer</th>
-                                    <th>Route</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($shipments)): ?>
-                                    <tr><td colspan="8" class="text-center text-muted py-5">No shipments found in the archive.</td></tr>
-                                <?php else: ?>
+                                <thead>
+                                    <tr>
+                                        <th>Tracking ID <br> Date</th>
+                                        <!-- <th>Date</th> -->
+                                        <th>Agent</th>
+                                        <th>Customer</th>
+                                        <th>Route</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($shipments)): ?>
+                                    <tr>
+                                        <td colspan="8" class="text-center text-muted py-5">No shipments found in the
+                                            archive.</td>
+                                    </tr>
+                                    <?php else: ?>
                                     <?php foreach ($shipments as $ship): ?>
-                                        <tr class="shipment-row">
-                                            <td class="fw-bold text-primary"><?= escape($ship['tracking_number']), "<br>", date('M d, Y', strtotime($ship['created_at'])) ?></td>
-                                            <td class="small fw-bold text-muted"><?= escape($ship['agent_name'] ?? 'Direct Admin')?></td>
-                                            <td><div class="fw-bold small"><?= escape($ship['customer_name']) ?></div></td>
-                                            <td class="fw-medium"><?= escape($ship['origin_city']) ?> &rarr; <?= escape($ship['dest_city']) ?></td>
-                                            <td class="fw-bold"><?= format_currency($ship['price']) ?></td>
-                                            <td>
-                                                <?php
+                                    <tr class="shipment-row">
+                                        <td class="fw-bold text-primary">
+                                            <?= escape($ship['tracking_number']), "<br>", date('M d, Y', strtotime($ship['created_at'])) ?>
+                                        </td>
+                                        <td class="small fw-bold text-muted">
+                                            <?= escape($ship['agent_name'] ?? 'Direct Admin')?></td>
+                                        <td>
+                                            <div class="fw-bold small"><?= escape($ship['customer_name']) ?></div>
+                                        </td>
+                                        <td class="fw-medium"><?= escape($ship['origin_city']) ?> &rarr;
+                                            <?= escape($ship['dest_city']) ?></td>
+                                        <td class="fw-bold"><?= format_currency($ship['price']) ?></td>
+                                        <td>
+                                            <?php
                                                 $bg = match ($ship['status']) {
                                                     'Pending' => 'status-pending',
                                                     'Delivered' => 'status-delivered',
@@ -168,66 +201,72 @@ try {
                                                     default => 'status-transit'
                                                 };
                                                 ?>
-                                                <span class="badge-neumorphic <?= $bg ?> small fw-bold"><?= escape($ship['status']) ?></span>
-                                            </td>
-                                            <td class="text-end">
-                                                <a href="track_shipment.php?id=<?= $ship['id'] ?>" class="btn-track">
-                                                    <i class="bi bi-geo-alt-fill me-1"></i> Track
-                                                </a>
-                                            </td>
-                                        </tr>
+                                            <span
+                                                class="badge-neumorphic <?= $bg ?> small fw-bold"><?= escape($ship['status']) ?></span>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="track_shipment.php?id=<?= $ship['id'] ?>" class="btn-track">
+                                                <i class="bi bi-geo-alt-fill me-1"></i> Track
+                                            </a>
+                                        </td>
+                                    </tr>
                                     <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
 
             </div>
         </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const tableBody = document.querySelector('.premium-table tbody');
-        const filters = ['filterStatus', 'filterMinAmount'];
-        
-        const applyFilters = async () => {
-            const status = document.getElementById('filterStatus').value;
-            const minAmount = document.getElementById('filterMinAmount').value;
-            
-            const params = new URLSearchParams();
-            if (status) params.set('status', status);
-            if (minAmount) params.set('min_amount', minAmount);
-            // Archive page shows all, so no dashboard=1 or limit=6
-            params.set('limit', '100'); 
+    const tableBody = document.querySelector('.premium-table tbody');
+    const filters = ['filterStatus', 'filterMinAmount'];
 
-            try {
-                tableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary spinner-border-sm me-2"></div> Filtering...</td></tr>';
-                
-                const response = await fetch(`../admin/api/filter_shipments.php?${params.toString()}`);
-                if (!response.ok) throw new Error('Filter failed');
-                
-                const html = await response.text();
-                tableBody.innerHTML = html;
-            } catch (error) {
-                console.error('AJAX Error:', error);
-                tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4">Error loading shipments. Please try again.</td></tr>';
-            }
-        };
+    const applyFilters = async () => {
+        const status = document.getElementById('filterStatus').value;
+        const minAmount = document.getElementById('filterMinAmount').value;
 
-        document.getElementById('applyFilters').addEventListener('click', (e) => {
-            e.preventDefault();
-            applyFilters();
-            // Close dropdown if on mobile
-            const dropdown = bootstrap.Dropdown.getInstance(document.querySelector('.dropdown-toggle'));
-            if (dropdown) dropdown.hide();
-        });
+        const params = new URLSearchParams();
+        if (status) params.set('status', status);
+        if (minAmount) params.set('min_amount', minAmount);
+        // Archive page shows all, so no dashboard=1 or limit=6
+        params.set('limit', '100');
 
-        // Trigger on enter key in amount field
-        document.getElementById('filterMinAmount').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') applyFilters();
-        });
+        try {
+            tableBody.innerHTML =
+                '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-primary spinner-border-sm me-2"></div> Filtering...</td></tr>';
+
+            const response = await fetch(`../admin/api/filter_shipments.php?${params.toString()}`);
+            if (!response.ok) throw new Error('Filter failed');
+
+            const html = await response.text();
+            tableBody.innerHTML = html;
+        } catch (error) {
+            console.error('AJAX Error:', error);
+            tableBody.innerHTML =
+                '<tr><td colspan="7" class="text-center text-danger py-4">Error loading shipments. Please try again.</td></tr>';
+        }
+    };
+
+    document.getElementById('applyFilters').addEventListener('click', (e) => {
+        e.preventDefault();
+        applyFilters();
+        // Close dropdown if on mobile
+        const dropdown = bootstrap.Dropdown.getInstance(document.querySelector('.dropdown-toggle'));
+        if (dropdown) dropdown.hide();
+    });
+
+    // Trigger on enter key in amount field
+    document.getElementById('filterMinAmount').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') applyFilters();
+    });
     </script>
+
+    <script src="../assets/js/main.js"></script>
 </body>
+
 </html>

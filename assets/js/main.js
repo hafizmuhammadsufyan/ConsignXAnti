@@ -170,4 +170,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 10. KPI Count-up Animation
+    const animateNumbers = () => {
+        const numberElements = document.querySelectorAll('.kpi-number');
+        numberElements.forEach(element => {
+            const target = parseInt(element.getAttribute('data-target')) || 0;
+            const duration = 1500; // 1.5 seconds
+            const start = 0;
+            const startTime = performance.now();
+
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing function for smooth animation
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const current = Math.floor(start + (target - start) * easeOutQuart);
+
+                element.textContent = target.toLocaleString();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+
+            requestAnimationFrame(animate);
+        });
+    };
+
+    // Trigger count-up animation after a short delay
+    setTimeout(animateNumbers, 300);
+
 });

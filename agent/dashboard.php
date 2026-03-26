@@ -30,8 +30,10 @@ try {
     $stmt->execute([$agent_id]);
     $delivered_shipments = $stmt->fetch()['count'] ?? 0;
 
-    // Monthly revenue for this agent (simplified logic for demo)
-    $monthly_revenue = $total_shipments * 250; 
+    // Monthly revenue for this agent (based on delivered shipments)
+    $stmt = $pdo->prepare("SELECT SUM(price) as total_revenue FROM shipments WHERE agent_id = ? AND status = 'Delivered'");
+    $stmt->execute([$agent_id]);
+    $monthly_revenue = $stmt->fetch()['total_revenue'] ?? 0; 
 
     // 1.1 Fetch Status Comparison Data (For this Agent)
     $all_possible_statuses = ['Pending', 'Picked Up', 'In Transit', 'Out For Delivery', 'Delivered', 'Cancelled', 'Returned'];
@@ -152,27 +154,43 @@ try {
             <!-- KPI Row -->
             <div class="row g-4 mb-5">
                 <div class="col-md-3">
-                    <div class="neumorphic-card p-4 text-center">
+                    <div class="neumorphic-card p-4 text-center kpi-card animate-fade-in" style="animation-delay: 0.1s;">
+                        <div class="kpi-icon mb-3">
+                            <i class="bi bi-box-seam text-primary fs-2"></i>
+                        </div>
                         <div class="text-muted mb-2 fw-bold text-uppercase smaller letter-spacing-1">Handled Shipments</div>
-                        <h2 class="fw-bold text-primary mb-0"><?= number_format($total_shipments) ?></h2>
+                        <h2 class="fw-bold text-primary mb-1 kpi-number" data-target="<?= $total_shipments ?>"><?= number_format($total_shipments) ?></h2>
+                        <small class="text-muted opacity-75">Total assigned</small>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="neumorphic-card p-4 text-center">
+                    <div class="neumorphic-card p-4 text-center kpi-card animate-fade-in" style="animation-delay: 0.2s;">
+                        <div class="kpi-icon mb-3">
+                            <i class="bi bi-clock-history text-warning fs-2"></i>
+                        </div>
                         <div class="text-muted mb-2 fw-bold text-uppercase smaller letter-spacing-1">Currently Pending</div>
-                        <h2 class="fw-bold text-warning mb-0"><?= number_format($pending_shipments) ?></h2>
+                        <h2 class="fw-bold text-warning mb-1 kpi-number" data-target="<?= $pending_shipments ?>"><?= number_format($pending_shipments) ?></h2>
+                        <small class="text-muted opacity-75">In progress</small>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="neumorphic-card p-4 text-center">
+                    <div class="neumorphic-card p-4 text-center kpi-card animate-fade-in" style="animation-delay: 0.3s;">
+                        <div class="kpi-icon mb-3">
+                            <i class="bi bi-check-circle text-success fs-2"></i>
+                        </div>
                         <div class="text-muted mb-2 fw-bold text-uppercase smaller letter-spacing-1">Successful Delivery</div>
-                        <h2 class="fw-bold text-success mb-0"><?= number_format($delivered_shipments) ?></h2>
+                        <h2 class="fw-bold text-success mb-1 kpi-number" data-target="<?= $delivered_shipments ?>"><?= number_format($delivered_shipments) ?></h2>
+                        <small class="text-muted opacity-75">Completed</small>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="neumorphic-card p-4 text-center">
+                    <div class="neumorphic-card p-4 text-center kpi-card animate-fade-in" style="animation-delay: 0.4s;">
+                        <div class="kpi-icon mb-3">
+                            <i class="bi bi-cash-stack text-info fs-2"></i>
+                        </div>
                         <div class="text-muted mb-2 fw-bold text-uppercase smaller letter-spacing-1">Est. Revenue</div>
-                        <h2 class="fw-bold text-info mb-0"><?= format_currency($monthly_revenue) ?></h2>
+                        <h2 class="fw-bold text-info mb-1 kpi-number" data-target="<?= $monthly_revenue ?>"><?= format_currency($monthly_revenue) ?></h2>
+                        <small class="text-muted opacity-75">From deliveries</small>
                     </div>
                 </div>
             </div>

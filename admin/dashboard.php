@@ -127,27 +127,43 @@ try {
             <!-- KPI Cards -->
             <div class="row g-4 mb-5">
                 <div class="col-md-3">
-                    <div class="neumorphic-card p-4 text-center">
+                    <div class="neumorphic-card p-4 text-center kpi-card animate-fade-in" style="animation-delay: 0.1s;">
+                        <div class="kpi-icon mb-3">
+                            <i class="bi bi-cash-stack text-primary fs-2"></i>
+                        </div>
                         <div class="text-muted mb-2 fw-bold text-uppercase smaller letter-spacing-1">Total Revenue</div>
-                        <h3 class="fw-bold text-primary mb-0"><?= format_currency($total_revenue) ?></h3>
+                        <h3 class="fw-bold text-primary mb-1 kpi-number" data-target="<?= $total_revenue ?>"><?= format_currency($total_revenue) ?></h3>
+                        <small class="text-muted opacity-75">Updated just now</small>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="neumorphic-card p-4 text-center">
+                    <div class="neumorphic-card p-4 text-center kpi-card animate-fade-in" style="animation-delay: 0.2s;">
+                        <div class="kpi-icon mb-3">
+                            <i class="bi bi-box-seam text-success fs-2"></i>
+                        </div>
                         <div class="text-muted mb-2 fw-bold text-uppercase smaller letter-spacing-1">Total Shipments</div>
-                        <h3 class="fw-bold text-success mb-0"><?= number_format($total_shipments) ?></h3>
+                        <h3 class="fw-bold text-success mb-1 kpi-number" data-target="<?= $total_shipments ?>"><?= number_format($total_shipments) ?></h3>
+                        <small class="text-muted opacity-75">Live data</small>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="neumorphic-card p-4 text-center">
+                    <div class="neumorphic-card p-4 text-center kpi-card animate-fade-in" style="animation-delay: 0.3s;">
+                        <div class="kpi-icon mb-3">
+                            <i class="bi bi-clock-history text-warning fs-2"></i>
+                        </div>
                         <div class="text-muted mb-2 fw-bold text-uppercase smaller letter-spacing-1">Pending Dispatch</div>
-                        <h3 class="fw-bold text-warning mb-0"><?= number_format($pending_shipments) ?></h3>
+                        <h3 class="fw-bold text-warning mb-1 kpi-number" data-target="<?= $pending_shipments ?>"><?= number_format($pending_shipments) ?></h3>
+                        <small class="text-muted opacity-75">Requires attention</small>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="neumorphic-card p-4 text-center">
+                    <div class="neumorphic-card p-4 text-center kpi-card animate-fade-in" style="animation-delay: 0.4s;">
+                        <div class="kpi-icon mb-3">
+                            <i class="bi bi-people-fill text-info fs-2"></i>
+                        </div>
                         <div class="text-muted mb-2 fw-bold text-uppercase smaller letter-spacing-1">Active Agents</div>
-                        <h3 class="fw-bold text-info mb-0"><?= number_format($active_agents) ?></h3>
+                        <h3 class="fw-bold text-info mb-1 kpi-number" data-target="<?= $active_agents ?>"><?= number_format($active_agents) ?></h3>
+                        <small class="text-muted opacity-75">Network size</small>
                     </div>
                 </div>
             </div>

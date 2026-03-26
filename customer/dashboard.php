@@ -116,24 +116,26 @@ try {
                 <!-- Summary Cards -->
                 <div class="row g-4 mb-5">
                     <div class="col-md-6">
-                        <div class="neumorphic-card p-4 d-flex align-items-center">
-                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary me-4 shadow-sm">
-                                <i class="bi bi-box-seam fs-3"></i>
+                        <div class="neumorphic-card p-4 d-flex align-items-center kpi-card animate-fade-in" style="animation-delay: 0.1s;">
+                            <div class="kpi-icon me-4">
+                                <i class="bi bi-box-seam text-primary fs-1"></i>
                             </div>
                             <div>
-                                <h3 class="fw-bold text-primary mb-0"><?= number_format($active_count) ?></h3>
+                                <h3 class="fw-bold text-primary mb-1 kpi-number" data-target="<?= $active_count ?>"><?= number_format($active_count) ?></h3>
                                 <span class="text-muted fw-bold text-uppercase smaller letter-spacing-1">Active Shipments</span>
+                                <br><small class="text-muted opacity-75">In transit or pending</small>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="neumorphic-card p-4 d-flex align-items-center">
-                            <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success me-4 shadow-sm">
-                                <i class="bi bi-check-circle fs-3"></i>
+                        <div class="neumorphic-card p-4 d-flex align-items-center kpi-card animate-fade-in" style="animation-delay: 0.2s;">
+                            <div class="kpi-icon me-4">
+                                <i class="bi bi-check-circle text-success fs-1"></i>
                             </div>
                             <div>
-                                <h3 class="fw-bold text-success mb-0"><?= number_format($delivered_count) ?></h3>
+                                <h3 class="fw-bold text-success mb-1 kpi-number" data-target="<?= $delivered_count ?>"><?= number_format($delivered_count) ?></h3>
                                 <span class="text-muted fw-bold text-uppercase smaller letter-spacing-1">Delivered Shipments</span>
+                                <br><small class="text-muted opacity-75">Successfully completed</small>
                             </div>
                         </div>
                     </div>
