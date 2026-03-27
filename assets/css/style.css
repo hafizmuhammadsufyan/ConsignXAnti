@@ -534,3 +534,178 @@ a:hover {
     color: #6ea8fe !important;
     border-color: rgba(13, 110, 253, 0.2) !important;
 }
+
+/* ===========================================
+   GLOBAL RESPONSIVE + OVERFLOW FIXES
+   =========================================== */
+html,
+body {
+    min-width: 0;
+    width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+}
+
+img,
+svg,
+video,
+iframe {
+    max-width: 100%;
+    height: auto;
+}
+
+.admin-wrapper {
+    flex-wrap: wrap;
+    overflow-x: hidden;
+}
+
+.main-content,
+.table-responsive,
+.premium-table-container,
+.neumorphic-card,
+.modal-content {
+    max-width: 100%;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Keep desktop as-is, apply responsive adaptive behavior for breakpoints */
+@media (max-width: 1199.98px) {
+    .top-header {
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+
+    .top-header h2 {
+        font-size: clamp(1.35rem, 2vw, 1.65rem);
+    }
+
+    .top-header .btn {
+        min-width: 160px;
+    }
+
+    .sidebar {
+        width: min(280px, 78vw);
+        left: -100%;
+    }
+
+    .sidebar.show {
+        left: 0;
+    }
+
+    .main-content {
+        padding: 1.5rem 1rem 1.5rem;
+    }
+
+    .premium-table-container {
+        padding: 14px;
+        margin-bottom: 1.5rem;
+    }
+
+    .premium-table th,
+    .premium-table td {
+        font-size: 13px;
+        min-width: auto;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .main-content {
+        padding: 1rem 0.8rem 1.2rem;
+    }
+
+    .top-header {
+        position: relative;
+        top: auto;
+        padding: 1rem;
+    }
+
+    .top-header .btn {
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .sidebar-toggle-btn {
+        top: 12px;
+        left: 12px;
+    }
+
+    .sidebar.collapsed .link-label,
+    .sidebar .label-hide {
+        display: none !important;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .top-header h2 {
+        font-size: clamp(1.05rem, 4vw, 1.25rem);
+    }
+
+    .top-header p,
+    .form-label,
+    .badge,
+    .text-muted {
+        font-size: 0.72rem;
+    }
+
+    .form-control,
+    .form-select,
+    .neumorphic-input,
+    .neumorphic-btn,
+    .btn {
+        width: 100% !important;
+    }
+
+    .premium-table {
+        font-size: 12px;
+        width: max-content;
+        min-width: 100%;
+    }
+
+    .premium-table th,
+    .premium-table td {
+        white-space: nowrap;
+    }
+
+    .table-responsive {
+        overflow-x: scroll;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sidebar {
+        width: min(80vw, 260px);
+    }
+
+    .sidebar .nav-link i {
+        margin-right: 0;
+    }
+
+    .modal-dialog {
+        max-width: 100%;
+        margin: 0.2rem;
+    }
+}
+
+/* Chart responsive safety */
+.apexcharts-canvas,
+.apexcharts-inner,
+.apexcharts-svg {
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+.apexcharts-tooltip {
+    max-width: 92vw !important;
+}
