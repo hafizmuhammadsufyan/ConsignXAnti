@@ -2001,13 +2001,7 @@
     #footer {
         background: var(--bg0);
         border-top: 1px solid var(--ln);
-        overflow: hidden;
-        opacity: 0;
-        will-change: opacity
-    }
-
-    #footer.footer-visible {
-        opacity: 1
+        overflow: hidden
     }
 
     .f-cin {
@@ -2031,10 +2025,13 @@
         font-weight: 800;
         letter-spacing: -.04em;
         color: transparent;
-        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.822);
-        line-height: 1;
+        -webkit-text-stroke: 2px rgba(255, 255, 255, 0.9);
+        line-height: 1.2;
         position: relative;
-        z-index: 1
+        z-index: 1;
+        display: block;
+        text-align: center;
+        padding: 20px 0
     }
 
     .fw {
@@ -3125,33 +3122,27 @@
     gsap.timeline({
         scrollTrigger: {
             trigger: '#footer',
-            start: 'top 85%',
-            end: 'top 30%',
-            scrub: 1,
-            once: true,
-            markers: false
+            start: 'top 90%',
+            end: 'top 40%',
+            scrub: 1.2,
+            once: true
         }
     })
-    .to('#footer', {
-        opacity: 1,
-        duration: 1.2,
-        ease: 'power2.inOut'
-    }, 0)
     .to('.fwi', {
         opacity: 1,
         y: 0,
         duration: 1,
         ease: 'power3.out',
-        stagger: 0.15,
+        stagger: 0.12,
         overwrite: 'auto'
-    }, 0.1)
+    }, 0)
     .to('#fHuge', {
         opacity: 1,
         y: 0,
         duration: 1.1,
         ease: 'power3.out',
         overwrite: 'auto'
-    }, 0.2)
+    }, 0.1)
     .to('.reveal-box', {
         opacity: 1,
         y: 0,
