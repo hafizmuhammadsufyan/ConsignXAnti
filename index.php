@@ -2428,45 +2428,49 @@
             justify-content: center;
         }
     }
-    /* ===== NEW MIGRATED PRELOADER CSS ===== */
-    #preloader { position: fixed; inset: 0; z-index: 999999; background: var(--bg0); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-    .p-glass { position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(59, 124, 253, 0.1) 0%, transparent 70%); backdrop-filter: blur(100px); z-index: -1; }
-    .p-circle-wrap { position: relative; width: 240px; height: 240px; display: flex; align-items: center; justify-content: center; }
-    .p-svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-    .p-circle-bg { fill: none; stroke: var(--ln); stroke-width: 2; }
-    .p-circle-val { fill: none; stroke: var(--a); stroke-width: 2; stroke-dasharray: 628; stroke-dashoffset: 628; transition: stroke-dashoffset 0.1s linear; }
-    .p-truck-node { position: absolute; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; z-index: 10; transform-origin: center center; filter: drop-shadow(0 0 8px rgba(59, 124, 253, .5)); }
-    .p-counter { font-family: var(--fd); font-size: 3.5rem; font-weight: 700; letter-spacing: -2px; color:var(--t1); }
-    .p-label { margin-top: 20px; font-size: 0.7rem; letter-spacing: 4px; color: var(--t3); text-transform: uppercase; font-weight: 600; font-family:var(--fb); }
-
-    /* ===== NEW MIGRATED FOOTER CSS ===== */
-    .footer { padding: 120px 0 60px; border-top: 1px solid var(--ln); background:var(--bg0); }
-    .f-top-div { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 24px; opacity: 0; transform: translateY(40px); }
-    .f-huge { font-family: var(--fd); font-size: clamp(3rem, 14vw, 14rem); font-weight: 850; letter-spacing: -10px; line-height: .8; text-align: center; margin-top: 100px; background: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0.05)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; opacity: 0; transform: translateY(80px); }
-
-    @media(max-width: 768px) {
-        .f-top-div { flex-direction:column; padding: 0 5%; }
-        .f-huge { margin-top: 60px; font-size: 5rem; letter-spacing: -3px; }
-    }
     </style>
 </head>
 
 <body>
 
     <!-- ═══════════════════════════════════════════════════════════
-     ULTIMATE PRELOADER (MIGRATED)
+     LOADER
      ═══════════════════════════════════════════════════════════ -->
-    <div id="preloader">
-        <div class="p-glass"></div>
-        <div class="p-circle-wrap">
-            <svg class="p-svg" width="220" height="220">
-                <circle class="p-circle-bg" cx="110" cy="110" r="100"></circle>
-                <circle class="p-circle-val" id="pVal" cx="110" cy="110" r="100"></circle>
-            </svg>
-            <div class="p-truck-node" id="pTruck">🚚</div>
-            <div class="p-counter" id="pCount">0</div>
+    <div id="loader">
+        <div class="ld-dust" id="ldust"></div>
+        <div class="ld-inner">
+            <div class="ld-brand"><em>Consign</em>X — Courier Management</div>
+            <div id="ld-pct">0</div>
+            <div class="ld-road-wrap">
+                <div class="ld-road">
+                    <div class="ld-fill" id="lfill"></div>
+                    <div class="ld-dashes"></div>
+                    <div id="ld-truck">
+                        <svg viewBox="0 0 62 36" fill="none" xmlns="http://www.w3.org/2000/svg"
+                            style="width:100%;height:100%">
+                            <rect x="1" y="7" width="36" height="20" rx="2" fill="#1a2744" stroke="#3b7cfd"
+                                stroke-width=".8" />
+                            <rect x="1" y="10" width="36" height="2" fill="#3b7cfd" opacity=".25" />
+                            <text x="10" y="21" font-family="sans-serif" font-size="7" fill="#3b7cfd"
+                                font-weight="700">CX</text>
+                            <rect x="37" y="11" width="18" height="16" rx="2.5" fill="#1e3566" stroke="#3b7cfd"
+                                stroke-width=".8" />
+                            <rect x="39" y="13" width="9" height="7" rx="1.5" fill="#3b7cfd" opacity=".45" />
+                            <rect x="48" y="13" width="5" height="7" rx="1" fill="#6366f1" opacity=".3" />
+                            <rect x="54" y="16" width="5" height="4" rx="1" fill="#fbbf24" opacity=".95" />
+                            <rect x="38" y="5" width="2.5" height="6" rx="1" fill="#64748b" />
+                            <circle cx="11" cy="28" r="5" fill="#0c1526" stroke="#475569" stroke-width="1" />
+                            <circle cx="11" cy="28" r="2" fill="#3b7cfd" />
+                            <circle cx="28" cy="28" r="5" fill="#0c1526" stroke="#475569" stroke-width="1" />
+                            <circle cx="28" cy="28" r="2" fill="#3b7cfd" />
+                            <circle cx="46" cy="28" r="5" fill="#0c1526" stroke="#475569" stroke-width="1" />
+                            <circle cx="46" cy="28" r="2" fill="#3b7cfd" />
+                        </svg>
+                    </div>
+                </div>
+                <div class="ld-lbl">Initialising ConsignX Platform&hellip;</div>
+            </div>
         </div>
-        <div class="p-label">Loading Environment</div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════
@@ -2934,26 +2938,58 @@
     </section>
 
     <!-- ═══════════════════════════════════════════════════════════
-     FOOTER (MIGRATED)
+     FOOTER
      ═══════════════════════════════════════════════════════════ -->
-    <footer class="footer">
-        <div class="container" style="padding:0">
-            <div class="f-top-div">
-                <div>
-                    <h3 class="n-brand" style="font-size:2rem; font-family:var(--fd); font-weight:800; color:var(--t1);">CONSIGNX</h3>
-                    <p style="color:var(--t3);max-width:300px;margin-top:10px">The operating system for physical world connectivity.</p>
-                </div>
-                <div style="display:flex; gap: 40px;">
-                    <div>
-                        <h6 style="font-size:.75rem; letter-spacing:3px; text-transform:uppercase; color:var(--t2); margin-bottom:15px; font-weight:700;">Platform</h6>
-                        <a href="auth/login.php" style="color:var(--t3); text-decoration:none; display:block; margin-top:8px; font-size:14px; transition:color 0.3s;" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">Login</a>
-                        <a href="auth/register.php" style="color:var(--t3); text-decoration:none; display:block; margin-top:8px; font-size:14px; transition:color 0.3s;" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">Create Account</a>
-                        <a href="#" style="color:var(--t3); text-decoration:none; display:block; margin-top:8px; font-size:14px; transition:color 0.3s;" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">Network Status</a>
-                    </div>
+    <footer id="footer">
+        <div class="f-cin">
+            <div class="f-big" id="fbig"></div>
+        </div>
+        <div class="f-grid">
+            <div>
+                <a class="f-logo" href="#"><span>Consign</span>X</a>
+                <p class="f-desc">The intelligent courier management platform built for modern logistics teams who
+                    demand speed, visibility and control.</p>
+                <div class="f-soc">
+                    <a class="f-sb" href="#">𝕏</a><a class="f-sb" href="#">in</a><a class="f-sb" href="#">⌥</a><a
+                        class="f-sb" href="#">▶</a>
                 </div>
             </div>
-            <h1 class="f-huge" id="fHuge">CONSIGNX</h1>
-            <p style="text-align:center;color:var(--t3);font-size:.7rem;margin-top:80px">© <?php echo date('Y'); ?> ConsignX Intelligence. Unified Core v4.0</p>
+            <div>
+                <div class="f-ch">Product</div>
+                <ul class="fl">
+                    <li><a href="#">Features</a></li>
+                    <li><a href="#">Pricing</a></li>
+                    <li><a href="#">API Docs</a></li>
+                    <li><a href="#">Integrations</a></li>
+                    <li><a href="#">Changelog</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="f-ch">Company</div>
+                <ul class="fl">
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Press Kit</a></li>
+                    <li><a href="#">Partners</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="f-ch">Support</div>
+                <ul class="fl">
+                    <li><a href="#">Help Centre</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Status</a></li>
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="f-btm">
+            <p class="f-copy">© 2025 <span>ConsignX</span>. All rights reserved.</p>
+            <div class="f-stat">
+                <div class="s-dot"></div>All systems operational
+            </div>
         </div>
     </footer>
 
@@ -2980,6 +3016,18 @@
            BOOTSTRAP: inject DOM content before anything else
            ════════════════════════════════════════════════════════════ */
 
+        /* Loader dust */
+        (function() {
+            var c = document.getElementById('ldust');
+            for (var i = 0; i < 36; i++) {
+                var p = document.createElement('div');
+                p.className = 'dp';
+                p.style.cssText = 'left:' + (Math.random() * 100) + '%;bottom:' + (Math.random() * 20) +
+                    '%;--d:' + (1.5 + Math.random() * 2.2) + 's;--dl:' + (Math.random() * 3) + 's;';
+                c.appendChild(p);
+            }
+        })();
+
         /* Marquee */
         (function() {
             var items = ['Domestic Shipping', 'Express Delivery', 'Fleet Tracking', 'Warehouse Mgmt',
@@ -3001,6 +3049,14 @@
             el.innerHTML = 'CONSIGNX'.split('').map(function(c) {
                 return '<span class="bz-l"><span class="bz-i">' + c + '</span></span>';
             }).join('');
+        })();
+
+        /* Footer words */
+        (function() {
+            var el = document.getElementById('fbig');
+            el.innerHTML = ['Delivering', 'the', 'Future', 'of', 'Logistics'].map(function(w) {
+                return '<span class="fw"><span class="fwi">' + w + '</span></span>';
+            }).join(' ');
         })();
 
         /* Gallery data */
@@ -3135,48 +3191,42 @@
         })();
 
         /* ════════════════════════════════════════════════════════════
-           ULTIMATE PRELOADER MIGRATION
+           LOADER
            ════════════════════════════════════════════════════════════ */
-        const pVal = document.getElementById('pVal');
-        const pCount = document.getElementById('pCount');
-        const pTruck = document.getElementById('pTruck');
-        const preloader = document.getElementById('preloader');
-        
-        const circ = 2 * Math.PI * 100;
-        let p = 0;
-        
-        const interval = setInterval(() => {
-            p += Math.floor(Math.random() * 3) + 1;
-            if (p > 100) p = 100;
-            
-            const offset = circ - (p / 100 * circ);
-            if (pVal) pVal.style.strokeDashoffset = offset;
-            if (pCount) pCount.textContent = p;
-            
-            if (pTruck) {
-                const angle = (p / 100 * 360) - 90;
-                const rad = angle * (Math.PI / 180);
-                const tx = Math.cos(rad) * 100;
-                const ty = Math.sin(rad) * 100;
-                pTruck.style.transform = `translate(${tx}px, ${ty}px) rotate(${angle + 90}deg)`;
+        var pctEl = document.getElementById('ld-pct');
+        var lfill = document.getElementById('lfill');
+        var truck = document.getElementById('ld-truck');
+        var loader = document.getElementById('loader');
+        var T0 = performance.now();
+        var LDUR = 2000;
+
+        function tickLoader(now) {
+            var raw = clamp((now - T0) / LDUR, 0, 1);
+            var p = 1 - Math.pow(1 - raw, 2.8);
+            var pct = Math.floor(p * 100);
+            pctEl.textContent = pct;
+            lfill.style.width = pct + '%';
+            truck.style.left = (3 + pct * .86) + '%';
+            if (raw < 1) {
+                requestAnimationFrame(tickLoader);
+            } else {
+                pctEl.textContent = 100;
+                truck.style.left = '91%';
+                setTimeout(loaderExit, 320);
             }
-            
-            if (p >= 100) {
-                clearInterval(interval);
-                setTimeout(loaderExit, 500);
-            }
-        }, 30);
-        
+        }
+        requestAnimationFrame(tickLoader);
+
         function loaderExit() {
             gsap.timeline({
                     onComplete: initPage
                 })
-                .to(preloader, {
-                    yPercent: -100,
-                    duration: 1.4,
-                    ease: 'expo.inOut'
+                .to(loader, {
+                    y: '-100%',
+                    duration: 1.0,
+                    ease: 'power3.inOut'
                 })
-                .set(preloader, {
+                .set(loader, {
                     display: 'none'
                 });
         }
@@ -3688,13 +3738,16 @@
            FOOTER WORD REVEAL
            ════════════════════════════════════════════════════════════ */
         function initFooter() {
-            gsap.to('.f-top-div', {
-                opacity: 1, y: 0, duration: 1.2, ease: 'power3.out',
-                scrollTrigger: { trigger: '.footer', start: 'top 85%' }
-            });
-            gsap.to('#fHuge', {
-                opacity: 1, y: 0, duration: 1.5, ease: 'power4.out',
-                scrollTrigger: { trigger: '.footer', start: 'top 70%' }
+            gsap.to('.fwi', {
+                y: 0,
+                duration: 1.1,
+                ease: 'power3.out',
+                stagger: .11,
+                scrollTrigger: {
+                    trigger: '#fbig',
+                    start: 'top 88%',
+                    once: true
+                }
             });
         }
 
