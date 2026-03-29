@@ -92,10 +92,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         /* Compact elements to fit 90vh */
         .login-brand-text { font-size: 2.8rem; }
         .role-selector { gap: 10px; margin-bottom: 1.5rem; }
-        .role-btn { padding: 8px !important; font-size: 0.8rem; }
+        .role-btn { padding: 6px !important; font-size: 0.6rem; }
         .role-btn i { font-size: 1.1rem !important; }
-        .form-label { margin-bottom: 0.25rem !important; }
-        .login-input-group { margin-bottom: 1rem !important; }
+        .form-label { margin-bottom: 0.20rem !important; }
+        .login-input-group { margin-bottom: 0.6rem !important; }
         
         .login-theme-toggle {
             position: absolute;
@@ -191,8 +191,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </button>
                     </form>
 
-                    <div class="mt-4 pt-3 text-center border-top border-secondary border-opacity-10">
-                        <p class="small text-muted mb-1">New courier company?</p>
+                    <div class="mt-3 text-center border-top border-secondary border-opacity-10">
+                        <p class="small text-muted mb-0">New courier company?</p>
                         <a href="register.php" class="text-primary text-decoration-none fw-bold small">Register Here</a>
                         <div class="mt-3">
                             <a href="../index.php" class="text-muted text-decoration-none extra-small">

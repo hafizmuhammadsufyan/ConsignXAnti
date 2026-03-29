@@ -58,7 +58,7 @@ if ($current_role === 'admin') {
 
 <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card border-0 shadow-lg">
     <div>
-        <div class="text-center mb-4 sidebar-header">
+        <div class="text-center mb-1 sidebar-header">
             <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
             <small class="text-muted"><?= ucfirst($current_role) ?> Portal</small>
         </div>

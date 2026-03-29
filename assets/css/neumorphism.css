@@ -255,11 +255,10 @@
     vertical-align: middle;
     color: var(--text-primary);
     border-bottom: 1px solid rgba(0,0,0,0.03);
-    min-width: 140px; /* Increased min-width to prevent "Out for Delivery" wrap */
 }
 
 .premium-table td:last-child {
-    min-width: 100px; /* Actions column doesn't need as much */
+    text-align: right;
 }
 
 [data-theme="dark"] .premium-table td {
@@ -306,6 +305,7 @@
     font-size: 13px !important;
     text-decoration: none !important;
     box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2) !important;
+    white-space: nowrap !important;
 }
 
 [data-theme="dark"] .btn-track, [data-theme="dark"] .btn-back {
