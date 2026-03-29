@@ -478,14 +478,16 @@ a:hover {
 }
 
 .status-returned {
-    background-color: #ffc107; /* Amber */
+    background-color: #ffc107;
+    /* Amber */
     color: #212529;
 }
 
 .status-cancelled {
-    background-color: #dc3545; /* Red */
+    background-color: #dc3545;
+    /* Red */
     color:
-     #fff;
+        #fff;
 }
 
 /* Utilities */
@@ -540,16 +542,20 @@ a:hover {
    ========================================================================== */
 
 /* --- 1. Global Overflow Fixes --- */
-html, body {
+html,
+body {
     overflow-x: hidden;
     width: 100%;
 }
 
-.container, .container-fluid, .row {
+.container,
+.container-fluid,
+.row {
     max-width: 100%;
 }
 
-img, table {
+img,
+table {
     max-width: 100%;
 }
 
@@ -562,8 +568,21 @@ img {
 html {
     font-size: clamp(12px, 2vw, 16px);
 }
-body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
-    word-break: break-word; /* Prevent text overflow */
+
+body,
+p,
+a,
+span,
+div,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+label {
+    word-break: break-word;
+    /* Prevent text overflow */
 }
 
 /* ==========================================================================
@@ -582,7 +601,7 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
 @media (max-width: 991px) {
     .main-content {
         padding: 1.5rem;
-        padding-top: 5rem; 
+        padding-top: 5rem;
     }
 
     /* --- 3. Header --- */
@@ -591,7 +610,7 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
         gap: 15px;
         padding: 1.25rem 1.5rem;
     }
-    
+
     .top-header h2 {
         font-size: 1.5rem;
     }
@@ -603,7 +622,7 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
 @media (max-width: 767px) {
     .main-content {
         padding: 1rem;
-        padding-top: 5rem; 
+        padding-top: 5rem;
     }
 
     /* --- 2. Header Re-flow --- */
@@ -612,7 +631,7 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
         align-items: flex-start;
         gap: 15px;
     }
-    
+
     .top-header .d-flex {
         width: 100%;
         justify-content: space-between;
@@ -622,10 +641,11 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
 
     .header-search {
         width: 100%;
-        order: 3; /* Move search below */
+        order: 3;
+        /* Move search below */
         margin-top: 10px;
     }
-    
+
     .neumorphic-search {
         width: 100%;
     }
@@ -637,45 +657,60 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
         margin-right: 0;
     }
 
-    .kpi-card, .neumorphic-card, .premium-table-container {
+    .kpi-card,
+    .neumorphic-card,
+    .premium-table-container {
         padding: 1rem;
         margin-bottom: 1.25rem;
     }
 
     /* --- 4. Tables: Enforce Horizontal Scroll ONLY --- */
-    .table-responsive, .premium-table-container, .table-container {
+    .table-responsive,
+    .premium-table-container,
+    .table-container {
         width: 100%;
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
         display: block;
     }
-    
-    .premium-table, .neumorphic-table, .table {
-        min-width: 800px; /* Force scroll so UI doesn't break */
+
+    .premium-table,
+    .neumorphic-table,
+    .table {
+        min-width: 800px;
+        /* Force scroll so UI doesn't break */
     }
 
     /* --- 6. Forms full width --- */
-    .form-control, .form-select, .neumorphic-input {
+    .form-control,
+    .form-select,
+    .neumorphic-input {
         width: 100%;
     }
 
     /* Default buttons go full width on mobile */
-    .btn, .btn-primary, .neumorphic-btn {
+    .btn,
+    .btn-primary,
+    .neumorphic-btn {
         width: 100%;
         margin-bottom: 0.5rem;
         display: flex;
         justify-content: center;
         align-items: center;
     }
-    
+
     /* Exceptions */
-    .btn-track, .btn-sm, .dropdown-toggle, .btn-back, .sidebar-toggle-btn {
+    .btn-track,
+    .btn-sm,
+    .dropdown-toggle,
+    .btn-back,
+    .sidebar-toggle-btn {
         width: auto;
         display: inline-flex;
     }
-    
+
     /* Support for form layouts */
-    form .row > div {
+    form .row>div {
         margin-bottom: 15px;
     }
 }
@@ -702,8 +737,8 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
 /* ==========================================================================
    10. DARK MODE CONTRAST FIXES
    ========================================================================== */
-[data-theme="dark"] .form-control, 
-[data-theme="dark"] .form-select, 
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
 [data-theme="dark"] .neumorphic-input {
     color: #ffffff !important;
 }
@@ -711,7 +746,7 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
 [data-theme="dark"] .form-control::placeholder,
 [data-theme="dark"] .form-select::placeholder,
 [data-theme="dark"] .neumorphic-input::placeholder {
-    color: rgba(255,255,255,0.6) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
 }
 
 [data-theme="dark"] .text-dark {
@@ -722,67 +757,88 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
    CRITICAL MOBILE FIXES (max-width: 576px) 
    ========================================================================== */
 @media (max-width: 576px) {
+
     /* ----------------------------------------------------------------------
        1. Table to Card Transformation
        ---------------------------------------------------------------------- */
     /* Remove horizontal table wrapping / overflow block */
-    .table-responsive, .premium-table-container, .table-container {
-        overflow: visible !important; /* Fix collapsed dropdowns/clicks */
+    .table-responsive,
+    .premium-table-container,
+    .table-container {
+        overflow: visible !important;
+        /* Fix collapsed dropdowns/clicks */
         padding: 0 !important;
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
     }
 
-    .premium-table thead, .neumorphic-table thead, .table thead {
+    .premium-table thead,
+    .neumorphic-table thead,
+    .table thead {
         display: none !important;
     }
 
-    .premium-table, .neumorphic-table, .table {
+    .premium-table,
+    .neumorphic-table,
+    .table {
         min-width: 100% !important;
         border: none !important;
     }
 
     /* Convert tr into stacked card */
-    .premium-table tbody tr, .neumorphic-table tbody tr, .table tbody tr {
+    .premium-table tbody tr,
+    .neumorphic-table tbody tr,
+    .table tbody tr {
         display: block !important;
         width: 100% !important;
-        height: auto !important; /* FIxed collapsing bug! */
+        height: auto !important;
+        /* FIxed collapsing bug! */
         margin-bottom: 14px !important;
         padding: 14px 16px !important;
         border-radius: 14px !important;
         background: var(--bg-color) !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important; 
-        border: 1px solid rgba(0,0,0,0.05) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
     }
 
     [data-theme="dark"] .premium-table tbody tr,
     [data-theme="dark"] .neumorphic-table tbody tr,
     [data-theme="dark"] .table tbody tr {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
-        border: 1px solid rgba(255,255,255,0.06) !important;
-        background: #1a1a1a !important; 
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        background: #1a1a1a !important;
     }
 
     /* 2. Fix Internal Structure (TD via user instructions) */
-    .premium-table tbody td, .neumorphic-table tbody td, .table tbody td,
-    .premium-table tbody tr td, .neumorphic-table tbody tr td, .table tbody tr td {
+    .premium-table tbody td,
+    .neumorphic-table tbody td,
+    .table tbody td,
+    .premium-table tbody tr td,
+    .neumorphic-table tbody tr td,
+    .table tbody tr td {
         display: flex !important;
-        justify-content: flex-end !important; /* Right align fallback */
+        justify-content: flex-end !important;
+        /* Right align fallback */
         align-items: flex-start !important;
-        flex-wrap: wrap !important; /* Prevent squishing */
+        flex-wrap: wrap !important;
+        /* Prevent squishing */
         gap: 4px 10px !important;
         width: 100% !important;
-        min-width: 0 !important; /* Reset desktop 140px min-width */
+        min-width: 0 !important;
+        /* Reset desktop 140px min-width */
         padding: 6px 0 !important;
-        border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
         word-wrap: break-word !important;
         overflow-wrap: break-word !important;
-        white-space: normal !important; /* Critical Fix 3 */
+        white-space: normal !important;
+        /* Critical Fix 3 */
     }
-    
+
     /* Ensure content inside TD aligns right if it wraps */
-    .premium-table tbody td > *, .neumorphic-table tbody td > *, .table tbody td > * {
+    .premium-table tbody td>*,
+    .neumorphic-table tbody td>*,
+    .table tbody td>* {
         max-width: 100%;
         text-align: right;
         word-wrap: break-word !important;
@@ -790,37 +846,49 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
         white-space: normal !important;
     }
 
-    [data-theme="dark"] .premium-table tbody td, 
-    [data-theme="dark"] .neumorphic-table tbody td, 
+    [data-theme="dark"] .premium-table tbody td,
+    [data-theme="dark"] .neumorphic-table tbody td,
     [data-theme="dark"] .table tbody td {
-        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
     }
 
-    .premium-table tbody td:last-child, .neumorphic-table tbody td:last-child, .table tbody td:last-child {
+    .premium-table tbody td:last-child,
+    .neumorphic-table tbody td:last-child,
+    .table tbody td:last-child {
         border-bottom: none !important;
         padding-bottom: 0 !important;
-        position: relative !important; /* Fix 4: Clickable */
+        position: relative !important;
+        /* Fix 4: Clickable */
         z-index: 2 !important;
         margin-top: 8px !important;
     }
-    .premium-table tbody td:first-child, .neumorphic-table tbody td:first-child, .table tbody td:first-child {
+
+    .premium-table tbody td:first-child,
+    .neumorphic-table tbody td:first-child,
+    .table tbody td:first-child {
         padding-top: 0 !important;
     }
 
     /* Generate left-aligned labels for each td */
-    .premium-table tbody td::before, .neumorphic-table tbody td::before, .table tbody td::before {
+    .premium-table tbody td::before,
+    .neumorphic-table tbody td::before,
+    .table tbody td::before {
         font-size: 11px !important;
         color: var(--text-muted) !important;
         display: block !important;
         font-weight: bold !important;
-        margin-right: auto !important; /* Key to pushing rest right while using flex */
+        margin-right: auto !important;
+        /* Key to pushing rest right while using flex */
         text-align: left !important;
         white-space: nowrap !important;
         flex-shrink: 0 !important;
     }
 
     /* --- 5. Fix Action Button Layout --- */
-    .premium-table tbody td:last-child .d-flex, .premium-table tbody td form.d-inline {
+    .neumorphic-table tbody td:last-child .d-flex,
+    .neumorphic-table tbody td form.d-inline,
+    .premium-table tbody td:last-child .d-flex,
+    .premium-table tbody td form.d-inline {
         display: flex !important;
         flex-wrap: wrap !important;
         justify-content: flex-end;
@@ -832,7 +900,7 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
 
     .neumorphic-btn {
         display: inline-flex !important;
-        width: auto !important; 
+        /* width: auto !important;  */
     }
 
     /* --- 6. Fix Status Badge --- */
@@ -843,39 +911,130 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
     }
 
     /* Fix dropdown overlap */
-    .premium-table tbody td .dropdown, .neumorphic-table tbody td .dropdown {
+    .premium-table tbody td .dropdown,
+    .neumorphic-table tbody td .dropdown {
         display: inline-block;
         position: relative;
         z-index: 3;
     }
 
     /* === NTH-CHILD LABEL MAPPINGS === */
-    #recentShipmentsTable tbody td:nth-child(1)::before { content: "Tracking ID"; }
-    #recentShipmentsTable tbody td:nth-child(2)::before { content: "Agent"; }
-    #recentShipmentsTable tbody td:nth-child(3)::before { content: "Customer"; }
-    #recentShipmentsTable tbody td:nth-child(4)::before { content: "Route"; }
-    #recentShipmentsTable tbody td:nth-child(5)::before { content: "Amount"; }
-    #recentShipmentsTable tbody td:nth-child(6)::before { content: "Status"; }
+    #recentShipmentsTable tbody td:nth-child(1)::before {
+        content: "Tracking ID";
+    }
 
-    #agentsTable tbody td:nth-child(1)::before { content: "Company"; }
-    #agentsTable tbody td:nth-child(2)::before { content: "Contact"; }
-    #agentsTable tbody td:nth-child(3)::before { content: "Phone"; }
-    #agentsTable tbody td:nth-child(4)::before { content: "Status"; }
-    #agentsTable tbody td:nth-child(5)::before { content: "Actions"; }
+    #recentShipmentsTable tbody td:nth-child(2)::before {
+        content: "Agent";
+    }
 
-    .neumorphic-table tbody td:nth-child(1)::before { content: "Date Submitted"; }
-    .neumorphic-table tbody td:nth-child(2)::before { content: "Company"; }
-    .neumorphic-table tbody td:nth-child(3)::before { content: "Contact Person"; }
-    .neumorphic-table tbody td:nth-child(4)::before { content: "Email"; }
-    .neumorphic-table tbody td:nth-child(5)::before { content: "Phone"; }
-    .neumorphic-table tbody td:nth-child(6)::before { content: "Actions"; }
+    #recentShipmentsTable tbody td:nth-child(3)::before {
+        content: "Customer";
+    }
 
-    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(1)::before { content: "Tracking/Date"; }
-    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(2)::before { content: "Customer"; }
-    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(3)::before { content: "Agent"; }
-    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(4)::before { content: "Route"; }
-    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(5)::before { content: "Status"; }
-    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(6)::before { content: "Actions"; }
+    #recentShipmentsTable tbody td:nth-child(4)::before {
+        content: "Route";
+    }
+
+    #recentShipmentsTable tbody td:nth-child(5)::before {
+        content: "Amount";
+    }
+
+    #recentShipmentsTable tbody td:nth-child(6)::before {
+        content: "Status";
+    }
+
+    #agentsTable tbody td:nth-child(1)::before {
+        content: "Company";
+    }
+
+    #agentsTable tbody td:nth-child(2)::before {
+        content: "Contact";
+    }
+
+    #agentsTable tbody td:nth-child(3)::before {
+        content: "Phone";
+    }
+
+    #agentsTable tbody td:nth-child(4)::before {
+        content: "Status";
+    }
+
+    #agentsTable tbody td:nth-child(5)::before {
+        content: "Actions";
+    }
+
+    .neumorphic-table tbody td:nth-child(1)::before {
+        content: "Date Submitted";
+    }
+
+    .neumorphic-table tbody td:nth-child(2)::before {
+        content: "Company";
+    }
+
+    .neumorphic-table tbody td:nth-child(3)::before {
+        content: "Contact Person";
+    }
+
+    .neumorphic-table tbody td:nth-child(4)::before {
+        content: "Email";
+    }
+
+    .neumorphic-table tbody td:nth-child(5)::before {
+        content: "Phone";
+    }
+
+    .neumorphic-table tbody td:nth-child(6)::before {
+        content: "Actions";
+    }
+
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(1)::before {
+        content: "Tracking/Date";
+    }
+
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(2)::before {
+        content: "Customer";
+    }
+
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(3)::before {
+        content: "Agent";
+    }
+
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(4)::before {
+        content: "Route";
+    }
+
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(5)::before {
+        content: "Status";
+    }
+
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(6)::before {
+        content: "Actions";
+    }
+
+    /* --- 7. Fix Dashboard UI Breakages --- */
+    /* Fix Sidebar Collapse */
+    .sidebar .nav-link,
+    .sidebar .desktop-toggle-btn {
+        white-space: nowrap !important;
+        min-width: max-content !important;
+    }
+
+    /* Fix Header Notification Bell Shrinking */
+    .top-header .dropdown,
+    .top-header .btn {
+        flex-shrink: 0 !important;
+    }
+
+    /* Fix Table Filter & Buttons Wrapping */
+    .neumorphic-card form.row,
+    .d-flex.align-items-center.gap-2 {
+        flex-wrap: wrap !important;
+    }
+
+    .neumorphic-card form.row>div {
+        width: 100% !important;
+        margin-bottom: 10px;
+    }
 
     /* ----------------------------------------------------------------------
        2. Shipment Journey (Vertical Stacked Timeline)
@@ -895,15 +1054,15 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
     .progress-track-container::before {
         content: '';
         position: absolute;
-        left: 6px; 
+        left: 6px;
         top: 0;
         bottom: 0;
         width: 2px;
-        background: rgba(0,0,0,0.1);
+        background: rgba(0, 0, 0, 0.1);
     }
-    
+
     [data-theme="dark"] .progress-track-container::before {
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.1);
     }
 
     .progress-track-bar {
@@ -915,7 +1074,7 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
         top: auto !important;
         left: auto !important;
         transform: none !important;
-        margin-left: -20px !important; 
+        margin-left: -20px !important;
         background: var(--bg-color) !important;
         z-index: 2;
         width: 14px !important;
@@ -923,7 +1082,7 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
     }
 
     [data-theme="dark"] .progress-track-point {
-        background: #2a2a2a !important; 
+        background: #2a2a2a !important;
     }
 
     .progress-point-label {
@@ -948,11 +1107,11 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
         border-color: var(--primary-color) !important;
         background: var(--primary-color) !important;
     }
-    
+
     .progress-track-point.active .progress-point-label {
         color: var(--primary-color) !important;
     }
-    
+
     .progress-track-point.active i {
         color: var(--primary-color) !important;
     }

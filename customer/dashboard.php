@@ -251,7 +251,7 @@ try {
                                         <th>Route</th>
                                         <th>Amount</th>
                                         <th>Status</th>
-                                        <th class="text-end">Action</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="shipmentsTableBody">
