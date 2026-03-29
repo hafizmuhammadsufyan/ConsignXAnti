@@ -10,6 +10,11 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
         rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
@@ -31,10 +36,12 @@
         --bg2: #0c1525;
         --bg3: #101e34;
         --card: #0f1b2e;
+        --muted: #52525b;
         --ln: rgba(255, 255, 255, .07);
         --lnh: rgba(255, 255, 255, .13);
         --t1: #edf0ff;
         --t2: #a1a7b1;
+        --bdr: rgba(255, 255, 255, 0.06);
         --t3: #7695be;
         --a: #3b7cfd;
         --am: #6366f1;
@@ -42,6 +49,7 @@
         --at: #14b8a6;
         --fd: 'Syne', sans-serif;
         --fb: 'DM Sans', sans-serif;
+        --head: 'Space Grotesk', sans-serif;
         --expo: cubic-bezier(.16, 1, .3, 1);
         --snap: cubic-bezier(.34, 1.56, .64, 1);
         --ease: cubic-bezier(.65, 0, .35, 1)
@@ -378,7 +386,7 @@
         font-size: 13.5px;
         color: #fff;
         background: none;
-        border: 1px solid rgba(255,255,255,.2);
+        border: 1px solid rgba(255, 255, 255, .2);
         border-radius: 8px;
         padding: 8px 16px;
         cursor: pointer;
@@ -645,7 +653,7 @@
 
     #b-tag {
         position: absolute;
-        bottom: 13%;
+        bottom: 25%;
         left: 50%;
         transform: translateX(-50%);
         z-index: 4;
@@ -987,6 +995,7 @@
     .hm-p {
         color: var(--t1);
     }
+
     .rev {
         opacity: 0;
         transform: translateY(36px)
@@ -1893,6 +1902,92 @@
     /* ═══════════════════════════════════════════════════════════════
    FOOTER
    ═══════════════════════════════════════════════════════════════ */
+
+    .footer {
+        padding: 120px 48px 60px;
+        border-top: 1px solid var(--bdr)
+    }
+
+    .f-huge {
+        font-family: var(--head);
+        font-size: clamp(3rem, 14vw, 14rem);
+        font-weight: 850;
+        letter-spacing: -10px;
+        line-height: .8;
+        text-align: center;
+        margin-top: 100px;
+        background: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0.05));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        opacity: 0;
+        transform: translateY(80px)
+    }
+
+    .st-l {
+        font-size: .7rem;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 700;
+        margin-top: 15px
+    }
+
+    .n-brand {
+        font-family: var(--head);
+        font-weight: 700;
+        font-size: 1.4rem;
+        letter-spacing: -1px;
+        color: var(--white);
+        text-decoration: none
+    }
+
+    .n-links {
+        display: flex;
+        align-items: center;
+        gap: 32px
+    }
+
+    .n-link {
+        color: var(--dim);
+        text-decoration: none;
+        font-size: .875rem;
+        font-weight: 500;
+        transition: color .3s
+    }
+
+    .n-link:hover {
+        color: var(--white)
+    }
+
+    .n-cta {
+        padding: 10px 28px;
+        background: var(--white);
+        color: var(--bg);
+        border-radius: 100px;
+        text-decoration: none;
+        font-size: .875rem;
+        font-weight: 600;
+        transition: all .3s
+    }
+
+    .n-cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255, 255, 255, .1);
+        color: var(--bg)
+    }
+
+    /* REVEALS */
+    .reveal-box {
+        opacity: 0;
+        transform: translateY(50px);
+        transition: all 1s cubic-bezier(.16, 1, .3, 1)
+    }
+
+    .reveal-box.reveal-active {
+        opacity: 1;
+        transform: translateY(0)
+    }
+
     #footer {
         background: var(--bg0);
         border-top: 1px solid var(--ln);
@@ -2944,49 +3039,26 @@
         <div class="f-cin">
             <div class="f-big" id="fbig"></div>
         </div>
-        <div class="f-grid">
-            <div>
-                <a class="f-logo" href="#"><span>Consign</span>X</a>
-                <p class="f-desc">The intelligent courier management platform built for modern logistics teams who
-                    demand speed, visibility and control.</p>
-                <div class="f-soc">
-                    <a class="f-sb" href="#">𝕏</a><a class="f-sb" href="#">in</a><a class="f-sb" href="#">⌥</a><a
-                        class="f-sb" href="#">▶</a>
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-start reveal-box rev">
+                <div>
+                    <h3 class="n-brand" style="font-size:2rem">CONSIGNX</h3>
+                    <p style="color:var(--muted);max-width:300px;margin-top:10px">The operating system for physical
+                        world connectivity.</p>
+                </div>
+                <div class="d-flex gap-5">
+                    <div>
+                        <h6 class="st-l">Platform</h6>
+                        <a href="auth/login.php" class="n-link d-block mt-2">Login</a>
+                        <a href="auth/register.php" class="n-link d-block mt-2">Create Account</a>
+                        <a href="#" class="n-link d-block mt-2">Network Status</a>
+                    </div>
                 </div>
             </div>
-            <div>
-                <div class="f-ch">Product</div>
-                <ul class="fl">
-                    <li><a href="#">Features</a></li>
-                    <li><a href="#">Pricing</a></li>
-                    <li><a href="#">API Docs</a></li>
-                    <li><a href="#">Integrations</a></li>
-                    <li><a href="#">Changelog</a></li>
-                </ul>
-            </div>
-            <div>
-                <div class="f-ch">Company</div>
-                <ul class="fl">
-                    <li><a href="#">About</a></li>
-                    <li><a href="#">Careers</a></li>
-                    <li><a href="#">Blog</a></li>
-                    <li><a href="#">Press Kit</a></li>
-                    <li><a href="#">Partners</a></li>
-                </ul>
-            </div>
-            <div>
-                <div class="f-ch">Support</div>
-                <ul class="fl">
-                    <li><a href="#">Help Centre</a></li>
-                    <li><a href="#">Contact Us</a></li>
-                    <li><a href="#">Status</a></li>
-                    <li><a href="#">Privacy</a></li>
-                    <li><a href="#">Terms</a></li>
-                </ul>
-            </div>
+            <h1 class="f-huge rev" id="fHuge">CONSIGNX</h1>
         </div>
         <div class="f-btm">
-            <p class="f-copy">© 2025 <span>ConsignX</span>. All rights reserved.</p>
+            <p class="f-copy">© 2026 <span>ConsignX</span>. All rights reserved.</p>
             <div class="f-stat">
                 <div class="s-dot"></div>All systems operational
             </div>
@@ -2997,6 +3069,33 @@
      JAVASCRIPT
      ═══════════════════════════════════════════════════════════ -->
     <script>
+    // 8. FOOTER REVEAL
+    gsap.to('#fHuge', {
+        opacity: 1,
+        y: 0,
+        duration: 1.5,
+        ease: 'power4.out',
+        scrollTrigger: {
+            trigger: '.footer',
+            start: 'top 70%'
+        }
+    });
+
+    // 4. SECTION REVEALS (Intersection Observer)
+    const obs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('reveal-active');
+                obs.unobserve(e.target);
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+    document.querySelectorAll('.reveal-box').forEach(el => obs.observe(el));
+
+
+
     (function() {
         'use strict';
 
