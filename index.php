@@ -15,6 +15,7 @@
         rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
@@ -1915,12 +1916,12 @@
 
     .f-huge {
         font-family: var(--head);
-        font-size: clamp(3rem, 14vw, 14rem);
+        font-size: clamp(6rem, 18vw, 18rem);
         font-weight: 850;
         letter-spacing: -8px;
         line-height: 1;
         text-align: center;
-        margin-top: 60px;
+        margin-top: 50px;
         margin-bottom: 0;
         padding: 0 20px;
         background: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0.05));
@@ -2547,8 +2548,7 @@
     
     .sico i,
     .sico2 i,
-    .fi i,
-    .gal-icon i {
+    .fi i {
         color: var(--a);
         display: inline-flex;
         align-items: center;
@@ -2568,7 +2568,12 @@
     }
 
     .gal-icon i {
-        font-size: 24px
+        color: #ffffff;
+        font-size: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
     }</style>
 </head>
 
@@ -2894,7 +2899,7 @@
                     <div class="slbl">Shipments Delivered</div>
                 </div>
                 <div class="stat-c rev">
-                    <div class="sico2"><i class="bi bi-handshake"></i></div>
+                    <div class="sico2"><i class="fas fa-handshake"></i></i></div>
                     <div class="snum2" data-t="200" data-s="+">0</div>
                     <div class="slbl">Courier Partners</div>
                 </div>
@@ -3086,7 +3091,7 @@
             <div class="f-big" id="fbig"></div>
         </div>
         <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-start reveal-box rev">
+            <div class="pt-3 d-flex justify-content-between align-items-start reveal-box rev">
                 <div>
                     <h3 class="n-brand" style="font-size:2rem">CONSIGNX</h3>
                     <p style="color:var(--muted);max-width:300px;margin-top:10px">The operating system for physical
