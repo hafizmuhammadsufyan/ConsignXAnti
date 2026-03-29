@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -847,7 +847,7 @@
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        margin-top: 32px;
+        margin-top: 20px;
         font-family: var(--fb);
         font-size: 14px;
         font-weight: 500;
@@ -1144,6 +1144,11 @@
         font-size: 22px;
         margin-bottom: 24px;
         transition: transform .4s var(--snap), background .3s
+    }
+
+    .si i {
+        color: var(--a);
+        font-size: 24px
     }
 
     .svc-card:hover .si {
@@ -1912,15 +1917,18 @@
         font-family: var(--head);
         font-size: clamp(3rem, 14vw, 14rem);
         font-weight: 850;
-        letter-spacing: -10px;
-        line-height: .8;
+        letter-spacing: -8px;
+        line-height: 1;
         text-align: center;
-        margin-top: 100px;
+        margin-top: 60px;
+        margin-bottom: 0;
+        padding: 0 20px;
         background: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0.05));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         opacity: 0;
-        transform: translateY(80px)
+        transform: translateY(100px);
+        will-change: opacity, transform
     }
 
     .st-l {
@@ -1980,7 +1988,8 @@
     .reveal-box {
         opacity: 0;
         transform: translateY(50px);
-        transition: all 1s cubic-bezier(.16, 1, .3, 1)
+        transition: opacity 1s cubic-bezier(.16, 1, .3, 1), transform 1s cubic-bezier(.16, 1, .3, 1);
+        will-change: opacity, transform
     }
 
     .reveal-box.reveal-active {
@@ -1991,7 +2000,13 @@
     #footer {
         background: var(--bg0);
         border-top: 1px solid var(--ln);
-        overflow: hidden
+        overflow: hidden;
+        opacity: 0;
+        will-change: opacity
+    }
+
+    #footer.footer-visible {
+        opacity: 1
     }
 
     .f-cin {
@@ -2030,7 +2045,13 @@
 
     .fwi {
         display: inline-block;
-        transform: translateY(108%)
+        transform: translateY(108%);
+        opacity: 0;
+        will-change: opacity, transform
+    }
+
+    .fwi.word-visible {
+        opacity: 1
     }
 
     .f-grid {
@@ -2523,7 +2544,32 @@
             justify-content: center;
         }
     }
-    </style>
+    
+    .sico i,
+    .sico2 i,
+    .fi i,
+    .gal-icon i {
+        color: var(--a);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center
+    }
+
+    .sico i {
+        font-size: 32px
+    }
+
+    .sico2 i {
+        font-size: 32px
+    }
+
+    .fi i {
+        font-size: 28px
+    }
+
+    .gal-icon i {
+        font-size: 24px
+    }</style>
 </head>
 
 <body>
@@ -2681,9 +2727,9 @@
                 <div class="hs-dot"></div>
             </div>
         </div>
-        <div class="hs-hint">
+        <!-- <div class="hs-hint">
             <div class="hs-line"></div>Scroll to explore
-        </div>
+        </div> -->
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════
@@ -2706,42 +2752,42 @@
             </div>
             <div class="svc-grid">
                 <div class="svc-card rev">
-                    <div class="si">📦</div>
+                    <div class="si"><i class="bi bi-box2"></i></div>
                     <div class="st">Domestic Shipping</div>
                     <div class="sd">Next-day and same-day delivery across all major cities. Optimised routing ensures
                         your packages arrive on time, every time.</div>
                     <div class="sa">↗</div>
                 </div>
                 <div class="svc-card rev">
-                    <div class="si">✈️</div>
+                    <div class="si"><i class="bi bi-airplane"></i></div>
                     <div class="st">International Delivery</div>
                     <div class="sd">Seamless cross-border logistics with customs clearance support, real-time tracking
                         and door-to-door delivery worldwide.</div>
                     <div class="sa">↗</div>
                 </div>
                 <div class="svc-card rev">
-                    <div class="si">⚡</div>
+                    <div class="si"><i class="bi bi-lightning-charge"></i></div>
                     <div class="st">Express Courier</div>
                     <div class="sd">Priority pickup and delivery for urgent shipments. Guaranteed 2-hour windows with
                         live agent updates along the journey.</div>
                     <div class="sa">↗</div>
                 </div>
                 <div class="svc-card rev">
-                    <div class="si">🏭</div>
+                    <div class="si"><i class="bi bi-building"></i></div>
                     <div class="st">Warehouse Logistics</div>
                     <div class="sd">Full-service fulfilment centres with inventory management, pick-and-pack and returns
                         processing under one roof.</div>
                     <div class="sa">↗</div>
                 </div>
                 <div class="svc-card rev">
-                    <div class="si">🛰️</div>
+                    <div class="si"><i class="bi bi-satellite"></i></div>
                     <div class="st">Fleet Tracking</div>
                     <div class="sd">GPS-powered real-time fleet management with route optimisation, driver scoring and
                         fuel efficiency analytics.</div>
                     <div class="sa">↗</div>
                 </div>
                 <div class="svc-card rev">
-                    <div class="si">📊</div>
+                    <div class="si"><i class="bi bi-graph-up"></i></div>
                     <div class="st">Delivery Analytics</div>
                     <div class="sd">Comprehensive performance dashboards covering SLA compliance, customer satisfaction
                         and operational cost intelligence.</div>
@@ -2772,7 +2818,7 @@
                             </div>
                         </div>
                         <div class="sbod">
-                            <div class="sico">🖊️</div>
+                            <div class="sico"><i class="bi bi-pencil-square"></i></div>
                             <div class="stt">Create Shipment</div>
                             <div class="sde">Generate labels, schedule pickups and notify recipients — all in under 60
                                 seconds from the dashboard.</div>
@@ -2786,7 +2832,7 @@
                             </div>
                         </div>
                         <div class="sbod">
-                            <div class="sico">🚪</div>
+                            <div class="sico"><i class="bi bi-door-open"></i></div>
                             <div class="stt">Pickup Package</div>
                             <div class="sde">Assign the nearest available courier automatically. Real-time ETA updates
                                 keep senders informed from the moment of pickup.</div>
@@ -2800,7 +2846,7 @@
                             </div>
                         </div>
                         <div class="sbod">
-                            <div class="sico">🚚</div>
+                            <div class="sico"><i class="bi bi-truck"></i></div>
                             <div class="stt">In Transit</div>
                             <div class="sde">Live GPS tracking with automated checkpoints. Smart rerouting avoids delays
                                 from traffic, weather or road conditions.</div>
@@ -2814,7 +2860,7 @@
                             </div>
                         </div>
                         <div class="sbod">
-                            <div class="sico">📍</div>
+                            <div class="sico"><i class="bi bi-geo-alt"></i></div>
                             <div class="stt">Out for Delivery</div>
                             <div class="sde">Recipients receive live tracking links with accurate delivery windows.
                                 Digital proof-of-delivery captures signatures instantly.</div>
@@ -2825,7 +2871,7 @@
                             <div class="snum">05</div>
                         </div>
                         <div class="sbod">
-                            <div class="sico">✅</div>
+                            <div class="sico"><i class="bi bi-check-circle"></i></div>
                             <div class="stt">Delivered</div>
                             <div class="sde">Confirmation notification sent to all parties. Delivery report archived for
                                 billing and compliance automatically.</div>
@@ -2843,22 +2889,22 @@
         <div class="container">
             <div class="stats-r">
                 <div class="stat-c rev">
-                    <div class="sico2">📦</div>
+                    <div class="sico2"><i class="bi bi-box2"></i></div>
                     <div class="snum2" data-t="10" data-s="K+">0</div>
                     <div class="slbl">Shipments Delivered</div>
                 </div>
                 <div class="stat-c rev">
-                    <div class="sico2">🤝</div>
+                    <div class="sico2"><i class="bi bi-handshake"></i></div>
                     <div class="snum2" data-t="200" data-s="+">0</div>
                     <div class="slbl">Courier Partners</div>
                 </div>
                 <div class="stat-c rev">
-                    <div class="sico2">🌆</div>
+                    <div class="sico2"><i class="bi bi-buildings"></i></div>
                     <div class="snum2" data-t="50" data-s="+">0</div>
                     <div class="slbl">Cities Covered</div>
                 </div>
                 <div class="stat-c rev">
-                    <div class="sico2">⭐</div>
+                    <div class="sico2"><i class="bi bi-star-fill"></i></div>
                     <div class="snum2" data-t="99" data-s="%">0</div>
                     <div class="slbl">Delivery Success Rate</div>
                 </div>
@@ -2881,37 +2927,37 @@
             <div class="feat-grid">
                 <div class="fc w2 rev">
                     <div class="fbadge">Most Popular</div>
-                    <div class="fi">🗺️</div>
+                    <div class="fi"><i class="bi bi-map"></i></div>
                     <div class="ft">Smart Route Optimisation</div>
                     <div class="fd2">AI-powered routing analyses real-time traffic, package priorities and driver
                         capacity to build the most efficient delivery sequences — reducing fuel costs by up to 35% while
                         improving on-time performance across your entire fleet.</div>
                 </div>
                 <div class="fc rev">
-                    <div class="fi">🔔</div>
+                    <div class="fi"><i class="bi bi-bell"></i></div>
                     <div class="ft">Proactive Notifications</div>
                     <div class="fd2">Automated SMS, email and WhatsApp updates at every shipment milestone.</div>
                 </div>
                 <div class="fc rev">
-                    <div class="fi">🔐</div>
+                    <div class="fi"><i class="bi bi-shield-lock"></i></div>
                     <div class="ft">Proof of Delivery</div>
                     <div class="fd2">Digital signatures, photo capture and OTP verification for secure delivery
                         confirmation.</div>
                 </div>
                 <div class="fc rev">
-                    <div class="fi">💳</div>
+                    <div class="fi"><i class="bi bi-credit-card"></i></div>
                     <div class="ft">COD Management</div>
                     <div class="fd2">Automated cash-on-delivery reconciliation with instant remittance reports and
                         settlement tracking.</div>
                 </div>
                 <div class="fc rev">
-                    <div class="fi">🔌</div>
+                    <div class="fi"><i class="bi bi-puzzle"></i></div>
                     <div class="ft">API &amp; Integrations</div>
                     <div class="fd2">REST API and pre-built connectors for Shopify, WooCommerce, Magento and 50+
                         platforms.</div>
                 </div>
                 <div class="fc rev">
-                    <div class="fi">📈</div>
+                    <div class="fi"><i class="bi bi-graph-up"></i></div>
                     <div class="ft">Business Intelligence</div>
                     <div class="fd2">Custom dashboards, automated reports and predictive analytics for smarter
                         operational decisions.</div>
@@ -3069,17 +3115,40 @@
      JAVASCRIPT
      ═══════════════════════════════════════════════════════════ -->
     <script>
-    // 8. FOOTER REVEAL
-    gsap.to('#fHuge', {
+    // 8. FOOTER REVEAL - Premium bottom-to-top entrance
+    gsap.timeline({
+        scrollTrigger: {
+            trigger: '#footer',
+            start: 'top 85%',
+            end: 'top 40%',
+            scrub: 0.8,
+            once: false
+        }
+    })
+    .to('#footer', {
+        opacity: 1,
+        duration: 1,
+        ease: 'power2.inOut'
+    }, 0)
+    .to('.fwi', {
         opacity: 1,
         y: 0,
-        duration: 1.5,
-        ease: 'power4.out',
-        scrollTrigger: {
-            trigger: '.footer',
-            start: 'top 70%'
-        }
-    });
+        duration: 0.9,
+        ease: 'power3.out',
+        stagger: 0.12
+    }, 0.2)
+    .to('#fHuge', {
+        opacity: 1,
+        y: 0,
+        duration: 1.1,
+        ease: 'power3.out'
+    }, 0.3)
+    .to('.reveal-box', {
+        opacity: 1,
+        y: 0,
+        duration: 0.95,
+        ease: 'power2.out'
+    }, 0.1);
 
     // 4. SECTION REVEALS (Intersection Observer)
     const obs = new IntersectionObserver((entries) => {
@@ -3165,35 +3234,35 @@
                 img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
                 cat: 'Express Courier',
                 name: 'Last-Mile Delivery',
-                ico: '🚀',
+                ico: '<i class="bi bi-rocket"></i>',
                 wide: true
             },
             {
                 img: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80',
                 cat: 'Fleet',
                 name: 'Driver Dashboard',
-                ico: '🛰️',
+                ico: '<i class="bi bi-satellite"></i>',
                 wide: false
             },
             {
                 img: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=600&q=80',
                 cat: 'Warehouse',
                 name: 'Sorting Facility',
-                ico: '🏭',
+                ico: '<i class="bi bi-building"></i>',
                 wide: false
             },
             {
                 img: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=600&q=80',
                 cat: 'Analytics',
                 name: 'Operations Data',
-                ico: '📊',
+                ico: '<i class="bi bi-graph-up"></i>',
                 wide: false
             },
             {
                 img: 'https://images.unsplash.com/photo-1588600878108-578307a3cc9d?w=600&q=80',
                 cat: 'Packaging',
                 name: 'Label Generation',
-                ico: '📦',
+                ico: '<i class="bi bi-box2"></i>',
                 wide: false
             },
             /* Row 2 — normal, normal, wide, normal, normal */
@@ -3201,35 +3270,35 @@
                 img: 'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=600&q=80',
                 cat: 'Network',
                 name: 'City Routes',
-                ico: '🗺️',
+                ico: '<i class="bi bi-map"></i>',
                 wide: false
             },
             {
                 img: 'https://images.unsplash.com/photo-1565440962783-b5a6b0c9f684?w=600&q=80',
                 cat: 'Logistics',
                 name: 'Loading Dock',
-                ico: '🚚',
+                ico: '<i class="bi bi-truck"></i>',
                 wide: false
             },
             {
                 img: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80',
                 cat: 'International',
                 name: 'Air Freight Terminal',
-                ico: '✈️',
+                ico: '<i class="bi bi-airplane"></i>',
                 wide: true
             },
             {
                 img: 'https://images.unsplash.com/photo-1586528116494-3f4d3a407e42?w=600&q=80',
                 cat: 'Delivery',
                 name: 'Doorstep Handoff',
-                ico: '🚪',
+                ico: '<i class="bi bi-door-open"></i>',
                 wide: false
             },
             {
                 img: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=600&q=80',
                 cat: 'Scanning',
                 name: 'Barcode Verification',
-                ico: '📱',
+                ico: '<i class="bi bi-phone"></i>',
                 wide: false
             },
             /* Row 3 — normal, wide, normal, normal, normal */
@@ -3237,35 +3306,35 @@
                 img: 'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=600&q=80',
                 cat: 'Dispatch',
                 name: 'Control Centre',
-                ico: '🖥️',
+                ico: '<i class="bi bi-display"></i>',
                 wide: false
             },
             {
                 img: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80',
                 cat: 'Partnership',
                 name: 'Courier Onboarding',
-                ico: '🤝',
+                ico: '<i class="bi bi-handshake"></i>',
                 wide: true
             },
             {
                 img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80',
                 cat: 'Tracking',
                 name: 'Live Map View',
-                ico: '📍',
+                ico: '<i class="bi bi-geo-alt"></i>',
                 wide: false
             },
             {
                 img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&q=80',
                 cat: 'COD',
                 name: 'Cash Collection',
-                ico: '💵',
+                ico: '<i class="bi bi-cash-coin"></i>',
                 wide: false
             },
             {
                 img: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&q=80',
                 cat: 'Proof',
                 name: 'Digital Signature',
-                ico: '✍️',
+                ico: '<i class="bi bi-pen"></i>',
                 wide: false
             },
         ];
@@ -3932,3 +4001,4 @@
 </body>
 
 </html>
+
