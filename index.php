@@ -15,6 +15,7 @@
         rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
@@ -2005,9 +2006,10 @@
 
     .f-cin {
         padding: 88px 5% 64px;
-        overflow: hidden;
+        overflow: visible;
         border-bottom: 1px solid var(--ln);
-        position: relative
+        position: relative;
+        min-height: 200px
     }
 
     .f-cin::before {
@@ -2024,13 +2026,15 @@
         font-weight: 800;
         letter-spacing: -.04em;
         color: transparent;
-        -webkit-text-stroke: 2px rgba(255, 255, 255, 0.9);
-        line-height: 1.2;
+        -webkit-text-stroke: 2px rgba(255, 255, 255, 0.95);
+        line-height: 1.3;
         position: relative;
         z-index: 1;
         display: block;
-        text-align: center;
-        padding: 20px 0
+        text-align: left;
+        padding: 30px 20px;
+        margin: 20px 0;
+        word-spacing: 0.2em
     }
 
     .fw {
@@ -2042,8 +2046,8 @@
 
     .fwi {
         display: inline-block;
-        transform: translateY(100%);
-        opacity: 0;
+        transform: translateY(0);
+        opacity: 1;
         will-change: opacity, transform;
         transition: none
     }
@@ -2545,8 +2549,7 @@
     
     .sico i,
     .sico2 i,
-    .fi i,
-    .gal-icon i {
+    .fi i {
         color: var(--a);
         display: inline-flex;
         align-items: center;
@@ -2566,7 +2569,12 @@
     }
 
     .gal-icon i {
-        font-size: 24px
+        color: #ffffff;
+        font-size: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4)
     }</style>
 </head>
 
@@ -2892,7 +2900,7 @@
                     <div class="slbl">Shipments Delivered</div>
                 </div>
                 <div class="stat-c rev">
-                    <div class="sico2"><i class="bi bi-handshake"></i></div>
+                    <div class="sico2"><i class="fa-solid fa-handshake"></i></div>
                     <div class="snum2" data-t="200" data-s="+">0</div>
                     <div class="slbl">Courier Partners</div>
                 </div>
@@ -3113,35 +3121,35 @@
      JAVASCRIPT
      ═══════════════════════════════════════════════════════════ -->
     <script>
-    // 8. FOOTER REVEAL - Premium bottom-to-top entrance
+    // 8. FOOTER REVEAL - Animation on scroll with bottom reveal
     gsap.timeline({
         scrollTrigger: {
             trigger: '#footer',
-            start: 'top 90%',
-            end: 'top 40%',
+            start: 'top 85%',
+            end: 'top 50%',
             scrub: 1.2,
             once: true
         }
     })
-    .to('.fwi', {
-        opacity: 1,
-        y: 0,
-        duration: 1,
-        ease: 'power3.out',
+    .from('.fwi', {
+        y: 40,
+        opacity: 0.5,
+        duration: 0.8,
+        ease: 'power2.out',
         stagger: 0.12,
         overwrite: 'auto'
     }, 0)
-    .to('#fHuge', {
-        opacity: 1,
-        y: 0,
-        duration: 1.1,
+    .from('#fHuge', {
+        y: 60,
+        opacity: 0,
+        duration: 0.9,
         ease: 'power3.out',
         overwrite: 'auto'
     }, 0.1)
-    .to('.reveal-box', {
-        opacity: 1,
-        y: 0,
-        duration: 0.95,
+    .from('.reveal-box', {
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
         ease: 'power2.out',
         overwrite: 'auto'
     }, 0);
@@ -3237,7 +3245,7 @@
                 img: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80',
                 cat: 'Fleet',
                 name: 'Driver Dashboard',
-                ico: '<i class="fa-solid fa-id-card"></i>',
+                ico: '<i class="fa-solid fa-tachograph-digital"></i>',
                 wide: false
             },
             {
