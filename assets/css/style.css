@@ -717,3 +717,243 @@ body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
 [data-theme="dark"] .text-dark {
     color: #e2e8f0 !important;
 }
+
+/* ==========================================================================
+   CRITICAL MOBILE FIXES (max-width: 576px) 
+   ========================================================================== */
+@media (max-width: 576px) {
+    /* ----------------------------------------------------------------------
+       1. Table to Card Transformation
+       ---------------------------------------------------------------------- */
+    /* Remove horizontal table wrapping / overflow block */
+    .table-responsive, .premium-table-container, .table-container {
+        overflow: visible !important; /* Fix collapsed dropdowns/clicks */
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .premium-table thead, .neumorphic-table thead, .table thead {
+        display: none !important;
+    }
+
+    .premium-table, .neumorphic-table, .table {
+        min-width: 100% !important;
+        border: none !important;
+    }
+
+    /* Convert tr into stacked card */
+    .premium-table tbody tr, .neumorphic-table tbody tr, .table tbody tr {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important; /* FIxed collapsing bug! */
+        margin-bottom: 14px !important;
+        padding: 14px 16px !important;
+        border-radius: 14px !important;
+        background: var(--bg-color) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06) !important; 
+        border: 1px solid rgba(0,0,0,0.05) !important;
+    }
+
+    [data-theme="dark"] .premium-table tbody tr,
+    [data-theme="dark"] .neumorphic-table tbody tr,
+    [data-theme="dark"] .table tbody tr {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+        border: 1px solid rgba(255,255,255,0.06) !important;
+        background: #1a1a1a !important; 
+    }
+
+    /* 2. Fix Internal Structure (TD via user instructions) */
+    .premium-table tbody td, .neumorphic-table tbody td, .table tbody td,
+    .premium-table tbody tr td, .neumorphic-table tbody tr td, .table tbody tr td {
+        display: flex !important;
+        justify-content: flex-end !important; /* Right align fallback */
+        align-items: flex-start !important;
+        flex-wrap: wrap !important; /* Prevent squishing */
+        gap: 4px 10px !important;
+        width: 100% !important;
+        min-width: 0 !important; /* Reset desktop 140px min-width */
+        padding: 6px 0 !important;
+        border-bottom: 1px solid rgba(0,0,0,0.04) !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important; /* Critical Fix 3 */
+    }
+    
+    /* Ensure content inside TD aligns right if it wraps */
+    .premium-table tbody td > *, .neumorphic-table tbody td > *, .table tbody td > * {
+        max-width: 100%;
+        text-align: right;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
+    }
+
+    [data-theme="dark"] .premium-table tbody td, 
+    [data-theme="dark"] .neumorphic-table tbody td, 
+    [data-theme="dark"] .table tbody td {
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    }
+
+    .premium-table tbody td:last-child, .neumorphic-table tbody td:last-child, .table tbody td:last-child {
+        border-bottom: none !important;
+        padding-bottom: 0 !important;
+        position: relative !important; /* Fix 4: Clickable */
+        z-index: 2 !important;
+        margin-top: 8px !important;
+    }
+    .premium-table tbody td:first-child, .neumorphic-table tbody td:first-child, .table tbody td:first-child {
+        padding-top: 0 !important;
+    }
+
+    /* Generate left-aligned labels for each td */
+    .premium-table tbody td::before, .neumorphic-table tbody td::before, .table tbody td::before {
+        font-size: 11px !important;
+        color: var(--text-muted) !important;
+        display: block !important;
+        font-weight: bold !important;
+        margin-right: auto !important; /* Key to pushing rest right while using flex */
+        text-align: left !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* --- 5. Fix Action Button Layout --- */
+    .premium-table tbody td:last-child .d-flex, .premium-table tbody td form.d-inline {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-end;
+        gap: 8px !important;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+    }
+
+    .neumorphic-btn {
+        display: inline-flex !important;
+        width: auto !important; 
+    }
+
+    /* --- 6. Fix Status Badge --- */
+    .badge-neumorphic {
+        display: inline-block !important;
+        margin-top: 6px !important;
+        white-space: nowrap !important;
+    }
+
+    /* Fix dropdown overlap */
+    .premium-table tbody td .dropdown, .neumorphic-table tbody td .dropdown {
+        display: inline-block;
+        position: relative;
+        z-index: 3;
+    }
+
+    /* === NTH-CHILD LABEL MAPPINGS === */
+    #recentShipmentsTable tbody td:nth-child(1)::before { content: "Tracking ID"; }
+    #recentShipmentsTable tbody td:nth-child(2)::before { content: "Agent"; }
+    #recentShipmentsTable tbody td:nth-child(3)::before { content: "Customer"; }
+    #recentShipmentsTable tbody td:nth-child(4)::before { content: "Route"; }
+    #recentShipmentsTable tbody td:nth-child(5)::before { content: "Amount"; }
+    #recentShipmentsTable tbody td:nth-child(6)::before { content: "Status"; }
+
+    #agentsTable tbody td:nth-child(1)::before { content: "Company"; }
+    #agentsTable tbody td:nth-child(2)::before { content: "Contact"; }
+    #agentsTable tbody td:nth-child(3)::before { content: "Phone"; }
+    #agentsTable tbody td:nth-child(4)::before { content: "Status"; }
+    #agentsTable tbody td:nth-child(5)::before { content: "Actions"; }
+
+    .neumorphic-table tbody td:nth-child(1)::before { content: "Date Submitted"; }
+    .neumorphic-table tbody td:nth-child(2)::before { content: "Company"; }
+    .neumorphic-table tbody td:nth-child(3)::before { content: "Contact Person"; }
+    .neumorphic-table tbody td:nth-child(4)::before { content: "Email"; }
+    .neumorphic-table tbody td:nth-child(5)::before { content: "Phone"; }
+    .neumorphic-table tbody td:nth-child(6)::before { content: "Actions"; }
+
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(1)::before { content: "Tracking/Date"; }
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(2)::before { content: "Customer"; }
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(3)::before { content: "Agent"; }
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(4)::before { content: "Route"; }
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(5)::before { content: "Status"; }
+    .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(6)::before { content: "Actions"; }
+
+    /* ----------------------------------------------------------------------
+       2. Shipment Journey (Vertical Stacked Timeline)
+       ---------------------------------------------------------------------- */
+    .progress-track-container {
+        height: auto !important;
+        background: transparent !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 35px !important;
+        position: relative !important;
+        padding-left: 20px !important;
+        margin-top: 20px !important;
+        margin-bottom: 20px !important;
+    }
+
+    .progress-track-container::before {
+        content: '';
+        position: absolute;
+        left: 6px; 
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(0,0,0,0.1);
+    }
+    
+    [data-theme="dark"] .progress-track-container::before {
+        background: rgba(255,255,255,0.1);
+    }
+
+    .progress-track-bar {
+        display: none !important;
+    }
+
+    .progress-track-point {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        transform: none !important;
+        margin-left: -20px !important; 
+        background: var(--bg-color) !important;
+        z-index: 2;
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    [data-theme="dark"] .progress-track-point {
+        background: #2a2a2a !important; 
+    }
+
+    .progress-point-label {
+        position: absolute !important;
+        top: 50% !important;
+        left: 50px !important;
+        transform: translateY(-50%) !important;
+        font-size: 14px !important;
+        text-align: left !important;
+        white-space: nowrap !important;
+    }
+
+    .progress-track-point i {
+        position: absolute !important;
+        top: 50% !important;
+        left: 20px !important;
+        transform: translateY(-50%) !important;
+        font-size: 16px !important;
+    }
+
+    .progress-track-point.active {
+        border-color: var(--primary-color) !important;
+        background: var(--primary-color) !important;
+    }
+    
+    .progress-track-point.active .progress-point-label {
+        color: var(--primary-color) !important;
+    }
+    
+    .progress-track-point.active i {
+        color: var(--primary-color) !important;
+    }
+}
