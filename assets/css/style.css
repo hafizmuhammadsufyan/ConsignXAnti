@@ -534,3 +534,186 @@ a:hover {
     color: #6ea8fe !important;
     border-color: rgba(13, 110, 253, 0.2) !important;
 }
+
+/* ==========================================================================
+   RESPONSIVE OVERRIDES (Mobile & Tablet) - SaaS Fidelity
+   ========================================================================== */
+
+/* --- 1. Global Overflow Fixes --- */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.container, .container-fluid, .row {
+    max-width: 100%;
+}
+
+img, table {
+    max-width: 100%;
+}
+
+/* --- 8. Images --- */
+img {
+    height: auto;
+}
+
+/* --- 9. Typography --- */
+html {
+    font-size: clamp(12px, 2vw, 16px);
+}
+body, p, a, span, div, h1, h2, h3, h4, h5, h6, label {
+    word-break: break-word; /* Prevent text overflow */
+}
+
+/* ==========================================================================
+   BREAKPOINT: 1199px (Large Tablets / Small Desktops)
+   ========================================================================== */
+@media (max-width: 1199px) {
+    .main-content {
+        padding: 2rem;
+        padding-top: 5rem;
+    }
+}
+
+/* ==========================================================================
+   BREAKPOINT: 991px (Tablets / Medium Screens)
+   ========================================================================== */
+@media (max-width: 991px) {
+    .main-content {
+        padding: 1.5rem;
+        padding-top: 5rem; 
+    }
+
+    /* --- 3. Header --- */
+    .top-header {
+        flex-wrap: wrap;
+        gap: 15px;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .top-header h2 {
+        font-size: 1.5rem;
+    }
+}
+
+/* ==========================================================================
+   BREAKPOINT: 767px (Mobile Landscape & General Mobile)
+   ========================================================================== */
+@media (max-width: 767px) {
+    .main-content {
+        padding: 1rem;
+        padding-top: 5rem; 
+    }
+
+    /* --- 2. Header Re-flow --- */
+    .top-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .top-header .d-flex {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .header-search {
+        width: 100%;
+        order: 3; /* Move search below */
+        margin-top: 10px;
+    }
+    
+    .neumorphic-search {
+        width: 100%;
+    }
+
+    /* --- 5. Cards & Dashboard Alignment --- */
+    .row {
+        flex-wrap: wrap !important;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    .kpi-card, .neumorphic-card, .premium-table-container {
+        padding: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* --- 4. Tables: Enforce Horizontal Scroll ONLY --- */
+    .table-responsive, .premium-table-container, .table-container {
+        width: 100%;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        display: block;
+    }
+    
+    .premium-table, .neumorphic-table, .table {
+        min-width: 800px; /* Force scroll so UI doesn't break */
+    }
+
+    /* --- 6. Forms full width --- */
+    .form-control, .form-select, .neumorphic-input {
+        width: 100%;
+    }
+
+    /* Default buttons go full width on mobile */
+    .btn, .btn-primary, .neumorphic-btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    /* Exceptions */
+    .btn-track, .btn-sm, .dropdown-toggle, .btn-back, .sidebar-toggle-btn {
+        width: auto;
+        display: inline-flex;
+    }
+    
+    /* Support for form layouts */
+    form .row > div {
+        margin-bottom: 15px;
+    }
+}
+
+/* ==========================================================================
+   BREAKPOINT: 575px (Mobile Portrait)
+   ========================================================================== */
+@media (max-width: 575px) {
+    .top-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .main-content {
+        padding: 0.75rem;
+        padding-top: 4.5rem;
+    }
+
+    .profile-thumb {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+/* ==========================================================================
+   10. DARK MODE CONTRAST FIXES
+   ========================================================================== */
+[data-theme="dark"] .form-control, 
+[data-theme="dark"] .form-select, 
+[data-theme="dark"] .neumorphic-input {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .form-control::placeholder,
+[data-theme="dark"] .form-select::placeholder,
+[data-theme="dark"] .neumorphic-input::placeholder {
+    color: rgba(255,255,255,0.6) !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: #e2e8f0 !important;
+}
