@@ -104,59 +104,17 @@ function send_shipment_notification_existing($to, $name, $tracking_number)
 /**
  * Sends a welcome email to a new agent
  */
-function send_agent_welcome_email($to, $company, $status, $password)
+function send_agent_welcome_email($to, $company, $status,$password)
 {
     $subject = "Welcome to the ConsignX Network - $company";
-
     $html = "
-    <div style='font-family: Arial, sans-serif; background:#f4f6f9; padding:20px;'>
-        <div style='max-width:600px; margin:auto; background:#ffffff; border-radius:10px; padding:25px; border:1px solid #eee;'>
-
-            <h2 style='color:#333;'>Welcome to ConsignX, $company 👋</h2>
-            
-            <p style='color:#555;'>Your agent account has been successfully created. Below are your login details:</p>
-
-            <table style='width:100%; border-collapse:collapse; margin:20px 0;'>
-                <tr>
-                    <td style='padding:10px; background:#f1f1f1; font-weight:bold;'>Username</td>
-                    <td style='padding:10px;'>$to</td>
-                </tr>
-                <tr>
-                    <td style='padding:10px; background:#f1f1f1; font-weight:bold;'>Password</td>
-                    <td style='padding:10px;'>$password</td>
-                </tr>
-                <tr>
-                    <td style='padding:10px; background:#f1f1f1; font-weight:bold;'>Status</td>
-                    <td style='padding:10px;'><strong>" . strtoupper($status) . "</strong></td>
-                </tr>
-            </table>
-
-            <p style='color:#555;'>
-                You can now log in using the link below:
-            </p>
-
-            <p style='text-align:center; margin:25px 0;'>
-                <a href='" . APP_URL . "/auth/login.php' 
-                   style='background:#3b7cff; color:#fff; padding:12px 25px; text-decoration:none; border-radius:6px; display:inline-block;'>
-                   Login to Your Account
-                </a>
-            </p>
-
-            <p style='color:#777; font-size:13px;'>
-                ⚠️ For security reasons, please change your password after your first login.
-            </p>
-
-            <hr style='border:none; border-top:1px solid #eee; margin:20px 0;'>
-
-            <p style='color:#555;'>
-                Best Regards,<br>
-                <strong>ConsignX Team</strong>
-            </p>
-
-        </div>
-    </div>
+        <h2>Welcome aboard, $company, $password!</h2>
+        <p>Your agent account has been successfully registered.</p>
+        <p>Current Status: <strong>" . strtoupper($status) . "</strong></p>
+        <p>You can now log in at " . APP_URL . "/auth/login.php and start managing shipments.</p>
+        <br>
+        <p>Best Regards,<br>ConsignX Administrator</p>
     ";
-
     return send_email($to, $subject, $html);
 }
 ?>
