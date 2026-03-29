@@ -2046,9 +2046,10 @@
 
     .fwi {
         display: inline-block;
-        transform: translateY(108%);
+        transform: translateY(100%);
         opacity: 0;
-        will-change: opacity, transform
+        will-change: opacity, transform;
+        transition: none
     }
 
     .fwi.word-visible {
@@ -2785,7 +2786,7 @@
                     <div class="sa">↗</div>
                 </div>
                 <div class="svc-card rev">
-                    <div class="si"><i class="bi bi-satellite"></i></div>
+                    <div class="si"><i class="fa-solid fa-map-location-dot"></i></div>
                     <div class="st">Fleet Tracking</div>
                     <div class="sd">GPS-powered real-time fleet management with route optimisation, driver scoring and
                         fuel efficiency analytics.</div>
@@ -3125,35 +3126,39 @@
         scrollTrigger: {
             trigger: '#footer',
             start: 'top 85%',
-            end: 'top 40%',
-            scrub: 0.8,
-            once: false
+            end: 'top 30%',
+            scrub: 1,
+            once: true,
+            markers: false
         }
     })
     .to('#footer', {
         opacity: 1,
-        duration: 1,
+        duration: 1.2,
         ease: 'power2.inOut'
     }, 0)
     .to('.fwi', {
         opacity: 1,
         y: 0,
-        duration: 0.9,
+        duration: 1,
         ease: 'power3.out',
-        stagger: 0.12
-    }, 0.2)
+        stagger: 0.15,
+        overwrite: 'auto'
+    }, 0.1)
     .to('#fHuge', {
         opacity: 1,
         y: 0,
         duration: 1.1,
-        ease: 'power3.out'
-    }, 0.3)
+        ease: 'power3.out',
+        overwrite: 'auto'
+    }, 0.2)
     .to('.reveal-box', {
         opacity: 1,
         y: 0,
         duration: 0.95,
-        ease: 'power2.out'
-    }, 0.1);
+        ease: 'power2.out',
+        overwrite: 'auto'
+    }, 0);
 
     // 4. SECTION REVEALS (Intersection Observer)
     const obs = new IntersectionObserver((entries) => {
@@ -3246,7 +3251,7 @@
                 img: 'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&q=80',
                 cat: 'Fleet',
                 name: 'Driver Dashboard',
-                ico: '<i class="bi bi-satellite"></i>',
+                ico: '<i class="fa-solid fa-id-card"></i>',
                 wide: false
             },
             {
@@ -3318,7 +3323,7 @@
                 img: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=800&q=80',
                 cat: 'Partnership',
                 name: 'Courier Onboarding',
-                ico: '<i class="bi bi-handshake"></i>',
+                ico: '<i class="fa-solid fa-handshake"></i>',
                 wide: true
             },
             {
@@ -3908,20 +3913,11 @@
         }
 
         /* ════════════════════════════════════════════════════════════
-           FOOTER WORD REVEAL
+           FOOTER INITIALIZATION (main animation handled by ScrollTrigger)
            ════════════════════════════════════════════════════════════ */
         function initFooter() {
-            gsap.to('.fwi', {
-                y: 0,
-                duration: 1.1,
-                ease: 'power3.out',
-                stagger: .11,
-                scrollTrigger: {
-                    trigger: '#fbig',
-                    start: 'top 88%',
-                    once: true
-                }
-            });
+            // Footer animations are handled by the main ScrollTrigger timeline
+            // No additional animation needed here
         }
 
         /* ════════════════════════════════════════════════════════════
