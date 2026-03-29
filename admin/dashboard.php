@@ -124,8 +124,9 @@ try {
             require_once '../includes/top_header.php'; 
             ?>
 
-            <!-- KPI Cards -->
-            <div class="row g-4 mb-5">
+            <div class="container-fluid px-0">
+                <!-- KPI Cards -->
+                <div class="row g-4 mb-5">
                 <div class="col-md-3">
                     <div class="neumorphic-card p-4 text-center kpi-card animate-fade-in" style="animation-delay: 0.1s;">
                         <div class="kpi-icon mb-3">
@@ -312,7 +313,7 @@ try {
                 </div>
             </div>
         </div>
-
+        </div>
 
         </main>
     </div>

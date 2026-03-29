@@ -159,6 +159,11 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+    scrollbar-width: none;
+}
+
+.sidebar::-webkit-scrollbar {
+    display: none;
 }
 
 .sidebar.show {
