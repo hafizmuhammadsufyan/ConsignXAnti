@@ -15,6 +15,7 @@
         rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
@@ -2548,8 +2549,7 @@
     
     .sico i,
     .sico2 i,
-    .fi i,
-    .gal-icon i {
+    .fi i {
         color: var(--a);
         display: inline-flex;
         align-items: center;
@@ -2569,14 +2569,12 @@
     }
 
     .gal-icon i {
-<<<<<<< HEAD
         color: #ffffff;
         font-size: 24px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4)
->>>>>>> parent of e12e001 (Changed gallery section icons to white with text-shadow for better visibility)
     }</style>
 </head>
 
@@ -2902,9 +2900,7 @@
                     <div class="slbl">Shipments Delivered</div>
                 </div>
                 <div class="stat-c rev">
-<<<<<<< HEAD
                     <div class="sico2"><i class="fa-solid fa-handshake"></i></div>
->>>>>>> parent of e12e001 (Changed gallery section icons to white with text-shadow for better visibility)
                     <div class="snum2" data-t="200" data-s="+">0</div>
                     <div class="slbl">Courier Partners</div>
                 </div>
