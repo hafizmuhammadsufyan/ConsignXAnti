@@ -3278,7 +3278,7 @@
                 wide: false
             },
             {
-                img: 'https://images.unsplash.com/photo-1565440962783-b5a6b0c9f684?w=600&q=80',
+                img: 'https://images.stockcake.com/public/4/2/8/428ecb34-c468-4ba0-8db3-3a916603bb1d_large/truck-loading-dock-stockcake.jpg',
                 cat: 'Logistics',
                 name: 'Loading Dock',
                 ico: '<i class="bi bi-truck"></i>',
@@ -3292,14 +3292,14 @@
                 wide: true
             },
             {
-                img: 'https://images.unsplash.com/photo-1586528116494-3f4d3a407e42?w=600&q=80',
+                img: 'https://www.shutterstock.com/image-photo/blank-cardboard-delivery-package-placed-600nw-2651652973.jpg',
                 cat: 'Delivery',
                 name: 'Doorstep Handoff',
                 ico: '<i class="bi bi-door-open"></i>',
                 wide: false
             },
             {
-                img: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=600&q=80',
+                img: 'https://thumbs.dreamstime.com/b/qr-link-website-banner-code-laptop-screen-d-scan-barcode-concept-online-pay-verification-authorization-authentication-217279497.jpg',
                 cat: 'Scanning',
                 name: 'Barcode Verification',
                 ico: '<i class="bi bi-phone"></i>',
