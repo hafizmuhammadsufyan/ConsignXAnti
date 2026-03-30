@@ -1023,6 +1023,31 @@ label {
         content: "Actions";
     }
 
+    /* Mobile labels for Company Requests Table */
+    #companyRequestsTable tbody td:nth-child(1)::before {
+        content: "Date / Company";
+    }
+
+    #companyRequestsTable tbody td:nth-child(2)::before {
+        content: "Contact Person";
+    }
+
+    #companyRequestsTable tbody td:nth-child(3)::before {
+        content: "Email";
+    }
+
+    #companyRequestsTable tbody td:nth-child(4)::before {
+        content: "Phone";
+    }
+
+    #companyRequestsTable tbody td:nth-child(5)::before {
+        content: "Status";
+    }
+
+    #companyRequestsTable tbody td:nth-child(6)::before {
+        content: "Actions";
+    }
+
     /* Fix Table Filter & Buttons Wrapping */
     .neumorphic-card form.row,
     .d-flex.align-items-center.gap-2 {

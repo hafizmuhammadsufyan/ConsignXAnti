@@ -71,10 +71,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Fetch Pending Requests
+// Filtering Logic
+$where_clauses = ["1=1"];
+$params = [];
+
+// Default status filter to pending
+$status_filter = $_GET['status'] ?? 'pending';
+
+if (!empty($status_filter)) {
+    $where_clauses[] = "status = ?";
+    $params[] = $status_filter;
+}
+
+// Date range filtering
+if (!empty($_GET['date_from'])) {
+    $where_clauses[] = "created_at >= ?";
+    $params[] = $_GET['date_from'] . ' 00:00:00';
+}
+
+if (!empty($_GET['date_to'])) {
+    $where_clauses[] = "created_at <= ?";
+    $params[] = $_GET['date_to'] . ' 23:59:59';
+}
+
+// Search by name, email, or phone
+if (!empty($_GET['search'])) {
+    $search_term = "%" . $_GET['search'] . "%";
+    $where_clauses[] = "(name LIKE ? OR email LIKE ? OR phone LIKE ? OR company_name LIKE ?)";
+    $params[] = $search_term;
+    $params[] = $search_term;
+    $params[] = $search_term;
+    $params[] = $search_term;
+}
+
+$where_sql = implode(" AND ", $where_clauses);
+
+// AJAX Load More Logic with offset-based pagination
+$limit = 15;
+$offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+
 try {
-    $stmt = $pdo->query("SELECT * FROM company_requests WHERE status = 'pending' ORDER BY created_at ASC");
+    $sql = "SELECT * FROM company_requests 
+            WHERE $where_sql 
+            ORDER BY created_at DESC
+            LIMIT $limit OFFSET $offset";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $requests = $stmt->fetchAll();
+
+    // AJAX Response - return only table rows
+    if (isset($_GET['ajax'])) {
+        if (empty($requests)) exit('');
+        foreach ($requests as $req) {
+            include '../includes/company_request_row_template.php';
+        }
+        exit;
+    }
+
 } catch (PDOException $e) {
     $msg = "<div class='alert alert-danger'>Error loading requests: " . escape($e->getMessage()) . "</div>";
     $requests = [];
@@ -163,63 +217,113 @@ try {
 
             <?= $msg ?>
 
-            <div class="neumorphic-card p-4">
+            <!-- Filters Section -->
+            <div class="neumorphic-card p-4 mb-4">
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label small fw-bold">Search</label>
+                        <input type="text" name="search" class="form-control neumorphic-input py-2" placeholder="Name, Email, or Phone" value="<?= escape($_GET['search'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label small fw-bold">From Date</label>
+                        <input type="date" name="date_from" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_from'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label small fw-bold">To Date</label>
+                        <input type="date" name="date_to" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_to'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label small fw-bold">Status</label>
+                        <select name="status" class="form-select neumorphic-input py-2">
+                            <option value="pending" <?= ($status_filter ?? '') == 'pending' ? 'selected' : '' ?>>Pending</option>
+                            <option value="approved" <?= ($status_filter ?? '') == 'approved' ? 'selected' : '' ?>>Approved</option>
+                            <option value="rejected" <?= ($status_filter ?? '') == 'rejected' ? 'selected' : '' ?>>Rejected</option>
+                            <option value="" <?= empty($status_filter) ? 'selected' : '' ?>>All Statuses</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 d-flex justify-content-end gap-2 mt-2">
+                        <button type="submit" class="btn btn-primary neumorphic-btn"><i class="bi bi-filter"></i> Apply Filter</button>
+                        <a href="company_requests.php" class="btn btn-secondary neumorphic-btn"><i class="bi bi-arrow-clockwise"></i></a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Table Section -->
+            <div class="premium-table-container">
                 <div class="table-responsive">
-                    <table class="table neumorphic-table table-borderless align-middle mb-0">
+                    <table class="premium-table" id="companyRequestsTable">
                         <thead>
                             <tr>
-                                <th>Date Submitted</th>
-                                <th>Company</th>
+                                <th>Date Submitted <br> Company</th>
                                 <th>Contact Person</th>
                                 <th>Email</th>
                                 <th>Phone</th>
-                                <th class="text-end">Actions</th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($requests)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">No pending company registration requests.</td>
+                                    <td colspan="6" class="text-center text-muted py-5">No company registration requests found.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($requests as $req): ?>
-                                    <tr>
-                                        <td>
-                                            <small class="text-muted"><?= date('M d, Y', strtotime($req['created_at'])) ?></small>
-                                        </td>
-                                        <td class="fw-bold">
-                                            <?= escape($req['company_name']) ?>
-                                        </td>
-                                        <td>
-                                            <?= escape($req['name']) ?>
-                                        </td>
-                                        <td><a href="mailto:<?= escape($req['email']) ?>"><?= escape($req['email']) ?></a></td>
-                                        <td><?= escape($req['phone']) ?></td>
-                                        <td class="text-end">
-                                            <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to approve this company?');">
-                                                <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
-                                                <input type="hidden" name="action" value="approve">
-                                                <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                                <button type="submit" class="btn btn-sm neumorphic-btn text-success py-1 px-2" data-bs-toggle="tooltip" title="Approve & Create Account">
-                                                    <i class="bi bi-check-lg"></i>
-                                                </button>
-                                            </form>
-                                            <form method="POST" class="d-inline ms-1" onsubmit="return confirm('Are you sure you want to reject this request?');">
-                                                <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
-                                                <input type="hidden" name="action" value="reject">
-                                                <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                                <button type="submit" class="btn btn-sm neumorphic-btn text-danger py-1 px-2" data-bs-toggle="tooltip" title="Reject Request">
-                                                    <i class="bi bi-x-lg"></i>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
+                                    <?php include '../includes/company_request_row_template.php'; ?>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
+
+                <?php if (count($requests) >= $limit): ?>
+                <div class="text-center mt-4">
+                    <button id="loadMoreBtn" class="btn neumorphic-btn px-5 py-2 fw-bold text-primary">
+                        <i class="bi bi-arrow-down-circle me-1"></i> Load More
+                    </button>
+                </div>
+                <?php endif; ?>
             </div>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                let offset = <?= $limit ?>;
+                const loadMoreBtn = document.getElementById('loadMoreBtn');
+                const tableBody = document.querySelector('#companyRequestsTable tbody');
+                
+                if (loadMoreBtn) {
+                    loadMoreBtn.addEventListener('click', function() {
+                        const originalText = loadMoreBtn.innerHTML;
+                        loadMoreBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Loading...';
+                        loadMoreBtn.disabled = true;
+
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('ajax', '1');
+                        url.searchParams.set('offset', offset);
+
+                        fetch(url)
+                            .then(response => response.text())
+                            .then(data => {
+                                if (data.trim() === '') {
+                                    loadMoreBtn.innerHTML = 'All Records Loaded';
+                                    loadMoreBtn.classList.add('text-muted');
+                                    loadMoreBtn.disabled = true;
+                                    return;
+                                }
+                                tableBody.insertAdjacentHTML('beforeend', data);
+                                offset += <?= $limit ?>;
+                                loadMoreBtn.innerHTML = originalText;
+                                loadMoreBtn.disabled = false;
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                loadMoreBtn.innerHTML = 'Error Loading More';
+                                loadMoreBtn.disabled = false;
+                            });
+                    });
+                }
+            });
+            </script>
         </main>
     </div>
 
