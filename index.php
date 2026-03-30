@@ -7,6 +7,7 @@
     <title>ConsignX — Courier Management System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
         rel="stylesheet">
@@ -2569,14 +2570,12 @@
     }
 
     .gal-icon i {
-<<<<<<< HEAD
         color: #ffffff;
         font-size: 24px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4)
->>>>>>> parent of e12e001 (Changed gallery section icons to white with text-shadow for better visibility)
     }</style>
 </head>
 
@@ -2902,9 +2901,7 @@
                     <div class="slbl">Shipments Delivered</div>
                 </div>
                 <div class="stat-c rev">
-<<<<<<< HEAD
                     <div class="sico2"><i class="fa-solid fa-handshake"></i></div>
->>>>>>> parent of e12e001 (Changed gallery section icons to white with text-shadow for better visibility)
                     <div class="snum2" data-t="200" data-s="+">0</div>
                     <div class="slbl">Courier Partners</div>
                 </div>
