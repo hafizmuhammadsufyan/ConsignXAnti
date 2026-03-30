@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 29, 2026 at 09:17 PM
+-- Generation Time: Mar 30, 2026 at 02:34 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -26,10 +26,6 @@ SET time_zone = "+00:00";
 --
 -- Table structure for table `admins`
 --
-
-CREATE DATABASE IF NOT EXISTS `consignx_database` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-
-USE `consignx_database`;
 
 CREATE TABLE `admins` (
   `id` int(11) NOT NULL,
@@ -75,8 +71,7 @@ INSERT INTO `agents` (`id`, `name`, `company_name`, `username`, `email`, `phone`
 (4, 'Sameer', 'Sufi Ships', NULL, 'sufyanamir810+2@gmail.com', '1234567', '$2y$10$CWjwzzSM6bCerqwFXqZAGeBagM3U6auAIvGF/bMJuDanGcssXVucO', 'active', '2026-03-14 14:52:50', NULL),
 (5, 'ConsignX Logistics', 'ConsignX Logistics', 'agent', 'agent@consignx.com', '030000000111', '$2a$12$mxSmLaLYb/07HWtMOmJHtuIdinHIAE0egOiF5oa2coytFP4dYZqE6', 'active', '2026-03-15 10:39:57', 'profile_69c57da20b09a.png'),
 (7, 'Tester', 'Testing Agent', NULL, 'sufyanamir810+5@gmail.com', '030002345', '$2y$10$yI22Stjuo3DzNTGAoHqnqOl3Oz3tXBevJFBPgMEOOLNyMUjCU5x6O', 'active', '2026-03-26 18:15:58', NULL),
-(9, 'sufyan amir', 'Sufyan Exports', NULL, 'sufyanamir810+6@gmail.com', '1234567', '$2y$10$NGpXaSpWDfb6z0W0QjGlZuvf.3o/zPUeHDaPqitEKheOWh8MuBcwW', 'active', '2026-03-29 09:23:17', NULL),
-(12, 'sufyan amir', 'Testing Agent', NULL, 'sufyanamir810+7@gmail.com', '0345789076', '$2y$10$9oQUeijet2YM9B6536MvXOQvN15IxG.BI.XbcrrWwcCA9ZRi2EU1i', 'active', '2026-03-29 14:01:27', NULL);
+(9, 'sufyan amir', 'Sufyan Exports', NULL, 'sufyanamir810+6@gmail.com', '1234567', '$2y$10$NGpXaSpWDfb6z0W0QjGlZuvf.3o/zPUeHDaPqitEKheOWh8MuBcwW', 'active', '2026-03-29 09:23:17', NULL);
 
 -- --------------------------------------------------------
 
@@ -133,8 +128,9 @@ INSERT INTO `company_requests` (`id`, `company_name`, `name`, `email`, `phone`, 
 (2, 'Sufi Ships', 'sufyan amir', 'sufyanamir810+2@gmail.com', '1234567', 'approved', '2026-03-14 14:51:41'),
 (3, 'xyz', 'sufyan amir', 'sufyanamir810+4@gmail.com', '1234567', 'approved', '2026-03-24 18:47:31'),
 (4, 'Sufyan Exports', 'sufyan amir', 'sufyanamir810+6@gmail.com', '1234567', 'approved', '2026-03-29 09:04:13'),
-(5, 'Testing Agent', 'sufyan amir', 'sufyanamir810+7@gmail.com', '1234567', 'approved', '2026-03-29 13:51:50'),
-(6, 'Testing Company', 'Testing Agent', 'sufyanamir810+8@gmail.com', '0310200000', 'pending', '2026-03-29 19:03:37');
+(5, 'Testing Agent', 'sufyan amir', 'sufyanamir810+7@gmail.com', '1234567', 'rejected', '2026-03-29 13:51:50'),
+(6, 'Testing Company', 'Testing Agent', 'sufyanamir810+8@gmail.com', '0310200000', 'rejected', '2026-03-29 19:03:37'),
+(7, 'Sufyan Exports', 'sufyan amir', 'sufyanamir810+9@gmail.com', '1234567', 'approved', '2026-03-30 12:00:01');
 
 -- --------------------------------------------------------
 
@@ -239,7 +235,6 @@ INSERT INTO `revenue` (`id`, `shipment_id`, `agent_id`, `amount`, `transaction_d
 (65, 71, 3, 1893.00, '2026-02-12', '2026-03-15 11:25:07'),
 (69, 75, 4, 5908.00, '2026-02-12', '2026-03-15 11:25:07'),
 (73, 79, 5, 5791.00, '2026-02-16', '2026-03-15 11:25:07'),
-(74, 80, 3, 1082.00, '2026-02-22', '2026-03-15 11:25:07'),
 (77, 83, 4, 4646.00, '2026-02-10', '2026-03-15 11:25:07'),
 (78, 84, NULL, 4344.00, '2026-02-28', '2026-03-15 11:25:07'),
 (80, 86, 4, 2181.00, '2026-02-13', '2026-03-15 11:25:07'),
@@ -320,7 +315,6 @@ INSERT INTO `shipments` (`id`, `tracking_number`, `agent_id`, `customer_id`, `or
 (71, 'CX-903465', 3, 1, 8, 17, '', '', '', 14.50, 1893.00, 'In Transit', '2026-02-12 03:44:18', '2026-03-15 11:25:07'),
 (75, 'CX-885209', 4, 2, 15, 14, '', '', '', 15.50, 5908.00, 'Picked Up', '2026-02-12 04:53:30', '2026-03-15 11:25:07'),
 (79, 'CX-311441', 5, 4, 17, 10, '', '', '', 8.00, 5791.00, 'Delivered', '2026-02-16 04:47:48', '2026-03-26 16:52:45'),
-(80, 'CX-343079', 3, 4, 7, 10, '', '', '', 23.00, 1082.00, 'In Transit', '2026-02-22 04:35:07', '2026-03-15 11:25:07'),
 (83, 'CX-882331', 4, 4, 13, 14, '', '', '', 18.50, 4646.00, 'Out For Delivery', '2026-02-10 03:39:49', '2026-03-15 11:25:07'),
 (84, 'CX-521687', NULL, 3, 14, 15, '', '', '', 17.50, 4344.00, 'Returned', '2026-02-28 15:10:13', '2026-03-26 17:18:03'),
 (86, 'CX-777984', 4, 3, 16, 17, '', '', '', 11.50, 2181.00, 'Delivered', '2026-02-13 08:14:53', '2026-03-29 07:38:22'),
@@ -475,7 +469,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `agents`
 --
 ALTER TABLE `agents`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `cities`
@@ -487,7 +481,7 @@ ALTER TABLE `cities`
 -- AUTO_INCREMENT for table `company_requests`
 --
 ALTER TABLE `company_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `customers`
