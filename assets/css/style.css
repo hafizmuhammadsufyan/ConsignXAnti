@@ -999,6 +999,28 @@ label {
         content: "Actions";
     }
 
+    /* Company Requests Table Mobile Labels */
+    #companyRequestsTable tbody td:nth-child(1)::before {
+        content: "Company / Date";
+    }
+
+    #companyRequestsTable tbody td:nth-child(2)::before {
+        content: "Contact Person";
+    }
+
+    #companyRequestsTable tbody td:nth-child(3)::before {
+        content: "Phone";
+    }
+
+    #companyRequestsTable tbody td:nth-child(4)::before {
+        content: "Status";
+    }
+
+    #companyRequestsTable tbody td:nth-child(5)::before {
+        content: "Actions";
+    }
+}
+
     .premium-table:not(#recentShipmentsTable):not(#agentsTable) tbody td:nth-child(1)::before {
         content: "Tracking/Date";
     }
