@@ -61,86 +61,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         // Reject Request
         elseif ($_POST['action'] === 'reject') {
             try {
-                // Get request details to check status
-                $stmt = $pdo->prepare("SELECT status FROM company_requests WHERE id = ?");
+                $stmt = $pdo->prepare("UPDATE company_requests SET status = 'rejected' WHERE id = ?");
                 $stmt->execute([$request_id]);
-                $req = $stmt->fetch();
-                
-                if ($req && $req['status'] === 'pending') {
-                    $stmt = $pdo->prepare("UPDATE company_requests SET status = 'rejected' WHERE id = ?");
-                    $stmt->execute([$request_id]);
-                    $msg = "<div class='alert alert-success alert-dismissible fade show'>Company request rejected.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
-                } else {
-                    $msg = "<div class='alert alert-warning alert-dismissible fade show'>This request has already been processed and cannot be modified.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
-                }
+                $msg = "<div class='alert alert-success alert-dismissible fade show'>Company request rejected.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
             } catch (PDOException $e) {
                 $msg = "<div class='alert alert-danger alert-dismissible fade show'>Failed to reject request.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
             }
         }
-    } else {
-        $msg = "<div class='alert alert-danger alert-dismissible fade show'>Invalid security token.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
     }
 }
 
-// Filtering Logic
-$where_clauses = [];
-$params = [];
-
-// Default to showing only pending requests (show others only if explicitly filtered)
-if (empty($_GET['status'])) {
-    // No status filter provided - default to pending
-    $where_clauses[] = "cr.status = ?";
-    $params[] = 'pending';
-} elseif ($_GET['status'] !== '') {
-    // Status filter provided and not empty
-    $where_clauses[] = "cr.status = ?";
-    $params[] = $_GET['status'];
-}
-// If status is empty string, show all statuses (no filter added)
-
-if (!empty($_GET['date_from'])) {
-    $where_clauses[] = "cr.created_at >= ?";
-    $params[] = $_GET['date_from'] . ' 00:00:00';
-}
-if (!empty($_GET['date_to'])) {
-    $where_clauses[] = "cr.created_at <= ?";
-    $params[] = $_GET['date_to'] . ' 23:59:59';
-}
-if (!empty($_GET['search'])) {
-    $search_term = '%' . $_GET['search'] . '%';
-    $where_clauses[] = "(cr.name LIKE ? OR cr.email LIKE ? OR cr.phone LIKE ? OR cr.company_name LIKE ?)";
-    $params[] = $search_term;
-    $params[] = $search_term;
-    $params[] = $search_term;
-    $params[] = $search_term;
-}
-
-$where_sql = empty($where_clauses) ? "1=1" : implode(" AND ", $where_clauses);
-
-// Pagination
-$limit = 15;
-$offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
-
+// Fetch Pending Requests
 try {
-    // Fetch requests with filter
-    $sql = "SELECT cr.* FROM company_requests cr
-            WHERE $where_sql
-            ORDER BY cr.created_at DESC
-            LIMIT $limit OFFSET $offset";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    $stmt = $pdo->query("SELECT * FROM company_requests WHERE status = 'pending' ORDER BY created_at ASC");
     $requests = $stmt->fetchAll();
-
-    // AJAX Response
-    if (isset($_GET['ajax'])) {
-        if (empty($requests)) exit('');
-        foreach ($requests as $req) {
-            include '../includes/company_request_row_template.php';
-        }
-        exit;
-    }
-
 } catch (PDOException $e) {
     $msg = "<div class='alert alert-danger'>Error loading requests: " . escape($e->getMessage()) . "</div>";
     $requests = [];
@@ -162,13 +96,61 @@ try {
 <body class="neumorphic-bg">
 
     <div class="admin-wrapper">
+        <!-- Mobile Sidebar Toggle -->
+        <button class="btn btn-primary sidebar-toggle-btn shadow-sm" type="button">
+            <i class="bi bi-list fs-4"></i>
+        </button>
 
         <!-- Main Sidebar -->
-        <?php 
-        $role = 'admin';
-        $active_page = 'company_requests.php';
-        require_once '../includes/sidebar.php';
-        ?>
+        <nav class="sidebar d-flex flex-column justify-content-between neumorphic-card m-3 border-0">
+            <!-- Desktop Sidebar Toggle -->
+            <div class="desktop-toggle-btn text-muted">
+                <i class="bi bi-chevron-left fs-5"></i>
+            </div>
+            <div>
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-primary mb-0">ConsignX</h3>
+                    <small class="text-muted">Admin Portal</small>
+                </div>
+                <ul class="nav flex-column gap-2 mt-4">
+                    <li class="nav-item">
+                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="dashboard.php">
+                            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_shipments.php">
+                            <i class="bi bi-box-seam me-2"></i> Shipments
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="manage_agents.php">
+                            <i class="bi bi-building me-2"></i> Agents
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link neumorphic-btn btn-primary text-center text-white active" href="company_requests.php">
+                            <i class="bi bi-person-lines-fill me-2"></i> Requests
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link neumorphic-btn text-center text-decoration-none" href="reports.php">
+                            <i class="bi bi-graph-up me-2"></i> Reports
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="mt-auto pt-3 border-top border-secondary border-opacity-10">
+                <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+                    <span class="text-muted small fw-bold">Dark Mode</span>
+                    <label class="theme-switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <a href="../auth/logout.php" class="btn neumorphic-btn btn-danger w-100 fw-bold">Logout</a>
+            </div>
+        </nav>
 
         <!-- Main Content -->
         <main class="main-content">
@@ -181,121 +163,63 @@ try {
 
             <?= $msg ?>
 
-            <!-- Filters Section -->
-            <div class="neumorphic-card p-4 mb-4">
-                <form method="GET" class="row g-3 align-items-end">
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold"><i class="bi bi-search me-1"></i>Search</label>
-                        <input type="text" name="search" class="form-control neumorphic-input py-2" placeholder="Name, Email, or Phone" value="<?= escape($_GET['search'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                        <label class="form-label small fw-bold"><i class="bi bi-calendar me-1"></i>From Date</label>
-                        <input type="date" name="date_from" class="form-control neumorphic-input py-2"
-                            value="<?= escape($_GET['date_from'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                        <label class="form-label small fw-bold"><i class="bi bi-calendar me-1"></i>To Date</label>
-                        <input type="date" name="date_to" class="form-control neumorphic-input py-2"
-                            value="<?= escape($_GET['date_to'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-2 col-sm-6">
-                        <label class="form-label small fw-bold"><i class="bi bi-tag me-1"></i>Status</label>
-                        <select name="status" class="form-select neumorphic-input py-2">
-                            <option value="">All Statuses</option>
-                            <option value="pending" <?= (($_GET['status'] ?? 'pending') === 'pending') ? 'selected' : '' ?>>Pending</option>
-                            <option value="approved" <?= ($_GET['status'] ?? '') == 'approved' ? 'selected' : '' ?>>Approved</option>
-                            <option value="rejected" <?= ($_GET['status'] ?? '') == 'rejected' ? 'selected' : '' ?>>Rejected</option>
-                        </select>
-                    </div>
-                    <div class="col-12 d-flex justify-content-end gap-2 mt-2">
-                        <button type="submit" class="btn btn-primary neumorphic-btn fw-bold"><i class="bi bi-funnel me-1"></i>Filter</button>
-                        <a href="company_requests.php" class="btn btn-secondary neumorphic-btn fw-bold"><i class="bi bi-arrow-clockwise me-1"></i>Clear</a>
-                    </div>
-                </form>
-            </div>
-
-            <div class="premium-table-container">
+            <div class="neumorphic-card p-4">
                 <div class="table-responsive">
-                    <table class="premium-table" id="companyRequestsTable">
+                    <table class="table neumorphic-table table-borderless align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>Company<br><small>Date Submitted</small></th>
+                                <th>Date Submitted</th>
+                                <th>Company</th>
                                 <th>Contact Person</th>
+                                <th>Email</th>
                                 <th>Phone</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($requests)): ?>
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-5">
-                                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                                        No company registration requests found.
-                                    </td>
+                                    <td colspan="6" class="text-center text-muted">No pending company registration requests.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($requests as $req): ?>
-                                    <?php include '../includes/company_request_row_template.php'; ?>
+                                    <tr>
+                                        <td>
+                                            <small class="text-muted"><?= date('M d, Y', strtotime($req['created_at'])) ?></small>
+                                        </td>
+                                        <td class="fw-bold">
+                                            <?= escape($req['company_name']) ?>
+                                        </td>
+                                        <td>
+                                            <?= escape($req['name']) ?>
+                                        </td>
+                                        <td><a href="mailto:<?= escape($req['email']) ?>"><?= escape($req['email']) ?></a></td>
+                                        <td><?= escape($req['phone']) ?></td>
+                                        <td class="text-end">
+                                            <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to approve this company?');">
+                                                <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
+                                                <input type="hidden" name="action" value="approve">
+                                                <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                                                <button type="submit" class="btn btn-sm neumorphic-btn text-success py-1 px-2" data-bs-toggle="tooltip" title="Approve & Create Account">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </button>
+                                            </form>
+                                            <form method="POST" class="d-inline ms-1" onsubmit="return confirm('Are you sure you want to reject this request?');">
+                                                <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
+                                                <input type="hidden" name="action" value="reject">
+                                                <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                                                <button type="submit" class="btn btn-sm neumorphic-btn text-danger py-1 px-2" data-bs-toggle="tooltip" title="Reject Request">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
-
-                <?php if (count($requests) >= $limit): ?>
-                <div class="text-center mt-4">
-                    <button id="loadMoreBtn" class="btn neumorphic-btn px-5 py-2 fw-bold text-primary">
-                        <i class="bi bi-arrow-down-circle me-1"></i> Load More
-                    </button>
-                </div>
-                <?php endif; ?>
             </div>
-
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                let offset = <?= $limit ?>;
-                const loadMoreBtn = document.getElementById('loadMoreBtn');
-                const tableBody = document.querySelector('.premium-table tbody');
-                if (loadMoreBtn) {
-                    loadMoreBtn.addEventListener('click', function() {
-                        const originalText = loadMoreBtn.innerHTML;
-                        loadMoreBtn.innerHTML =
-                            '<span class="spinner-border spinner-border-sm me-2"></span> Loading...';
-                        loadMoreBtn.disabled = true;
-
-                        const url = new URL(window.location.href);
-                        url.searchParams.set('ajax', '1');
-                        url.searchParams.set('offset', offset);
-
-                        fetch(url)
-                            .then(response => response.text())
-                            .then(data => {
-                                if (data.trim() === '') {
-                                    loadMoreBtn.innerHTML = 'All Records Loaded';
-                                    loadMoreBtn.classList.add('text-muted');
-                                    loadMoreBtn.disabled = true;
-                                    return;
-                                }
-                                tableBody.insertAdjacentHTML('beforeend', data);
-                                offset += <?= $limit ?>;
-                                loadMoreBtn.innerHTML = originalText;
-                                loadMoreBtn.disabled = false;
-                                // Re-initialize tooltips if needed
-                                var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                                tooltipTriggerList.map(function (tooltipTriggerEl) {
-                                    return new bootstrap.Tooltip(tooltipTriggerEl);
-                                });
-                            })
-                            .catch(err => {
-                                console.error(err);
-                                loadMoreBtn.innerHTML = 'Error Loading More';
-                                loadMoreBtn.disabled = false;
-                            });
-                    });
-                }
-            });
-            </script>
         </main>
     </div>
 
