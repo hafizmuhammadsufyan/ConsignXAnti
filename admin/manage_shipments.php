@@ -322,19 +322,19 @@ try {
 
             <!-- Filters Section -->
             <div class="neumorphic-card p-4 mb-4">
-                <form method="GET" class="row g-3 align-items-end">
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold">From Date</label>
+                <form method="GET" class="row align-items-end g-3">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">From Date</label>
                         <input type="date" name="date_from" class="form-control neumorphic-input py-2"
                             value="<?= escape($_GET['date_from'] ?? '') ?>">
                     </div>
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold">To Date</label>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">To Date</label>
                         <input type="date" name="date_to" class="form-control neumorphic-input py-2"
                             value="<?= escape($_GET['date_to'] ?? '') ?>">
                     </div>
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold">Agent</label>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">Agent</label>
                         <select name="agent_id" class="form-select neumorphic-input py-2">
                             <option value="">All Agents</option>
                             <?php foreach ($agents as $ag): ?>
@@ -345,8 +345,8 @@ try {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold">City</label>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">City</label>
                         <select name="city_id" class="form-select neumorphic-input py-2">
                             <option value="">All Cities</option>
                             <?php foreach ($cities as $ct): ?>
@@ -357,12 +357,12 @@ try {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold">Tracking ID</label>
-                        <input type="text" name="tracking_id" class="form-control neumorphic-input py-2" placeholder="Search by Tracking ID" value="<?= escape($_GET['tracking_id'] ?? '') ?>">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">Tracking ID</label>
+                        <input type="text" name="tracking_id" class="form-control neumorphic-input py-2" placeholder="By Tracking ID" value="<?= escape($_GET['tracking_id'] ?? '') ?>">
                     </div>
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold">Status</label>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">Status</label>
                         <select name="status" class="form-select neumorphic-input py-2">
                             <option value="">All Statuses</option>
                             <option value="Pending" <?= ($_GET['status'] ?? '') == 'Pending' ? 'selected' : '' ?>>
@@ -382,10 +382,10 @@ try {
                                 Cancelled</option>
                         </select>
                     </div>
-                    <div class="col-md-12 d-flex justify-content-end gap-2 mt-2">
-                        <button type="submit" class="btn btn-primary neumorphic-btn"><i
+                    <div class="col-md-12 d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary neumorphic-btn py-2"><i
                                 class="bi bi-filter"></i> Apply Filter</button>
-                        <a href="manage_shipments.php" class="btn btn-secondary neumorphic-btn"><i
+                        <a href="manage_shipments.php" class="btn btn-secondary neumorphic-btn py-2"><i
                                 class="bi bi-arrow-clockwise"></i></a>
                     </div>
                 </form>
