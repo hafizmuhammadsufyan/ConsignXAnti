@@ -33,9 +33,10 @@ function send_email($to, $subject, $htmlBody)
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
         $mail->Username = $sender_email;
-        $mail->Password = 'rjrsdxzhsjsgrbnp'; // <-- Replace with your Gmail App Password later
+        $mail->Password = 'rjrsdxzhsjsgrbnp'; // Gmail App Password - generate from https://myaccount.google.com/apppasswords
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // TLS encryption
         $mail->Port = 587; // TLS port for Gmail
+        $mail->SMTPDebug = 0; // Set to 2 for debugging
 
         // Recipients
         $mail->setFrom($sender_email, $sender_name);
@@ -49,7 +50,10 @@ function send_email($to, $subject, $htmlBody)
 
         return $mail->send();
     } catch (Exception $e) {
-        error_log("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
+        $error_msg = "Email Error: {$mail->ErrorInfo}";
+        error_log($error_msg);
+        // Log to syslog for debugging
+        error_log("Failed to send email to $to. Subject: $subject. Error: " . $mail->ErrorInfo, 0);
         return false;
     }
 }

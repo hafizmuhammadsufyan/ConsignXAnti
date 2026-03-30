@@ -173,7 +173,7 @@
     padding: 16px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* Specific shadow as requested */
     margin-bottom: 2.5rem;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid rgba(0,0,0,0.01);
 }
 
@@ -181,6 +181,7 @@
 .table-container {
     width: 100%;
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
 }
 
