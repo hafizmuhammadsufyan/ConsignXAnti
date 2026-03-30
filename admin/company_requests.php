@@ -219,21 +219,21 @@ try {
 
             <!-- Filters Section -->
             <div class="neumorphic-card p-4 mb-4">
-                <form method="GET" class="row g-3 align-items-end">
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold">Search</label>
-                        <input type="text" name="search" class="form-control neumorphic-input py-2" placeholder="Name, Email, or Phone" value="<?= escape($_GET['search'] ?? '') ?>">
+                <form method="GET" class="row align-items-end g-3">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">Search</label>
+                        <input type="text" name="search" class="form-control neumorphic-input py-2" placeholder="Name/Email" value="<?= escape($_GET['search'] ?? '') ?>">
                     </div>
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold">From Date</label>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">From Date</label>
                         <input type="date" name="date_from" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_from'] ?? '') ?>">
                     </div>
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold">To Date</label>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">To Date</label>
                         <input type="date" name="date_to" class="form-control neumorphic-input py-2" value="<?= escape($_GET['date_to'] ?? '') ?>">
                     </div>
-                    <div class="col-md-4 col-sm-6">
-                        <label class="form-label small fw-bold">Status</label>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-muted">Status</label>
                         <select name="status" class="form-select neumorphic-input py-2">
                             <option value="pending" <?= ($status_filter ?? '') == 'pending' ? 'selected' : '' ?>>Pending</option>
                             <option value="approved" <?= ($status_filter ?? '') == 'approved' ? 'selected' : '' ?>>Approved</option>
@@ -241,9 +241,11 @@ try {
                             <option value="" <?= empty($status_filter) ? 'selected' : '' ?>>All Statuses</option>
                         </select>
                     </div>
-                    <div class="col-md-12 d-flex justify-content-end gap-2 mt-2">
-                        <button type="submit" class="btn btn-primary neumorphic-btn"><i class="bi bi-filter"></i> Apply Filter</button>
-                        <a href="company_requests.php" class="btn btn-secondary neumorphic-btn"><i class="bi bi-arrow-clockwise"></i></a>
+                    <div class="col-md-4 d-flex gap-2">
+                        <button type="submit" class="btn neumorphic-btn btn-primary flex-grow-1 py-2">Apply</button>
+                        <a href="company_requests.php" class="btn neumorphic-btn btn-secondary py-2" data-bs-toggle="tooltip" title="Reset Filters">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
                     </div>
                 </form>
             </div>
