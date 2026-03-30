@@ -1,12 +1,11 @@
 <?php
-// FILE: /consignxAnti/customer/track_shipment.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 
-// Secure the route
+// Only customers can track shipments
 require_role('customer');
 
 $customer_id = current_user_id();
@@ -15,7 +14,7 @@ $msg = '';
 $ship = null;
 $history = [];
 
-// Layout variables
+// View settings
 $role = 'customer';
 $active_page = 'dashboard.php';
 $page_title = 'Track Shipment';

@@ -1,31 +1,33 @@
 <?php
-// FILE: /consignxAnti/customer/all_shipments.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 
-// Secure the route
+// Only customers can see their own shipments
 require_role('customer');
 
 $customer_id = current_user_id();
 $customer_name = $_SESSION['user_name'];
 $msg = '';
 
-// Fetch ALL shipments belonging to this customer
+// Get all shipments for this customer
 try {
     $where = ["s.customer_id = ?"];
     $params = [$customer_id];
 
+    // Allow filtering by status
     if (!empty($_GET['status'])) {
         $where[] = "s.status = ?";
         $params[] = $_GET['status'];
     }
+    // Filter by agent if selected
     if (!empty($_GET['agent_id'])) {
         $where[] = "s.agent_id = ?";
         $params[] = (int)$_GET['agent_id'];
     }
+    // Filter by price range
     if (!empty($_GET['min_amount'])) {
         $where[] = "s.price >= ?";
         $params[] = (float)$_GET['min_amount'];

@@ -1,5 +1,4 @@
 <?php
-// FILE: /consignxAnti/shared/profile.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
@@ -7,7 +6,7 @@ require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 
-// Secure the route
+// Make sure user is logged in
 if (!is_logged_in()) {
     header("Location: ../auth/login.php");
     exit;

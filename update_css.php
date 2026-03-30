@@ -1,5 +1,5 @@
 <?php
-// FILE: /consignxAnti/update_css.php
+// This script updates the neumorphism.css file with status color palettes
 $file = 'assets/css/neumorphism.css';
 $content = file_get_contents($file);
 

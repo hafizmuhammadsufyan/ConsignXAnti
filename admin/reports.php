@@ -1,18 +1,17 @@
 <?php
-// FILE: /consignxAnti/admin/reports.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 
-// Secure the route
+// Only admins can view reports
 require_role('admin');
 
 $admin_name = $_SESSION['user_name'];
 $msg = '';
 
-// 1. Calculate Date Ranges (Default 7 days)
+// Set date range - default to last 7 days
 $end_date = !empty($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $start_date = !empty($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-7 days'));
 $city_filter = $_GET['city'] ?? '';
@@ -20,13 +19,14 @@ $agent_filter = $_GET['agent_id'] ?? '';
 $status_filter = $_GET['status'] ?? '';
 $is_filtered = !empty($_GET['start_date']) || !empty($_GET['city']) || !empty($agent_filter) || !empty($status_filter);
 
-// 2. AJAX Load More Logic
+// Pagination setup
 $limit = 15;
 $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
 $where = ["s.created_at BETWEEN ? AND ?"];
 $params = [$start_date . ' 00:00:00', $end_date . ' 23:59:59'];
 
+// Apply filters if selected
 if (!empty($city_filter)) {
     $where[] = "(s.origin_city_id = ? OR s.destination_city_id = ?)";
     $params[] = (int)$city_filter;
@@ -46,10 +46,11 @@ if (!empty($status_filter)) {
 $where_sql = implode(" AND ", $where);
 
 try {
-    // We need to get all cities and agents for the filter dropdowns
+    // Get dropdown data
     $cities = get_cities();
     $agents = $pdo->query("SELECT id, company_name FROM agents WHERE status = 'active' ORDER BY company_name ASC")->fetchAll();
 
+    // Fetch shipment data
     $sql = "SELECT s.*, 
                    c.name as customer_name,
                    orig.name as origin_city, 
@@ -62,16 +63,16 @@ try {
             LEFT JOIN agents a ON s.agent_id = a.id
             WHERE $where_sql
             ORDER BY s.created_at DESC
-            LIMIT $limit OFFSET $offset";
+            LIMIT $limit OFFSET $offset";;
             
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
     $reports = $stmt->fetchAll();
 
-    // If AJAX request, return only table rows and exit
+    // Handle AJAX requests for load more
     if (isset($_GET['ajax'])) {
         if (empty($reports)) {
-            exit(''); // No more data
+            exit('');
         }
         foreach ($reports as $ship) {
             include '../includes/report_row_template.php';
@@ -84,7 +85,7 @@ try {
     $reports = [];
 }
 
-// Handle Export to CSV
+// Handle exporting to CSV
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $filename = "consignx_report_" . date('Ymd') . ".csv";
 
@@ -94,7 +95,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $output = fopen('php://output', 'w');
     fputcsv($output, ['Tracking ID', 'Date', 'Customer', 'Agent', 'Origin', 'Destination', 'Weight(kg)', 'Price(PKR)', 'Status']);
 
-    // For export, we fetch EVERYTHING matching filters (no limit)
+    // Get all matching records (no limit for export)
     $export_sql = "SELECT s.*, c.name as customer_name, orig.name as origin_city, dest.name as dest_city, a.company_name as agent_company
                    FROM shipments s
                    LEFT JOIN customers c ON s.customer_id = c.id

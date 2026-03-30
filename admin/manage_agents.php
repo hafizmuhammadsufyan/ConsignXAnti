@@ -1,5 +1,4 @@
 <?php
-// FILE: /consignxAnti/admin/manage_agents.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
@@ -8,13 +7,13 @@ require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 require_once '../includes/mailer.php';
 
-// Secure the route
+// Only admins can manage agents
 require_role('admin');
 
 $admin_name = $_SESSION['user_name'];
 $msg = '';
 
-// Handle Add, Edit, Delete Actions
+// When admin performs add/edit/delete/status actions on agents
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $csrf = $_POST['csrf_token'] ?? '';
     if (validate_csrf_token($csrf)) {

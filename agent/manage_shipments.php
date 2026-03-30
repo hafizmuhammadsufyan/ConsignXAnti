@@ -1,5 +1,4 @@
 <?php
-// FILE: /consignxAnti/agent/manage_shipments.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
@@ -7,14 +6,14 @@ require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 
-// Secure the route
+// Only agents can access this
 require_role('agent');
 
 $agent_id = current_user_id();
 $company_name = $_SESSION['company_name'];
 $msg = '';
 
-// Handle Status Updates
+// When agent updates shipment status
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_status') {
     $csrf = $_POST['csrf_token'] ?? '';
     if (validate_csrf_token($csrf)) {

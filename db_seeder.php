@@ -1,5 +1,4 @@
 <?php
-// FILE: /consignxAnti/db_seeder.php
 
 require_once __DIR__ . '/includes/db.php';
 
@@ -7,8 +6,7 @@ echo "<pre>";
 echo "Starting Database Seeding...\n";
 
 try {
-
-    // Fetch valid IDs from database (avoids foreign key errors)
+    // Get IDs we can use for foreign key relationships
     $agents = $pdo->query("SELECT id FROM agents")->fetchAll(PDO::FETCH_COLUMN);
     $customers = $pdo->query("SELECT id FROM customers")->fetchAll(PDO::FETCH_COLUMN);
     $cities = $pdo->query("SELECT id FROM cities")->fetchAll(PDO::FETCH_COLUMN);
@@ -17,7 +15,7 @@ try {
         die("Error: Agents, Customers or Cities table is empty. Please insert base data first.\n");
     }
 
-    $statuses = ['Pending', 'Picked Up', 'In Transit', 'Out For Delivery', 'Delivered'];
+    // Available shipment statuses
 
     // Last 6 months
     $months = [

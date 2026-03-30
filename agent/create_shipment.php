@@ -1,5 +1,4 @@
 <?php
-// FILE: /consignxAnti/agent/create_shipment.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
@@ -8,7 +7,7 @@ require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 require_once '../includes/mailer.php';
 
-// Secure the route
+// Only agents can create shipments
 require_role('agent');
 
 $agent_id = current_user_id();
@@ -17,6 +16,7 @@ $msg = '';
 
 $cities = get_cities();
 
+// Process shipment creation
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf = $_POST['csrf_token'] ?? '';
 

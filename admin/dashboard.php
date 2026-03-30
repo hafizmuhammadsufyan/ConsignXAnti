@@ -1,22 +1,23 @@
 <?php
-// FILE: /consignxAnti/admin/dashboard.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 
-// Secure the route
+// Only admins can see this dashboard
 require_role('admin');
 
 $admin_id = current_user_id();
 $admin_name = $_SESSION['user_name'];
 
-// 1. Fetch KPIs
+// Pull dashboard stats from database
 try {
+    // Get total revenue
     $stmt = $pdo->query("SELECT SUM(amount) as total_rev FROM revenue");
     $total_revenue = $stmt->fetch()['total_rev'] ?? 0;
 
+    // Count all shipments
     $stmt = $pdo->query("SELECT COUNT(*) as count FROM shipments");
     $total_shipments = $stmt->fetch()['count'] ?? 0;
 

@@ -1,21 +1,20 @@
 <?php
-// FILE: /consignxAnti/customer/dashboard.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 
-// Secure the route
+// Only customers can see this
 require_role('customer');
 
 $customer_id = current_user_id();
 $customer_name = $_SESSION['user_name'];
 $msg = '';
 
-// Fetch all shipments belonging to this customer
+// Get all this customer's shipments
 try {
-    // Fetch Recent Shipments (Excluding Delivered)
+    // Get recent shipments (not yet delivered)
     $stmt = $pdo->prepare("
         SELECT s.*, 
                orig.name as origin_city, dest.name as dest_city,

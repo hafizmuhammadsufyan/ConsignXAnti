@@ -4,10 +4,10 @@
 require_once '../includes/config.php';
 require_once '../includes/auth.php';
 
-// Execute the secure logout function
+// Perform logout and clear session
 logout();
 
-// Redirect back to landing page or login page
+// Redirect to login page
 header('Location: ../auth/login.php');
 exit;
 ?>

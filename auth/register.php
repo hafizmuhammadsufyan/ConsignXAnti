@@ -6,7 +6,7 @@ require_once '../includes/db.php';
 require_once '../includes/auth.php';
 require_once '../includes/functions.php';
 
-// Redirect if already logged in
+// Skip registration if user is already logged in
 if (isset($_SESSION['user_id'])) {
     header('Location: ../index.php');
     exit;

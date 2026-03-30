@@ -1,23 +1,22 @@
 <?php
-// FILE: /consignxAnti/agent/dashboard.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 
-// Secure the route
+// Only agents can see this dashboard
 require_role('agent');
 
-// Determine agent id from session explicitly for agent-scoped actions.
-// This ensures data is limited to the logged-in agent.
+// Get the agent info from session
+// This ensures proper data isolation per agent
 $agent_id = $_SESSION['agent_id'] ?? current_user_id();
 $agent_name = $_SESSION['user_name'];
 $company_name = $_SESSION['company_name'];
 
-// 1. Fetch KPIs
+// Fetch dashboard metrics
 try {
-    // Shipments handled by this agent
+    // Count shipments this agent has handled
     $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM shipments WHERE agent_id = ?");
     $stmt->execute([$agent_id]);
     $total_shipments = $stmt->fetch()['count'] ?? 0;

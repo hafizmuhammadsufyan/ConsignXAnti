@@ -1,12 +1,11 @@
 <?php
-// FILE: /consignxAnti/admin/api/filter_shipments.php
 
 require_once '../../includes/config.php';
 require_once '../../includes/db.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/middleware.php';
 
-// Secure the route
+// Make sure user has access
 require_role(['admin', 'agent', 'customer']);
 
 $u_id = current_user_id();

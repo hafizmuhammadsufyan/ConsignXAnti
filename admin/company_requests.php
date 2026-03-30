@@ -1,6 +1,4 @@
 <?php
-// FILE: /consignxAnti/admin/company_requests.php
-
 require_once '../includes/config.php';
 require_once '../includes/db.php';
 require_once '../includes/middleware.php';
@@ -8,43 +6,42 @@ require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 require_once '../includes/mailer.php';
 
-// Secure the route
+// Only admins can see this page
 require_role('admin');
 
 $admin_name = $_SESSION['user_name'];
 $msg = '';
 
-// Handle Actions (Approve, Reject)
+// When the admin submits approve/reject actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $csrf = $_POST['csrf_token'] ?? '';
     if (validate_csrf_token($csrf)) {
-        
         $request_id = (int) $_POST['request_id'];
         
-        // Approve Request
+        // When admin approves the company
         if ($_POST['action'] === 'approve') {
             try {
                 $pdo->beginTransaction();
                 
-                // Get request details
+                // Get the request details from the database
                 $stmt = $pdo->prepare("SELECT * FROM company_requests WHERE id = ?");
                 $stmt->execute([$request_id]);
                 $req = $stmt->fetch();
                 
                 if ($req && $req['status'] === 'pending') {
-                    // Generate password
+                    // Create a random password for the agent account
                     $generated_password = strtolower(str_replace(' ', '', $req['company_name'])) . rand(100, 999);
                     $hashed_password = password_hash($generated_password, PASSWORD_DEFAULT);
                     
-                    // Insert to agents
+                    // Create the agent account
                     $stmt = $pdo->prepare("INSERT INTO agents (name, company_name, email, phone, password_hash, status) VALUES (?, ?, ?, ?, ?, 'active')");
                     $stmt->execute([$req['name'], $req['company_name'], $req['email'], $req['phone'], $hashed_password]);
                     
-                    // Update request status
+                    // Mark request as approved
                     $stmt = $pdo->prepare("UPDATE company_requests SET status = 'approved' WHERE id = ?");
                     $stmt->execute([$request_id]);
                     
-                    // Send Email
+                    // Send credentials via email
                     send_agent_welcome_email($req['email'], $req['company_name'], 'active', $generated_password);
                     
                     $msg = "<div class='alert alert-success alert-dismissible fade show'>Company request approved. Agent account created and credentials emailed.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
@@ -58,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }
         }
         
-        // Reject Request
+        // When admin rejects the company
         elseif ($_POST['action'] === 'reject') {
             try {
                 $stmt = $pdo->prepare("UPDATE company_requests SET status = 'rejected' WHERE id = ?");
@@ -71,11 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Filtering Logic
+// Build the database query based on filters the user applied
 $where_clauses = ["1=1"];
 $params = [];
 
-// Default status filter to pending
+// Show pending requests by default
 $status_filter = $_GET['status'] ?? 'pending';
 
 if (!empty($status_filter)) {
@@ -83,7 +80,7 @@ if (!empty($status_filter)) {
     $params[] = $status_filter;
 }
 
-// Date range filtering
+// Let admin filter by date range
 if (!empty($_GET['date_from'])) {
     $where_clauses[] = "created_at >= ?";
     $params[] = $_GET['date_from'] . ' 00:00:00';
@@ -94,7 +91,7 @@ if (!empty($_GET['date_to'])) {
     $params[] = $_GET['date_to'] . ' 23:59:59';
 }
 
-// Search by name, email, or phone
+// Search function for finding by name, email, or phone
 if (!empty($_GET['search'])) {
     $search_term = "%" . $_GET['search'] . "%";
     $where_clauses[] = "(name LIKE ? OR email LIKE ? OR phone LIKE ? OR company_name LIKE ?)";
@@ -106,7 +103,7 @@ if (!empty($_GET['search'])) {
 
 $where_sql = implode(" AND ", $where_clauses);
 
-// AJAX Load More Logic with offset-based pagination
+// Pagination - show 15 requests per load
 $limit = 15;
 $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
@@ -120,7 +117,7 @@ try {
     $stmt->execute($params);
     $requests = $stmt->fetchAll();
 
-    // AJAX Response - return only table rows
+    // Handle infinite scroll/load more via AJAX
     if (isset($_GET['ajax'])) {
         if (empty($requests)) exit('');
         foreach ($requests as $req) {
@@ -130,6 +127,7 @@ try {
     }
 
 } catch (PDOException $e) {
+    // Something went wrong with the database
     $msg = "<div class='alert alert-danger'>Error loading requests: " . escape($e->getMessage()) . "</div>";
     $requests = [];
 }

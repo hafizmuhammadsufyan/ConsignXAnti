@@ -1,5 +1,4 @@
 <?php
-// FILE: /consignxAnti/auth/login.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
@@ -7,7 +6,7 @@ require_once '../includes/auth.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 
-// Redirect if already logged in
+// Skip this page if the user is already logged in
 redirect_if_logged_in();
 
 $error = '';

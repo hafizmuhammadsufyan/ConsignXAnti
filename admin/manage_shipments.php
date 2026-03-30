@@ -1,5 +1,4 @@
 <?php
-// FILE: /consignxAnti/admin/manage_shipments.php
 
 require_once '../includes/config.php';
 require_once '../includes/db.php';
@@ -9,14 +8,14 @@ require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 require_once '../includes/mailer.php';
 
-// Secure the route
+// Only admins can access this page
 require_role('admin');
 
 $admin_id = current_user_id();
 $admin_name = $_SESSION['user_name'];
 $msg = '';
 
-// Handle Actions (Create Shipment, Update Status, Delete)
+// Process form submissions (creating shipments, updating status, etc)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $csrf = $_POST['csrf_token'] ?? '';
 
@@ -26,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $action = $_POST['action'];
 
         if ($action === 'create_shipment') {
-            // Admin created shipment (direct customer interaction or oversight)
+            // Admin is manually creating a shipment
             $customer_name = trim($_POST['customer_name'] ?? '');
             $customer_email = filter_input(INPUT_POST, 'customer_email', FILTER_SANITIZE_EMAIL);
             $customer_phone = trim($_POST['customer_phone'] ?? '');
@@ -43,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             try {
                 $pdo->beginTransaction();
 
-                // 1. Find or create customer
+                // Check if customer already exists or create new
                 $stmt = $pdo->prepare("SELECT id FROM customers WHERE email = :email LIMIT 1");
                 $stmt->execute(['email' => $customer_email]);
                 $customer = $stmt->fetch();
@@ -52,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $customer_id = $customer['id'];
                     $is_new_customer = false;
                 } else {
+                    // Create a new customer account
                     $temp_password = strtolower(str_replace(' ', '', $customer_name)) . rand(100, 999);
                     $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
                     $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, password_hash) VALUES (:name, :email, :phone, :pass)");
@@ -60,17 +60,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $is_new_customer = true;
                 }
 
-                // 2. Generate Tracking
+                // Generate tracking number for this shipment
                 $tracking_number = generate_tracking_number();
 
-                // 3. Trigger Email
+                // Send notification email to customer
                 if ($is_new_customer) {
                     send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
                 } else {
                     send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
                 }
 
-                // 3. Create Shipment (Agent ID is null since admin created it)
+                // Create the shipment record
                 $stmt = $pdo->prepare("
                     INSERT INTO shipments 
                     (tracking_number, customer_id, origin_city_id, destination_city_id, recipient_name, recipient_phone, recipient_address, weight, price, status) 
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 ]);
                 $shipment_id = $pdo->lastInsertId();
 
-                // 4. Create Initial Status History
+                // Save initial shipment status in history log
                 $stmt = $pdo->prepare("INSERT INTO shipment_status_history (shipment_id, status, remarks, changed_by_role, changed_by_id) VALUES (?, ?, ?, ?, ?)");
                 $stmt->execute([$shipment_id, 'Pending', 'Shipment Created by Admin', 'admin', $admin_id]);
 
@@ -102,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             }
 
         } elseif ($action === 'update_status') {
+            // Update the shipment status
             $shipment_id = (int) $_POST['shipment_id'];
             $new_status = trim($_POST['new_status'] ?? '');
             $remarks = trim($_POST['remarks'] ?? '');
@@ -126,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     throw new Exception("Invalid status value");
                 }
 
-                // Check current status from DB
+                // Verify shipment exists and isn't locked
                 $stmt = $pdo->prepare("SELECT status FROM shipments WHERE id = ?");
                 $stmt->execute([$shipment_id]);
                 $current_status = $stmt->fetchColumn();
@@ -135,28 +136,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     throw new Exception("Shipment not found.");
                 }
 
+                // Don't allow changes to completed shipments
                 if (in_array($current_status, ['Delivered', 'Returned', 'Cancelled'])) {
                     throw new Exception("This shipment is locked and cannot be modified.");
                 }
 
                 $pdo->beginTransaction();
 
+                // Change the shipment status
                 $stmt = $pdo->prepare("UPDATE shipments SET status = :status WHERE id = :id");
                 $stmt->execute([
                     'status' => $new_status,
                     'id' => $shipment_id
                 ]);
 
+                // Log this status change
                 $stmt = $pdo->prepare("INSERT INTO shipment_status_history (shipment_id, status, location, remarks, changed_by_role, changed_by_id) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$shipment_id, $new_status, $location, $remarks, 'admin', $admin_id]);
 
-                // If Delivered, record revenue
+                // If marked as delivered, record the revenue
                 if ($new_status === 'Delivered') {
                     $stmt = $pdo->prepare("SELECT price, agent_id FROM shipments WHERE id = ?");
                     $stmt->execute([$shipment_id]);
                     $shipData = $stmt->fetch();
 
-                    // Check if already recorded
+                    // Check if we already recorded revenue for this shipment
                     $revCheck = $pdo->prepare("SELECT id FROM revenue WHERE shipment_id = ?");
                     $revCheck->execute([$shipment_id]);
                     if (!$revCheck->fetch()) {
@@ -174,9 +178,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $msg = display_alert("Failed to update status: " . escape($e->getMessage()), "danger");
             }
         } elseif ($action === 'delete_shipment') {
+            // Delete a shipment
             $shipment_id = (int) $_POST['shipment_id'];
             try {
-                // Check current status from DB
+                // Check shipment status before allowing deletion
                 $stmt = $pdo->prepare("SELECT status FROM shipments WHERE id = ?");
                 $stmt->execute([$shipment_id]);
                 $current_status = $stmt->fetchColumn();
@@ -185,13 +190,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     throw new Exception("Shipment not found.");
                 }
 
+                // Can't delete completed shipments
                 if (in_array($current_status, ['Delivered', 'Returned', 'Cancelled'])) {
                     throw new Exception("This shipment cannot be deleted.");
                 }
 
                 $pdo->beginTransaction();
 
-                // Cascading delete handles history/revenue
+                // Delete the shipment
                 $stmt = $pdo->prepare("DELETE FROM shipments WHERE id = :id");
                 $stmt->execute(['id' => $shipment_id]);
 
@@ -207,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Filtering Logic
+// Build filter query based on user selections
 $where_clauses = ["1=1"];
 $params = [];
 
@@ -239,7 +245,7 @@ if (!empty($_GET['tracking_id'])) {
 
 $where_sql = implode(" AND ", $where_clauses);
 
-// AJAX Load More Logic
+// Pagination - show 15 per page
 $limit = 15;
 $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
 
