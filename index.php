@@ -2576,6 +2576,123 @@
         align-items: center;
         justify-content: center;
         text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4)
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+    PUBLIC SHIPMENT TRACKING
+    ═══════════════════════════════════════════════════════════════ */
+    #track-section {
+        padding: 120px 0;
+        background: var(--bg0);
+        border-top: 1px solid var(--ln);
+    }
+
+    .track-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 0 5%;
+    }
+
+    .track-hd {
+        text-align: center;
+        margin-bottom: 54px;
+    }
+
+    .track-hd .sl {
+        margin-bottom: 14px;
+    }
+
+    .track-hd .sh {
+        margin-bottom: 16px;
+    }
+
+    .track-form {
+        background: var(--card);
+        border: 1px solid var(--ln);
+        border-radius: 16px;
+        padding: 40px 32px;
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .track-input-wrap {
+        flex: 1;
+    }
+
+    .track-input-wrap label {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--t1);
+        margin-bottom: 8px;
+        letter-spacing: -0.01em;
+    }
+
+    .track-input-wrap input {
+        width: 100%;
+        padding: 11px 16px;
+        background: var(--bg2);
+        border: 1px solid var(--ln);
+        border-radius: 10px;
+        color: var(--t1);
+        font-size: 14px;
+        font-family: var(--fb);
+        transition: border-color .25s, background .25s;
+        box-sizing: border-box;
+    }
+
+    .track-input-wrap input::placeholder {
+        color: var(--t2);
+    }
+
+    .track-input-wrap input:focus {
+        outline: none;
+        border-color: var(--a);
+        background: rgba(59, 124, 253, 0.04);
+    }
+
+    .track-btn {
+        padding: 11px 28px;
+        background: var(--a);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: transform .25s var(--expo), box-shadow .25s;
+        font-family: var(--fb);
+    }
+
+    .track-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(59, 124, 253, .42);
+    }
+
+    .track-btn:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: 640px) {
+        #track-section {
+            padding: 80px 0;
+        }
+
+        .track-hd {
+            margin-bottom: 36px;
+        }
+
+        .track-form {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .track-btn {
+            width: 100%;
+        }
     }</style>
 </head>
 
@@ -2635,6 +2752,7 @@
             <li><a href="#features">Platform</a></li>
             <li><a href="#gallery">Gallery</a></li>
             <li><a href="#testi">Reviews</a></li>
+            <li><a href="#track-section">Track</a></li>
         </ul>
         <div class="nr">
             <a href="auth/login.php" class="btn-g">Sign In</a>
@@ -2886,6 +3004,29 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+     PUBLIC SHIPMENT TRACKING
+     ═══════════════════════════════════════════════════════════ -->
+    <section id="track-section">
+        <div class="track-container">
+            <div class="track-hd">
+                <span class="sl rev">Track Your Shipment</span>
+                <h2 class="sh rev">Know Where Your<br>Package Is Anytime</h2>
+                <p class="ss rev">Enter your tracking number to see real-time status, location and estimated delivery
+                    date. No account needed.</p>
+            </div>
+            <form method="GET" action="customer/track_shipment.php" class="track-form rev">
+                <div class="track-input-wrap">
+                    <label for="tracking_number">Tracking Number</label>
+                    <input type="text" id="tracking_number" name="tracking_number" 
+                        placeholder="e.g., C-ABCD-EFGH" required pattern="^C-[A-Z0-9]{4}-[A-Z0-9]{4}$"
+                        title="Tracking number format: C-XXXX-XXXX">
+                </div>
+                <button type="submit" class="track-btn">Track Shipment →</button>
+            </form>
         </div>
     </section>
 
