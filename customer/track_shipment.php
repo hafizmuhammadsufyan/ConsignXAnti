@@ -4,60 +4,39 @@ require_once '../includes/config.php';
 require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
-require_once '../includes/auth.php';
 
-// Public tracking - no login required
-// Only check role if user is logged in; otherwise allow public tracking
-$is_public = empty($_SESSION['user_id']);
+// Only customers can track shipments
+require_role('customer');
 
-$customer_id = $is_public ? null : current_user_id();
+$customer_id = current_user_id();
 $tracking_number = trim($_REQUEST['tracking_number'] ?? '');
 $msg = '';
 $ship = null;
 $history = [];
 
 // View settings
-$role = $_SESSION['user_role'] ?? 'public';
-$active_page = $is_public ? null : 'dashboard.php';
+$role = 'customer';
+$active_page = 'dashboard.php';
 $page_title = 'Track Shipment';
 
 // Error Resilience: Attempt data fetch but don't die yet
-if (!empty($tracking_number)) {
+if ($tracking_number) {
     try {
-        // 1. Fetch Shipment main details - public access allows any shipment
-        if ($is_public) {
-            // Public: fetch by tracking number only
-            $stmt = $pdo->prepare("
-                SELECT s.*, 
-                       orig.name as origin_city, dest.name as dest_city,
-                       a.company_name as agent_name, a.email as agent_email, a.phone as agent_phone,
-                       c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
-                       (SELECT location FROM shipment_status_history WHERE shipment_id = s.id ORDER BY id DESC LIMIT 1) as current_location
-                FROM shipments s
-                LEFT JOIN cities orig ON s.origin_city_id = orig.id
-                LEFT JOIN cities dest ON s.destination_city_id = dest.id
-                LEFT JOIN agents a ON s.agent_id = a.id
-                LEFT JOIN customers c ON s.customer_id = c.id
-                WHERE s.tracking_number = ?
-            ");
-            $stmt->execute([$tracking_number]);
-        } else {
-            // Logged-in: restrict to own shipments
-            $stmt = $pdo->prepare("
-                SELECT s.*, 
-                       orig.name as origin_city, dest.name as dest_city,
-                       a.company_name as agent_name, a.email as agent_email, a.phone as agent_phone,
-                       c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
-                       (SELECT location FROM shipment_status_history WHERE shipment_id = s.id ORDER BY id DESC LIMIT 1) as current_location
-                FROM shipments s
-                LEFT JOIN cities orig ON s.origin_city_id = orig.id
-                LEFT JOIN cities dest ON s.destination_city_id = dest.id
-                LEFT JOIN agents a ON s.agent_id = a.id
-                LEFT JOIN customers c ON s.customer_id = c.id
-                WHERE s.tracking_number = ? AND s.customer_id = ?
-            ");
-            $stmt->execute([$tracking_number, $customer_id]);
-        }
+        // 1. Fetch Shipment main details
+        $stmt = $pdo->prepare("
+            SELECT s.*, 
+                   orig.name as origin_city, dest.name as dest_city,
+                   a.company_name as agent_name, a.email as agent_email, a.phone as agent_phone,
+                   c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
+                   (SELECT location FROM shipment_status_history WHERE shipment_id = s.id ORDER BY id DESC LIMIT 1) as current_location
+            FROM shipments s
+            LEFT JOIN cities orig ON s.origin_city_id = orig.id
+            LEFT JOIN cities dest ON s.destination_city_id = dest.id
+            LEFT JOIN agents a ON s.agent_id = a.id
+            LEFT JOIN customers c ON s.customer_id = c.id
+            WHERE s.tracking_number = ? AND s.customer_id = ?
+        ");
+        $stmt->execute([$tracking_number, $customer_id]);
         $ship = $stmt->fetch();
 
         if ($ship) {
@@ -115,215 +94,13 @@ if ($ship) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Track Shipment - ConsignX</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/neumorphism.css">
-    <style>
-        :root {
-            --bg0: #05080e;
-            --bg1: #080d18;
-            --bg2: #0c1525;
-            --bg3: #101e34;
-            --card: #0f1b2e;
-            --muted: #52525b;
-            --ln: rgba(255, 255, 255, .07);
-            --lnh: rgba(255, 255, 255, .13);
-            --t1: #edf0ff;
-            --t2: #a1a7b1;
-            --bdr: rgba(255, 255, 255, 0.06);
-            --t3: #7695be;
-            --a: #3b7cfd;
-            --am: #6366f1;
-            --aw: #f59e0b;
-            --at: #14b8a6;
-            --fd: 'Syne', sans-serif;
-            --fb: 'DM Sans', sans-serif;
-            --head: 'Space Grotesk', sans-serif;
-            --expo: cubic-bezier(.16, 1, .3, 1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html, body {
-            height: 100%;
-            width: 100%;
-        }
-
-        body {
-            background: var(--bg0);
-            color: var(--t1);
-            font-family: var(--fb);
-            font-size: 16px;
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-    </style>
 </head>
 <body class="neumorphic-bg">
 
-    <?php if ($is_public): ?>
-        <!-- PUBLIC LAYOUT (No sidebar, no header) -->
-        <div class="min-vh-100 d-flex flex-column">
-            <!-- Navigation -->
-            <nav style="padding: 20px 5%; border-bottom: 1px solid rgba(255,255,255,.07);">
-                <div class="container-fluid">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <a href="../index.php" style="font-family: var(--fd); font-size: 20px; font-weight: 800; color: var(--t1); text-decoration: none;">
-                            <span style="color: var(--a);">Consign</span>X
-                        </a>
-                        <a href="../index.php" style="color: var(--t2); text-decoration: none; font-size: 14px;">← Back to Home</a>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Main Content -->
-            <main style="flex: 1; padding: 60px 5%;">
-                <div class="container" style="max-width: 900px;">
-                    <div style="text-align: center; margin-bottom: 48px;">
-                        <h1 style="font-family: var(--fd); font-size: clamp(32px, 5vw, 48px); font-weight: 800; color: var(--t1); margin-bottom: 12px;">
-                            Track Your Shipment
-                        </h1>
-                        <p style="color: var(--t2); font-size: 16px; max-width: 500px; margin: 0 auto;">
-                            Enter your tracking number to see real-time delivery status and location.
-                        </p>
-                    </div>
-
-                    <!-- Search Form -->
-                    <div style="background: var(--card); border: 1px solid var(--ln); border-radius: 16px; padding: 32px; margin-bottom: 40px;">
-                        <form method="GET" action="" style="display: flex; gap: 12px; align-items: flex-end;">
-                            <div style="flex: 1;">
-                                <label style="display: block; font-size: 13.5px; font-weight: 600; color: var(--t1); margin-bottom: 8px;">
-                                    Tracking Number
-                                </label>
-                                <input type="text" name="tracking_number" 
-                                    placeholder="e.g., C-ABCD-EFGH" 
-                                    value="<?= escape($tracking_number) ?>"
-                                    pattern="^C-[A-Z0-9]{4}-[A-Z0-9]{4}$"
-                                    title="Tracking number format: C-XXXX-XXXX"
-                                    required
-                                    style="width: 100%; padding: 11px 16px; background: var(--bg2); border: 1px solid var(--ln); border-radius: 10px; color: var(--t1); font-size: 14px; font-family: var(--fb); box-sizing: border-box;">
-                            </div>
-                            <button type="submit" 
-                                style="padding: 11px 28px; background: var(--a); color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all .25s;">
-                                <i class="bi bi-search me-2"></i>Track
-                            </button>
-                        </form>
-                    </div>
-
-                    <?= $msg ?>
-
-                    <?php if (!$ship && !empty($tracking_number)): ?>
-                        <div style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 12px; padding: 24px; text-align: center;">
-                            <i class="bi bi-exclamation-circle" style="font-size: 28px; color: #dc3545; margin-bottom: 12px; display: block;"></i>
-                            <h4 style="color: var(--t1); margin-bottom: 8px;">Shipment Not Found</h4>
-                            <p style="color: var(--t2); margin: 0;">No shipment found with this tracking ID. Please check and try again.</p>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($ship): ?>
-                        <!-- Shipment Details -->
-                        <div style="background: var(--card); border: 1px solid var(--ln); border-radius: 16px; padding: 32px; margin-bottom: 32px;">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 32px;">
-                                <div>
-                                    <h2 style="color: var(--t1); font-weight: 700; font-size: 20px; margin-bottom: 8px;">Shipment Progress</h2>
-                                    <p style="color: var(--t2); font-size: 14px; margin-bottom: 4px;">Tracking: <span style="color: var(--a); font-weight: 600;"><?= escape($ship['tracking_number']) ?></span></p>
-                                    <p style="color: var(--t2); font-size: 13px; margin: 0;">Created: <?= date('M d, Y g:i A', strtotime($ship['created_at'])) ?></p>
-                                </div>
-                                <span style="background: <?php 
-                                    echo match($ship['status']) {
-                                        'Delivered' => 'rgba(34, 197, 94, 0.1)',
-                                        'Pending' => 'rgba(245, 158, 11, 0.1)',
-                                        'Cancelled' => 'rgba(220, 53, 69, 0.1)',
-                                        default => 'rgba(59, 124, 253, 0.1)'
-                                    };
-                                ?>; color: <?php
-                                    echo match($ship['status']) {
-                                        'Delivered' => '#22c55e',
-                                        'Pending' => '#f59e0b',
-                                        'Cancelled' => '#dc3545',
-                                        default => 'var(--a)'
-                                    };
-                                ?>; border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 13px; font-weight: 700;"><?= escape($ship['status']) ?></span>
-                            </div>
-
-                            <!-- From/To -->
-                            <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; margin-bottom: 32px;">
-                                <div>
-                                    <div style="color: var(--t2); font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">From</div>
-                                    <div style="color: var(--t1); font-size: 18px; font-weight: 700;"><?= escape($ship['origin_city']) ?></div>
-                                </div>
-                                <div style="text-align: center;">
-                                    <i class="bi bi-arrow-right" style="font-size: 24px; color: var(--t3);"></i>
-                                </div>
-                                <div>
-                                    <div style="color: var(--t2); font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">To</div>
-                                    <div style="color: var(--t1); font-size: 18px; font-weight: 700;"><?= escape($ship['dest_city']) ?></div>
-                                </div>
-                            </div>
-
-                            <!-- Shipment Details Grid -->
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                                <div style="background: var(--bg2); padding: 16px; border-radius: 10px;">
-                                    <div style="color: var(--t2); font-size: 12px; margin-bottom: 4px;">Weight</div>
-                                    <div style="color: var(--t1); font-weight: 700; font-size: 16px;"><?= $ship['weight'] ?> kg</div>
-                                </div>
-                                <div style="background: var(--bg2); padding: 16px; border-radius: 10px;">
-                                    <div style="color: var(--t2); font-size: 12px; margin-bottom: 4px;">Shipping Cost</div>
-                                    <div style="color: var(--t1); font-weight: 700; font-size: 16px;">PKR <?= number_format($ship['price'], 0) ?></div>
-                                </div>
-                                <div style="background: var(--bg2); padding: 16px; border-radius: 10px;">
-                                    <div style="color: var(--t2); font-size: 12px; margin-bottom: 4px;">Agent</div>
-                                    <div style="color: var(--t1); font-weight: 700; font-size: 16px;"><?= escape($ship['agent_name'] ?? 'N/A') ?></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Status Timeline -->
-                        <?php if (!empty($history)): ?>
-                        <div style="background: var(--card); border: 1px solid var(--ln); border-radius: 16px; padding: 32px;">
-                            <h3 style="color: var(--t1); font-weight: 700; margin-bottom: 24px;">Delivery Timeline</h3>
-                            <div style="position: relative;">
-                                <?php foreach ($history as $index => $event): ?>
-                                <div style="display: flex; margin-bottom: <?= $index === count($history) - 1 ? '0' : '24px' ?>;">
-                                    <div style="width: 40px; display: flex; justify-content: center; flex-shrink: 0;">
-                                        <div style="width: 16px; height: 16px; background: var(--a); border-radius: 50%; border: 3px solid var(--bg0); position: relative; z-index: 2;"></div>
-                                        <?php if ($index < count($history) - 1): ?>
-                                        <div style="position: absolute; width: 2px; height: 40px; background: var(--ln); top: 20px; left: 50%; transform: translateX(-50%);"></div>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div style="margin-left: 20px; flex: 1;">
-                                        <div style="color: var(--t1); font-weight: 600; margin-bottom: 4px;"><?= escape($event['status']) ?></div>
-                                        <div style="color: var(--t2); font-size: 14px; margin-bottom: 4px;"><?= escape($event['remarks']) ?></div>
-                                        <div style="color: var(--t3); font-size: 12px;"><?= date('M d, Y g:i A', strtotime($event['created_at'])) ?></div>
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                </div>
-            </main>
-
-            <!-- Footer -->
-            <div style="padding: 32px 5%; border-top: 1px solid rgba(255,255,255,.07); text-align: center;">
-                <p style="color: var(--t3); font-size: 13px; margin: 0;">
-                    © 2026 ConsignX. All rights reserved. | 
-                    <a href="../index.php" style="color: var(--a); text-decoration: none;">Home</a>
-                </p>
-            </div>
-        </div>
-    <?php else: ?>
-        <!-- LOGGED-IN CUSTOMER LAYOUT (With sidebar) -->
     <div class="admin-wrapper">
         <!-- Sidebar Navigation -->
         <?php require_once '../includes/sidebar.php'; ?>
@@ -515,7 +292,6 @@ if ($ship) {
             </div>
         </main>
     </div>
-    <?php endif; ?>
 
     <!-- jsPDF Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

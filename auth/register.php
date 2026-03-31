@@ -28,56 +28,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Invalid security token. Please try again.";
     } elseif (empty($name) || empty($company_name) || empty($email) || empty($phone)) {
         $error = "All fields are required.";
-    } elseif (!preg_match('/^[A-Za-z ]+$/', $name)) {
-        $error = "Name can only contain letters and spaces.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Please provide a valid email address.";
-    } elseif (!preg_match('/^[0-9]+$/', $phone)) {
-        $error = "Phone number can only contain digits.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Please provide a valid email address.";
     } else {
-        // Check if email exists only in agents table (approved users)
+        // Check if email exists in agents or requests
         global $pdo;
-        $stmt = $pdo->prepare("SELECT id FROM agents WHERE email = ?");
-        $stmt->execute([$email]);
+        $stmt = $pdo->prepare("SELECT id FROM agents WHERE email = :email UNION SELECT id FROM company_requests WHERE email = :email_req");
+        $stmt->execute(['email' => $email, 'email_req' => $email]);
 
         if ($stmt->fetch()) {
-            $error = "This email is already registered as an active agent account.";
+            $error = "An account with this email already exists.";
         } else {
+
+
             try {
-                // Check if email exists in rejected company_requests and update it
-                $checkStmt = $pdo->prepare("SELECT id, status FROM company_requests WHERE email = ? LIMIT 1");
-                $checkStmt->execute([$email]);
-                $existing = $checkStmt->fetch();
+                // Insert into company_requests instead of agents directly
+                $insertStmt = $pdo->prepare("INSERT INTO company_requests (name, company_name, email, phone) VALUES (:name, :company, :email, :phone)");
+                $insertStmt->execute([
+                    'name' => $name,
+                    'company' => $company_name,
+                    'email' => $email,
+                    'phone' => $phone
+                ]);
 
-                if ($existing && $existing['status'] === 'rejected') {
-                    // Update the rejected request
-                    $updateStmt = $pdo->prepare("UPDATE company_requests SET name = ?, company_name = ?, phone = ?, status = 'pending', created_at = NOW() WHERE email = ?");
-                    $updateStmt->execute([
-                        $name,
-                        $company_name,
-                        $phone,
-                        $email
-                    ]);
-                    $success = "Registration request resubmitted successfully! An Admin will review your request shortly.";
-                } else if ($existing && $existing['status'] === 'pending') {
-                    // Already pending
-                    $error = "Your registration is already under review. Please wait for admin approval.";
-                } else {
-                    // New registration
-                    $insertStmt = $pdo->prepare("INSERT INTO company_requests (name, company_name, email, phone) VALUES (?, ?, ?, ?)");
-                    $insertStmt->execute([
-                        $name,
-                        $company_name,
-                        $email,
-                        $phone
-                    ]);
-                    $success = "Registration request submitted successfully! An Admin will review your request shortly.";
-                }
-
-                if (!empty($success)) {
-                    // Clear form on success
-                    $name = $company_name = $email = $phone = '';
-                }
+                $success = "Registration request submitted successfully! An Admin will review your request shortly.";
 
             } catch (PDOException $e) {
                 error_log("Registration Error: " . $e->getMessage());
@@ -122,9 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="col-md-6 mb-3">
                                 <label for="name" class="form-label">Contact Person Name</label>
                                 <input type="text" name="name" id="name" class="form-control neumorphic-input" required
-                                    pattern="^[A-Za-z ]+$" title="Name can only contain letters and spaces"
                                     value="<?= escape($_POST['name'] ?? '') ?>">
-                                <small class="text-muted">Letters and spaces only</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="company_name" class="form-label">Company Name</label>
@@ -139,14 +113,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label for="email" class="form-label">Company Email</label>
                                 <input type="email" name="email" id="email" class="form-control neumorphic-input"
                                     required value="<?= escape($_POST['email'] ?? '') ?>">
-                                <small class="text-muted">Valid email address required</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="phone" class="form-label">Contact Phone</label>
                                 <input type="text" name="phone" id="phone" class="form-control neumorphic-input"
-                                    required pattern="^[0-9]+$" title="Phone number can only contain digits"
-                                    value="<?= escape($_POST['phone'] ?? '') ?>">
-                                <small class="text-muted">Digits only</small>
+                                    required value="<?= escape($_POST['phone'] ?? '') ?>">
                             </div>
                         </div>
 

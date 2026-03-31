@@ -20,46 +20,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         
         // Add Agent
         if ($_POST['action'] === 'add_agent') {
-            $company = $_POST['company_name'] ?? '';
-            $name = $_POST['name'] ?? '';
-            $email = $_POST['email'] ?? '';
-            $phone = $_POST['phone'] ?? '';
-            $errors = [];
+            $company = trim($_POST['company_name']);
+            $name = trim($_POST['name']);
+            $email = trim($_POST['email']);
+            $phone = trim($_POST['phone']);
 
-            // Validate inputs
-            $name_val = validate_name($name);
-            if (!$name_val['valid']) $errors[] = 'Contact Name: ' . $name_val['message'];
+            // Generate password
+            $generated_password = strtolower(str_replace(' ', '', $company)) . rand(100, 999);
+            $hashed_password = password_hash($generated_password, PASSWORD_DEFAULT);
 
-            $company_val = validate_company_name($company);
-            if (!$company_val['valid']) $errors[] = 'Company Name: ' . $company_val['message'];
-
-            $email_val = validate_email($email);
-            if (!$email_val['valid']) $errors[] = 'Email: ' . $email_val['message'];
-
-            $phone_val = validate_phone($phone);
-            if (!$phone_val['valid']) $errors[] = 'Phone: ' . $phone_val['message'];
-
-            if (!empty($errors)) {
-                $msg = display_alert(implode('<br>', $errors), "danger");
-            } else {
-                // Generate password
-                $generated_password = strtolower(str_replace(' ', '', $company_val['value'])) . rand(100, 999);
-                $hashed_password = password_hash($generated_password, PASSWORD_DEFAULT);
-
-                try {
-                    $stmt = $pdo->prepare("INSERT INTO agents (name, company_name, email, phone, password_hash, status) VALUES (?, ?, ?, ?, ?, 'active')");
-                    $stmt->execute([$name_val['value'], $company_val['value'], $email_val['value'], $phone_val['value'], $hashed_password]);
-                    
-                    // Send email
-                    send_agent_welcome_email($email_val['value'], $company_val['value'], 'active', $generated_password);
-                    
-                    $msg = display_alert("Agent added successfully. Credentials emailed.", "success");
-                } catch (PDOException $e) {
-                    if ($e->getCode() == 23000) {
-                        $msg = display_alert("An agent with this email already exists.", "warning");
-                    } else {
-                        $msg = display_alert("Failed to add agent.", "danger");
-                    }
+            try {
+                $stmt = $pdo->prepare("INSERT INTO agents (name, company_name, email, phone, password_hash, status) VALUES (?, ?, ?, ?, ?, 'active')");
+                $stmt->execute([$name, $company, $email, $phone, $hashed_password]);
+                
+                // Send email
+                send_agent_welcome_email($email, $company, 'active', $generated_password);
+                
+                $msg = display_alert("Agent added successfully. Credentials emailed.", "success");
+            } catch (PDOException $e) {
+                if ($e->getCode() == 23000) {
+                    $msg = display_alert("An agent with this email already exists.", "warning");
+                } else {
+                    $msg = display_alert("Failed to add agent.", "danger");
                 }
             }
         }
@@ -67,57 +49,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         // Edit Agent
         elseif ($_POST['action'] === 'edit_agent') {
             $agent_id = (int) $_POST['agent_id'];
-            $company = $_POST['company_name'] ?? '';
-            $name = $_POST['name'] ?? '';
-            $email = $_POST['email'] ?? '';
-            $phone = $_POST['phone'] ?? '';
-            $errors = [];
+            $company = trim($_POST['company_name']);
+            $name = trim($_POST['name']);
+            $email = trim($_POST['email']);
+            $phone = trim($_POST['phone']);
 
-            // Validate inputs
-            $name_val = validate_name($name);
-            if (!$name_val['valid']) $errors[] = 'Contact Name: ' . $name_val['message'];
-
-            $company_val = validate_company_name($company);
-            if (!$company_val['valid']) $errors[] = 'Company Name: ' . $company_val['message'];
-
-            $email_val = validate_email($email);
-            if (!$email_val['valid']) $errors[] = 'Email: ' . $email_val['message'];
-
-            $phone_val = validate_phone($phone);
-            if (!$phone_val['valid']) $errors[] = 'Phone: ' . $phone_val['message'];
-
-            if (!empty($errors)) {
-                $msg = display_alert(implode('<br>', $errors), "danger");
-            } else {
-                try {
-                    $stmt = $pdo->prepare("UPDATE agents SET name = ?, company_name = ?, email = ?, phone = ? WHERE id = ?");
-                    $stmt->execute([$name_val['value'], $company_val['value'], $email_val['value'], $phone_val['value'], $agent_id]);
-                    $msg = display_alert("Agent details updated.", "success");
-                } catch (PDOException $e) {
-                    $msg = display_alert("Update failed.", "danger");
-                }
+            try {
+                $stmt = $pdo->prepare("UPDATE agents SET name = ?, company_name = ?, email = ?, phone = ? WHERE id = ?");
+                $stmt->execute([$name, $company, $email, $phone, $agent_id]);
+                $msg = display_alert("Agent details updated.", "success");
+            } catch (PDOException $e) {
+                $msg = display_alert("Update failed.", "danger");
             }
         }
 
         // Delete Agent
         elseif ($_POST['action'] === 'delete_agent') {
             $agent_id = (int) $_POST['agent_id'];
-            
-            // Check for pending shipments before deletion
             try {
-                $check_stmt = $pdo->prepare("SELECT COUNT(*) as count FROM shipments WHERE agent_id = ? AND status NOT IN ('Delivered', 'Cancelled', 'Returned')");
-                $check_stmt->execute([$agent_id]);
-                $result = $check_stmt->fetch();
-                
-                if ($result['count'] > 0) {
-                    $msg = display_alert("This agent cannot be deleted because there are pending shipments that are not yet resolved.", "warning");
-                } else {
-                    $delete_stmt = $pdo->prepare("DELETE FROM agents WHERE id = ?");
-                    $delete_stmt->execute([$agent_id]);
-                    $msg = display_alert("Agent removed.", "success");
-                }
+                $stmt = $pdo->prepare("DELETE FROM agents WHERE id = ?");
+                $stmt->execute([$agent_id]);
+                $msg = display_alert("Agent removed.", "success");
             } catch (PDOException $e) {
-                $msg = display_alert("Error processing deletion request.", "danger");
+                $msg = display_alert("Cannot delete agent with linked shipments.", "danger");
             }
         }
 
