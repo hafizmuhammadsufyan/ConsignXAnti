@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$shipment_id, 'Pending', 'Shipment Created by Agent', 'agent', $agent_id]);
 
             $pdo->commit();
-            $msg = display_alert("Shipment ($tracking_number) created successfully. Price calculated: " . format_currency($price), "success");
+            $msg = display_alert("Shipment ($tracking_number) created successfully." ,"success");
 
             // Clear selections but keep msg
             $_POST = array();
