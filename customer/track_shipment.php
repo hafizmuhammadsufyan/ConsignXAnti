@@ -288,237 +288,6 @@ if ($ship) {
                 color: #3b7cfd !important;
             }
         }
-
-        /* 🚚 TRUCK MOVEMENT ANIMATION STYLES */
-        .progress-track-container {
-            display: block;
-            width: 100%;
-            position: relative;
-            margin-bottom: 40px;
-        }
-
-        .progress-track-bar {
-            height: 12px;
-            background: linear-gradient(90deg, rgba(59, 124, 253, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
-            border-radius: 15px;
-            position: relative;
-            overflow: visible;
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(59, 124, 253, 0.15);
-            border: 1px solid rgba(59, 124, 253, 0.2);
-            margin-bottom: 8px;
-        }
-
-        .progress-track-bar::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: linear-gradient(90deg, var(--a) 0%, var(--am) 100%);
-            border-radius: 15px;
-            width: var(--progress-width, 0%);
-            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 0 20px rgba(59, 124, 253, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.3);
-            animation: progress-pulse 2s ease-in-out infinite;
-        }
-
-        .progress-truck-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: absolute;
-            top: -16px;
-            left: 0%;
-            transform: translateX(-50%);
-            
-            /* ⭐ SMOOTH TRUCK ANIMATION */
-            transition: left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            filter: drop-shadow(0 4px 12px rgba(59, 124, 253, 0.5));
-            color: var(--a);
-            font-size: 28px;
-            font-weight: bold;
-            z-index: 10;
-            background: linear-gradient(135deg, var(--a) 0%, var(--am) 100%);
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            box-shadow: 0 6px 20px rgba(59, 124, 253, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3);
-            border: 2px solid var(--bg0);
-        }
-
-        .progress-truck-icon i {
-            color: white;
-            font-size: 18px;
-        }
-
-        /* Truck Pulse Animation (subtle breathing effect) */
-        @keyframes progress-pulse {
-            0%, 100% {
-                box-shadow: 0 0 20px rgba(59, 124, 253, 0.4), inset 0 1px 3px rgba(255, 255, 255, 0.3);
-            }
-            50% {
-                box-shadow: 0 0 30px rgba(59, 124, 253, 0.6), inset 0 1px 3px rgba(255, 255, 255, 0.3);
-            }
-        }
-
-        /* Truck Entry Animation (when page loads) */
-        @keyframes truck-enter {
-            from {
-                opacity: 0;
-                transform: translateX(-80px) scale(0.7);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
-        .progress-truck-icon {
-            animation: truck-enter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        /* Progress Points Styling */
-        .progress-track-point {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            margin: 0 auto;
-            position: relative;
-            width: 18%;
-            text-align: center;
-        }
-
-        .progress-track-point i {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(59, 124, 253, 0.1);
-            color: var(--t2);
-            font-size: 14px;
-            margin-bottom: 8px;
-            border: 2px solid var(--ln);
-            transition: all 0.4s ease;
-        }
-
-        .progress-track-point.active i {
-            background: linear-gradient(135deg, var(--a) 0%, var(--am) 100%);
-            color: white;
-            border-color: var(--a);
-            box-shadow: 0 4px 12px rgba(59, 124, 253, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2);
-            transform: scale(1.15);
-        }
-
-        .progress-point-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--t2);
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-            margin-top: 4px;
-            transition: all 0.4s ease;
-        }
-
-        .progress-track-point.active .progress-point-label {
-            color: var(--a);
-            font-weight: 700;
-        }
-
-        /* Mobile Responsiveness */
-        @media (max-width: 768px) {
-            .progress-track-bar {
-                height: 10px;
-            }
-
-            .progress-truck-icon {
-                width: 38px;
-                height: 38px;
-                font-size: 24px;
-                top: -14px;
-            }
-
-            .progress-truck-icon i {
-                font-size: 16px;
-            }
-
-            .progress-track-point i {
-                width: 28px;
-                height: 28px;
-                font-size: 12px;
-            }
-
-            .progress-point-label {
-                font-size: 9px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .progress-track-bar {
-                height: 8px;
-            }
-
-            .progress-truck-icon {
-                width: 34px;
-                height: 34px;
-                font-size: 20px;
-                top: -12px;
-            }
-
-            .progress-truck-icon i {
-                font-size: 14px;
-            }
-
-            .progress-track-point {
-                width: 16%;
-            }
-
-            .progress-track-point i {
-                width: 24px;
-                height: 24px;
-                font-size: 10px;
-                margin-bottom: 6px;
-            }
-
-            .progress-point-label {
-                font-size: 8px;
-                margin-top: 2px;
-            }
-        }
-
-        /* Light Theme - Progress Bar Overrides */
-        @media (prefers-color-scheme: light) {
-            .progress-track-bar {
-                background: linear-gradient(90deg, #3b7cfd 0%, #6366f1 100%) !important;
-                box-shadow: 0 4px 12px rgba(59, 124, 253, 0.2) !important;
-            }
-
-            .progress-truck-icon {
-                filter: drop-shadow(0 4px 12px rgba(59, 124, 253, 0.3));
-                color: #3b7cfd !important;
-            }
-
-            /* Fix text colors for light theme on public tracking page */
-            h1, h2, h3, h4, h5, h6 {
-                color: #1a202c !important;
-            }
-
-            p, div {
-                color: #1a202c !important;
-            }
-
-            .progress-track-container,
-            .progress-track-point {
-                color: #1a202c !important;
-            }
-
-            .progress-point-label {
-                color: #4a5568 !important;
-            }
-        }
     </style>
     </style>
 </head>
@@ -561,6 +330,8 @@ if ($ship) {
                                 <input type="text" name="tracking_number" 
                                     placeholder="e.g., C-ABCD-EFGH" 
                                     value="<?= escape($tracking_number) ?>"
+                                    pattern="^C-[A-Z0-9]{4}-[A-Z0-9]{4}$"
+                                    title="Tracking number format: C-XXXX-XXXX"
                                     required
                                     style="width: 100%; padding: 11px 16px; background: var(--bg2); border: 1px solid var(--ln); border-radius: 10px; color: var(--t1); font-size: 14px; font-family: var(--fb); box-sizing: border-box;">
                             </div>
@@ -639,62 +410,33 @@ if ($ship) {
                             </div>
                         </div>
 
-                        <!-- Progress Bar with Truck Animation -->
+                        <!-- Delivery Timeline / Journey Section -->
+                        <?php if (!empty($history)): ?>
                         <div style="background: var(--card); border: 1px solid var(--ln); border-radius: 16px; padding: 32px; margin-bottom: 32px;">
-                            <h3 style="color: var(--t1); font-weight: 700; margin-bottom: 20px; font-size: 18px;">Shipment Progress</h3>
-                            
-                            <div class="progress-track-container mx-0 px-2 mt-5" style="margin-bottom: 40px;" data-progress="<?= $progress ?>">
-                                <div class="progress-track-bar">
-                                    <div class="progress-truck-icon" style="left: <?= $progress ?>%;">
-                                        <i class="bi bi-truck-flatbed"></i>
-                                    </div>
-                                </div>
-                                <div style="display: flex; width: 100%; margin-top: 20px;">
-                                    <div class="progress-track-point point-start <?= $progress >= 5 ? 'active' : '' ?>">
-                                        <i class="bi bi-building-fill-check"></i>
-                                        <span class="progress-point-label">Pending</span>
-                                    </div>
-                                    <div class="progress-track-point point-picked <?= $progress >= 25 ? 'active' : '' ?>">
-                                        <i class="bi bi-box-seam"></i>
-                                        <span class="progress-point-label">Picked Up</span>
-                                    </div>
-                                    <div class="progress-track-point point-transit <?= $progress >= 50 ? 'active' : '' ?>">
-                                        <i class="bi bi-truck"></i>
-                                        <span class="progress-point-label">In Transit</span>
-                                    </div>
-                                    <div class="progress-track-point point-delivery <?= $progress >= 85 ? 'active' : '' ?>">
-                                        <i class="bi bi-geo-alt"></i>
-                                        <span class="progress-point-label">Out Delivery</span>
-                                    </div>
-                                    <div class="progress-track-point point-end <?= $progress >= 100 ? 'active' : '' ?>">
-                                        <i class="bi bi-check-circle"></i>
-                                        <span class="progress-point-label">Delivered</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Delivery Timeline / Journey Section -->
-                            <?php if (!empty($history)): ?>
-                            <h4 style="color: var(--t1); font-weight: 700; margin-top: 32px; margin-bottom: 24px; font-size: 16px;">Delivery Timeline</h4>
+                            <h3 style="color: var(--t1); font-weight: 800; margin-bottom: 28px; font-size: 20px;">🛣️ Shipment Journey</h3>
                             <div style="position: relative;">
                                 <?php foreach ($history as $index => $event): ?>
-                                <div style="display: flex; margin-bottom: <?= $index === count($history) - 1 ? '0' : '24px' ?>;">
-                                    <div style="width: 40px; display: flex; justify-content: center; flex-shrink: 0;">
-                                        <div style="width: 16px; height: 16px; background: var(--a); border-radius: 50%; border: 3px solid var(--bg0); position: relative; z-index: 2;"></div>
+                                <div style="display: flex; margin-bottom: <?= $index === count($history) - 1 ? '0' : '32px' ?>;">
+                                    <!-- Timeline Dot -->
+                                    <div style="width: 50px; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; align-items: center;">
+                                        <div style="width: 20px; height: 20px; background: linear-gradient(135deg, var(--a) 0%, var(--am) 100%); border-radius: 50%; border: 4px solid var(--card); position: relative; z-index: 3; box-shadow: 0 0 0 4px var(--bg0);"></div>
                                         <?php if ($index < count($history) - 1): ?>
-                                        <div style="position: absolute; width: 2px; height: 40px; background: var(--ln); top: 20px; left: 50%; transform: translateX(-50%);"></div>
+                                        <div style="width: 3px; height: 40px; background: linear-gradient(to bottom, var(--a), rgba(59, 124, 253, 0.2)); margin-top: 4px;"></div>
                                         <?php endif; ?>
                                     </div>
-                                    <div style="margin-left: 20px; flex: 1;">
-                                        <div style="color: var(--t1); font-weight: 600; margin-bottom: 4px;"><?= escape($event['status']) ?></div>
-                                        <div style="color: var(--t2); font-size: 14px; margin-bottom: 4px;"><?= escape($event['remarks']) ?></div>
-                                        <div style="color: var(--t3); font-size: 12px;"><?= date('M d, Y g:i A', strtotime($event['created_at'])) ?></div>
+                                    <!-- Event Content -->
+                                    <div style="margin-left: 24px; flex: 1; padding-top: 2px;">
+                                        <div style="background: rgba(59, 124, 253, 0.05); border-left: 3px solid var(--a); padding: 16px; border-radius: 8px;">
+                                            <div style="color: var(--t1); font-weight: 700; margin-bottom: 6px; font-size: 16px;">✓ <?= escape($event['status']) ?></div>
+                                            <div style="color: var(--t2); font-size: 14px; margin-bottom: 6px; line-height: 1.5;"><?= escape($event['remarks']) ?></div>
+                                            <div style="color: var(--t3); font-size: 12px; font-weight: 600;">📅 <?= date('M d, Y \a\t g:i A', strtotime($event['created_at'])) ?></div>
+                                        </div>
                                     </div>
                                 </div>
                                 <?php endforeach; ?>
                             </div>
-                            <?php endif; ?>
                         </div>
+                        <?php endif; ?>
 
                         <!-- PDF Export Card -->
                         <div style="background: linear-gradient(135deg, rgba(59, 124, 253, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%); border: 1px solid var(--ln); border-radius: 16px; padding: 32px; text-align: center;">
@@ -798,33 +540,28 @@ if ($ship) {
                             </div>
 
                             <!-- Dynamic Progress Bar -->
-                            <div class="progress-track-container mx-0 px-2 mt-5" data-progress="<?= $progress ?>">
-                                <div class="progress-track-bar">
-                                    <div class="progress-truck-icon" style="left: <?= $progress ?>%;">
-                                        <i class="bi bi-truck-flatbed"></i>
+                            <div class="progress-track-container mx-0 px-2 mt-5">
+                                <div class="progress-track-bar" style="width: <?= $progress ?>%;">
+                                    <div class="progress-truck-icon">
+                                        <i class="bi bi-truck-flatbed fs-4"></i>
                                     </div>
                                 </div>
-                                <div style="display: flex; width: 100%; margin-top: 20px;">
-                                    <div class="progress-track-point point-start <?= $progress >= 5 ? 'active' : '' ?>">
-                                        <i class="bi bi-building-fill-check"></i>
-                                        <span class="progress-point-label">Pending</span>
-                                    </div>
-                                    <div class="progress-track-point point-picked <?= $progress >= 25 ? 'active' : '' ?>">
-                                        <i class="bi bi-box-seam"></i>
-                                        <span class="progress-point-label">Picked Up</span>
-                                    </div>
-                                    <div class="progress-track-point point-transit <?= $progress >= 50 ? 'active' : '' ?>">
-                                        <i class="bi bi-truck"></i>
-                                        <span class="progress-point-label">In Transit</span>
-                                    </div>
-                                    <div class="progress-track-point point-delivery <?= $progress >= 85 ? 'active' : '' ?>">
-                                        <i class="bi bi-geo-alt"></i>
-                                        <span class="progress-point-label">Out Delivery</span>
-                                    </div>
-                                    <div class="progress-track-point point-end <?= $progress >= 100 ? 'active' : '' ?>">
-                                        <i class="bi bi-check-circle"></i>
-                                        <span class="progress-point-label">Delivered</span>
-                                    </div>
+                                <div class="progress-track-point point-start <?= $progress >= 5 ? 'active' : '' ?>">
+                                    <i class="bi bi-building-fill-check"></i>
+                                    <span class="progress-point-label">Pending</span>
+                                </div>
+                                <div class="progress-track-point point-picked <?= $progress >= 25 ? 'active' : '' ?>">
+                                    <span class="progress-point-label">Picked Up</span>
+                                </div>
+                                <div class="progress-track-point point-transit <?= $progress >= 50 ? 'active' : '' ?>">
+                                    <span class="progress-point-label">In Transit</span>
+                                </div>
+                                <div class="progress-track-point point-delivery <?= $progress >= 85 ? 'active' : '' ?>">
+                                    <span class="progress-point-label">Out Delivery</span>
+                                </div>
+                                <div class="progress-track-point point-end <?= $progress >= 100 ? 'active' : '' ?>">
+                                    <i class="bi bi-geo-fill"></i>
+                                    <span class="progress-point-label">Delivered</span>
                                 </div>
                             </div>
                         </div>
@@ -1018,18 +755,6 @@ if ($ship) {
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Progress Bars
-            const progressContainers = document.querySelectorAll('.progress-track-container');
-            progressContainers.forEach(container => {
-                const progress = container.getAttribute('data-progress') || 0;
-                const progressBar = container.querySelector('.progress-track-bar');
-                
-                if (progressBar) {
-                    // Create a unique style for this progress bar using CSS variable
-                    progressBar.style.setProperty('--progress-width', `${progress}%`);
-                }
-            });
-
             // PDF Export for Logged-In Users
             const exportBtnLoggedIn = document.getElementById('exportPDF');
             if (exportBtnLoggedIn) {
