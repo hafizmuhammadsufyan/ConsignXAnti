@@ -6,43 +6,33 @@ require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 require_once '../includes/auth.php';
 
-// Check if user is logged in
-$is_logged_in = !empty($_SESSION['user_id']);
-$customer_id = $is_logged_in ? current_user_id() : null;
+// Public tracking - no login required
+// Only check role if user is logged in; otherwise allow public tracking
+$is_public = empty($_SESSION['user_id']);
+
+$customer_id = $is_public ? null : current_user_id();
 $tracking_number = trim($_REQUEST['tracking_number'] ?? '');
 $msg = '';
 $ship = null;
 $history = [];
 
 // View settings
-$active_page = 'dashboard.php';
+$role = $_SESSION['user_role'] ?? 'public';
+$active_page = $is_public ? null : 'dashboard.php';
 $page_title = 'Track Shipment';
 
-// Fetch shipment data
+// Error Resilience: Attempt data fetch but don't die yet
 if (!empty($tracking_number)) {
     try {
-        if ($is_logged_in) {
-            // Logged-in: restrict to own shipments
-            $stmt = $pdo->prepare("
-                SELECT s.*, 
-                       orig.name as origin_city, dest.name as dest_city,
-                       a.company_name as agent_name, a.email as agent_email, a.phone as agent_phone,
-                       c.name as customer_name, c.email as customer_email, c.phone as customer_phone
-                FROM shipments s
-                LEFT JOIN cities orig ON s.origin_city_id = orig.id
-                LEFT JOIN cities dest ON s.destination_city_id = dest.id
-                LEFT JOIN agents a ON s.agent_id = a.id
-                LEFT JOIN customers c ON s.customer_id = c.id
-                WHERE s.tracking_number = ? AND s.customer_id = ?
-            ");
-            $stmt->execute([$tracking_number, $customer_id]);
-        } else {
+        // 1. Fetch Shipment main details - public access allows any shipment
+        if ($is_public) {
             // Public: fetch by tracking number only
             $stmt = $pdo->prepare("
                 SELECT s.*, 
                        orig.name as origin_city, dest.name as dest_city,
                        a.company_name as agent_name, a.email as agent_email, a.phone as agent_phone,
-                       c.name as customer_name, c.email as customer_email, c.phone as customer_phone
+                       c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
+                       (SELECT location FROM shipment_status_history WHERE shipment_id = s.id ORDER BY id DESC LIMIT 1) as current_location
                 FROM shipments s
                 LEFT JOIN cities orig ON s.origin_city_id = orig.id
                 LEFT JOIN cities dest ON s.destination_city_id = dest.id
@@ -51,30 +41,49 @@ if (!empty($tracking_number)) {
                 WHERE s.tracking_number = ?
             ");
             $stmt->execute([$tracking_number]);
+        } else {
+            // Logged-in: restrict to own shipments
+            $stmt = $pdo->prepare("
+                SELECT s.*, 
+                       orig.name as origin_city, dest.name as dest_city,
+                       a.company_name as agent_name, a.email as agent_email, a.phone as agent_phone,
+                       c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
+                       (SELECT location FROM shipment_status_history WHERE shipment_id = s.id ORDER BY id DESC LIMIT 1) as current_location
+                FROM shipments s
+                LEFT JOIN cities orig ON s.origin_city_id = orig.id
+                LEFT JOIN cities dest ON s.destination_city_id = dest.id
+                LEFT JOIN agents a ON s.agent_id = a.id
+                LEFT JOIN customers c ON s.customer_id = c.id
+                WHERE s.tracking_number = ? AND s.customer_id = ?
+            ");
+            $stmt->execute([$tracking_number, $customer_id]);
         }
         $ship = $stmt->fetch();
 
         if ($ship) {
-            // Fetch Status History
+            // 2. Fetch Status History
             $stmtH = $pdo->prepare("SELECT * FROM shipment_status_history WHERE shipment_id = ? ORDER BY created_at DESC");
             $stmtH->execute([$ship['id']]);
             $history = $stmtH->fetchAll();
 
-            // Fallback if no history
+            // 3. Fallback: If no history exists, create a virtual 'Pending' entry
             if (empty($history)) {
                 $history = [[
                     'status' => $ship['status'] ?: 'Pending',
-                    'remarks' => 'Shipment recorded and processing.',
+                    'location' => $ship['origin_city'] ?: 'Processing Center',
+                    'remarks' => 'Shipment information recorded and processing.',
                     'created_at' => $ship['created_at']
                 ]];
             }
         } else {
-            $msg = display_alert("Shipment not found.", "danger");
+            $msg = display_alert("Shipment not found or access denied.", "danger");
         }
 
     } catch (PDOException $e) {
-        $msg = display_alert("Error fetching shipment details.", "danger");
+        $msg = display_alert("System error tracking shipment details.", "danger");
     }
+} else {
+    $msg = display_alert("Invalid tracking request.", "warning");
 }
 
 // Progress mapping
@@ -106,246 +115,39 @@ if ($ship) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Track Shipment - ConsignX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/neumorphism.css">
     <style>
-        body {
-            background-color: #f8f9fa;
+        :root {
+            --bg0: #05080e;
+            --bg1: #080d18;
+            --bg2: #0c1525;
+            --bg3: #101e34;
+            --card: #0f1b2e;
+            --muted: #52525b;
+            --ln: rgba(255, 255, 255, .07);
+            --lnh: rgba(255, 255, 255, .13);
+            --t1: #edf0ff;
+            --t2: #a1a7b1;
+            --bdr: rgba(255, 255, 255, 0.06);
+            --t3: #7695be;
+            --a: #3b7cfd;
+            --am: #6366f1;
+            --aw: #f59e0b;
+            --at: #14b8a6;
+            --fd: 'Syne', sans-serif;
+            --fb: 'DM Sans', sans-serif;
+            --head: 'Space Grotesk', sans-serif;
+            --expo: cubic-bezier(.16, 1, .3, 1);
         }
 
-        body.neumorphic-bg {
-            background-color: #f8f9fa;
-        }
-
-        .tracking-info-card {
-            background: #fff;
-            border: 1px solid #e8eef7;
-            border-radius: 12px;
-        }
-
-        .text-muted {
-            color: #6c757d !important;
-        }
-
-        .fw-bold {
-            color: #212529 !important;
-        }
-
-        h2, h4, h5, h6 {
-            color: #212529 !important;
-        }
-
-        .alert-card {
-            background: #fff;
-            color: #212529;
-        }
-
-        .badge-neumorphic {
-            color: #fff !important;
-        }
-
-        .progress-track-point.active {
-            color: #3b7cfd !important;
-        }
-
-        .smaller {
-            color: #6c757d !important;
-        }
-
-        .text-primary {
-            color: #3b7cfd !important;
-        }
-
-        /* Light theme text colors */
-        @media (prefers-color-scheme: light) {
-            body {
-                background-color: #f8f9fa;
-                color: #212529;
-            }
-
-            .neumorphic-card, .tracking-info-card {
-                background: #fff;
-                color: #212529;
-            }
-
-            .form-label {
-                color: #212529 !important;
-            }
-
-            input, textarea, select {
-                background-color: #fff !important;
-                color: #212529 !important;
-                border-color: #dee2e6 !important;
-            }
-
-            input::placeholder {
-                color: #adb5bd !important;
-            }
-        }
-    </style>
-</head>
-<body class="neumorphic-bg">
-
-    <div class="admin-wrapper">
-        <!-- Sidebar - Only show if logged in -->
-        <?php if ($is_logged_in): ?>
-            <?php require_once '../includes/sidebar.php'; ?>
-        <?php endif; ?>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header - Only show if logged in -->
-            <?php if ($is_logged_in): ?>
-                <?php require_once '../includes/top_header.php'; ?>
-            <?php endif; ?>
-
-            <div class="container-fluid" style="<?php echo !$is_logged_in ? 'margin: 0; padding: 0;' : ''; ?>">
-                <!-- Back Button -->
-                <div class="d-flex align-items-center mb-4" style="<?php echo !$is_logged_in ? 'padding: 20px;' : ''; ?>">
-                    <a href="<?php echo $is_logged_in ? 'javascript:history.back()' : '../index.php'; ?>" class="btn-back me-3">
-                        <i class="bi bi-arrow-left me-2"></i> <?php echo $is_logged_in ? 'Back' : 'Back to Home'; ?>
-                    </a>
-                </div>
-
-                <!-- Search Form -->
-                <div class="row mb-4" style="<?php echo !$is_logged_in ? 'padding: 20px; padding-top: 0;' : ''; ?>">
-                    <div class="col-lg-6 mx-auto">
-                        <div class="search-card neumorphic-card p-4">
-                            <h5 class="text-center mb-3">Track Your Shipment</h5>
-                            <form class="d-flex gap-2" method="GET" action="">
-                                <input type="text" name="tracking_number" class="form-control neumorphic-input" placeholder="Enter Tracking Number (e.g., C-ABCD-EFGH)" value="<?= escape($tracking_number) ?>" required pattern="^C-[A-Z0-9]{4}-[A-Z0-9]{4}$">
-                                <button type="submit" class="btn btn-primary neumorphic-btn">
-                                    <i class="bi bi-search me-2"></i>Track
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <?= $msg ?>
-
-                <!-- No Shipment Found -->
-                <?php if (!$ship && !empty($tracking_number)): ?>
-                    <div class="row" style="<?php echo !$is_logged_in ? 'padding: 20px; padding-top: 0;' : ''; ?>">
-                        <div class="col-lg-6 mx-auto">
-                            <div style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 12px; padding: 24px; text-align: center;">
-                                <i class="bi bi-exclamation-circle" style="font-size: 28px; color: #dc3545; margin-bottom: 12px; display: block;"></i>
-                                <h4 style="color: #212529; margin-bottom: 8px;">Shipment Not Found</h4>
-                                <p style="color: #6c757d; margin: 0;">No shipment found with this tracking ID. Please check and try again.</p>
-                            </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Shipment Details -->
-                <?php if ($ship): ?>
-                <div class="row" style="<?php echo !$is_logged_in ? 'padding: 20px; padding-top: 0;' : ''; ?>">
-                    <div class="col-lg-10 mx-auto">
-                        <!-- Shipment Info Card -->
-                        <div class="tracking-info-card alert-card shadow-sm mb-4" style="padding: 24px;">
-                            <div class="d-flex justify-content-between align-items-start mb-4">
-                                <div>
-                                    <h2 class="fw-bold mb-2">Shipment #<?= escape($ship['tracking_number']) ?></h2>
-                                    <p class="text-muted mb-2">Created: <?= date('M d, Y g:i A', strtotime($ship['created_at'])) ?></p>
-                                </div>
-                                <span class="badge-neumorphic <?= $status_class ?> px-3 py-2 fw-bold"><?= escape($ship['status']) ?></span>
-                            </div>
-
-                            <!-- From/To -->
-                            <div class="row g-4 mb-4">
-                                <div class="col-md-5">
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-circle me-3">
-                                            <i class="bi bi-geo-alt-fill fs-4"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-muted smaller fw-bold text-uppercase">Origin</div>
-                                            <div class="fw-bold fs-5"><?= escape($ship['origin_city']) ?></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 text-center d-none d-md-flex align-items-center justify-content-center">
-                                    <i class="bi bi-arrow-right fs-3 text-muted opacity-50"></i>
-                                </div>
-                                <div class="col-md-5">
-                                    <div class="d-flex align-items-center justify-content-md-end">
-                                        <div class="text-md-end me-3">
-                                            <div class="text-muted smaller fw-bold text-uppercase">Destination</div>
-                                            <div class="fw-bold fs-5"><?= escape($ship['dest_city']) ?></div>
-                                        </div>
-                                        <div class="bg-success bg-opacity-10 text-success p-3 rounded-circle">
-                                            <i class="bi bi-flag-fill fs-4"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Details Grid -->
-                            <div class="row g-3">
-                                <div class="col-md-3">
-                                    <div class="bg-light p-3 rounded-3">
-                                        <div class="text-muted small fw-bold">Weight</div>
-                                        <div class="fw-bold"><?= escape($ship['weight']) ?> kg</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="bg-light p-3 rounded-3">
-                                        <div class="text-muted small fw-bold">Cost</div>
-                                        <div class="fw-bold"><?= format_currency($ship['price']) ?></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="bg-light p-3 rounded-3">
-                                        <div class="text-muted small fw-bold">Agent</div>
-                                        <div class="fw-bold"><?= escape($ship['agent_name'] ?? 'N/A') ?></div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="bg-light p-3 rounded-3">
-                                        <div class="text-muted small fw-bold">Status</div>
-                                        <div class="fw-bold text-primary"><?= escape($ship['status']) ?></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Timeline -->
-                        <?php if (!empty($history)): ?>
-                        <div class="tracking-info-card alert-card shadow-sm" style="padding: 24px;">
-                            <h3 class="fw-bold mb-4">Delivery Timeline</h3>
-                            <div style="position: relative;">
-                                <?php foreach ($history as $index => $event): ?>
-                                <div style="display: flex; margin-bottom: <?= $index === count($history) - 1 ? '0' : '24px' ?>;">
-                                    <div style="width: 40px; display: flex; justify-content: center; flex-shrink: 0;">
-                                        <div style="width: 16px; height: 16px; background: #3b7cfd; border-radius: 50%; border: 3px solid #fff; position: relative; z-index: 2; box-shadow: 0 0 0 3px #e8eef7;"></div>
-                                        <?php if ($index < count($history) - 1): ?>
-                                        <div style="position: absolute; width: 2px; height: 40px; background: #e8eef7; top: 20px; left: 50%; transform: translateX(-50%);"></div>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div style="margin-left: 20px; flex: 1;">
-                                        <div class="fw-bold mb-1"><?= escape($event['status']) ?></div>
-                                        <div class="text-muted small mb-1"><?= escape($event['remarks']) ?></div>
-                                        <div class="text-muted" style="font-size: 12px;"><?= date('M d, Y g:i A', strtotime($event['created_at'])) ?></div>
-                                    </div>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-
-            </div>
-        </main>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/main.js"></script>
-</body>
-</html>
+        * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
