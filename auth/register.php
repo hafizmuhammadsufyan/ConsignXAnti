@@ -28,36 +28,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Invalid security token. Please try again.";
     } elseif (empty($name) || empty($company_name) || empty($email) || empty($phone)) {
         $error = "All fields are required.";
+    } elseif (!validate_name($name)) {
+        $error = "Name must contain only letters and spaces.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Please provide a valid email address.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = "Please provide a valid email address.";
+    } elseif (!validate_phone($phone)) {
+        $error = "Phone must contain only digits (10-15 characters).";
     } else {
-        // Check if email exists in agents or requests
+        // NEW: Check email restrictions in order
         global $pdo;
-        $stmt = $pdo->prepare("SELECT id FROM agents WHERE email = :email UNION SELECT id FROM company_requests WHERE email = :email_req");
-        $stmt->execute(['email' => $email, 'email_req' => $email]);
-
-        if ($stmt->fetch()) {
-            $error = "An account with this email already exists.";
+        
+        // Step 1: Check if email is BLOCKED
+        if (is_email_blocked($email)) {
+            $error = "This email has been restricted. Please contact support.";
         } else {
+            // Step 2: Check if email exists in approved agents
+            $stmt = $pdo->prepare("SELECT id FROM agents WHERE email = ?");
+            $stmt->execute([strtolower(trim($email))]);
+            if ($stmt->fetch()) {
+                $error = "This email is already associated with an approved agent account.";
+            } else {
+                // Step 3: Check if previously rejected (allow re-registration)
+                $stmt = $pdo->prepare("SELECT id, status FROM company_requests WHERE email = ? ORDER BY created_at DESC LIMIT 1");
+                $stmt->execute([strtolower(trim($email))]);
+                $existing_request = $stmt->fetch();
+                
+                if ($existing_request && $existing_request['status'] !== 'rejected') {
+                    // Email exists with pending or approved status
+                    $error = "An registration request with this email already exists.";
+                } else {
+                    // Safe to register - either no prior request or was rejected
+                    try {
+                        // Insert into company_requests
+                        $insertStmt = $pdo->prepare("INSERT INTO company_requests (name, company_name, email, phone) VALUES (?, ?, ?, ?)");
+                        $insertStmt->execute([
+                            $name,
+                            $company_name,
+                            strtolower(trim($email)),
+                            $phone
+                        ]);
 
+                        $success = "Registration request submitted successfully! An Admin will review your request shortly.";
 
-            try {
-                // Insert into company_requests instead of agents directly
-                $insertStmt = $pdo->prepare("INSERT INTO company_requests (name, company_name, email, phone) VALUES (:name, :company, :email, :phone)");
-                $insertStmt->execute([
-                    'name' => $name,
-                    'company' => $company_name,
-                    'email' => $email,
-                    'phone' => $phone
-                ]);
-
-                $success = "Registration request submitted successfully! An Admin will review your request shortly.";
-
-            } catch (PDOException $e) {
-                error_log("Registration Error: " . $e->getMessage());
-                $error = "A system error occurred during registration. Please try again.";
+                    } catch (PDOException $e) {
+                        error_log("Registration Error: " . $e->getMessage());
+                        $error = "A system error occurred during registration. Please try again.";
+                    }
+                }
             }
         }
     }
@@ -88,8 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <p class="text-muted">Register your courier company and start managing shipments.</p>
                     </div>
 
-                    <?= $error ? display_alert($error, 'danger') : '' ?>
-                    <?= $success ? display_alert($success, 'success') : '' ?>
+                    <?= $error ? display_premium_error($error) : '' ?>
+                    <?= $success ? display_premium_success($success) : '' ?>
 
                     <form method="POST" action="">
                         <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
@@ -147,6 +164,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form Validation for Register
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
+            
+            form.addEventListener('submit', function(e) {
+                let hasError = false;
+                
+                // Validate name (only letters and spaces)
+                if (nameInput.value.trim()) {
+                    if (!/^[A-Za-z\s]+$/.test(nameInput.value)) {
+                        nameInput.classList.add('is-invalid');
+                        hasError = true;
+                    } else {
+                        nameInput.classList.remove('is-invalid');
+                    }
+                }
+                
+                // Validate email
+                if (emailInput.value.trim()) {
+                    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    if (!emailRegex.test(emailInput.value)) {
+                        emailInput.classList.add('is-invalid');
+                        hasError = true;
+                    } else {
+                        emailInput.classList.remove('is-invalid');
+                    }
+                }
+                
+                // Validate phone (only digits, 10-15 chars)
+                if (phoneInput.value.trim()) {
+                    const phoneDigits = phoneInput.value.replace(/[^0-9]/g, '');
+                    if (!/^[0-9]+$/.test(phoneInput.value) || phoneDigits.length < 10 || phoneDigits.length > 15) {
+                        phoneInput.classList.add('is-invalid');
+                        hasError = true;
+                    } else {
+                        phoneInput.classList.remove('is-invalid');
+                    }
+                }
+                
+                if (hasError) {
+                    e.preventDefault();
+                }
+            });
+            
+            // Clear error state when user starts typing
+            [nameInput, emailInput, phoneInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    this.classList.remove('is-invalid');
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
