@@ -2635,6 +2635,7 @@
             <li><a href="#features">Platform</a></li>
             <li><a href="#gallery">Gallery</a></li>
             <li><a href="#testi">Reviews</a></li>
+            <li><a href="customer/track_shipment.php">Track</a></li>
         </ul>
         <div class="nr">
             <a href="auth/login.php" class="btn-g">Sign In</a>
@@ -3065,6 +3066,61 @@
                 </div>
             </div>
         </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+     PUBLIC TRACKING SECTION
+     ═══════════════════════════════════════════════════════════ -->
+    <section id="tracking" style="padding: 100px 0; background: var(--bg1); border-top: 1px solid var(--ln); border-bottom: 1px solid var(--ln)">
+        <div class="container" style="position:relative;z-index:2">
+            <div style="text-align: center; margin-bottom: 48px">
+                <span class="sl rev" style="display:block;margin-bottom:14px">Track Your Shipment</span>
+                <h2 class="sh rev" style="margin-bottom: 16px">Monitor Your Delivery</h2>
+                <p class="ss rev" style="margin: 0 auto">Enter your tracking number to get real-time updates on your shipment status, location, and estimated delivery time.</p>
+            </div>
+            
+            <form method="GET" action="customer/track_shipment.php" style="max-width: 500px; margin: 0 auto">
+                <div style="display: flex; gap: 10px; flex-direction: column; align-items: stretch">
+                    <div>
+                        <label for="tracking-number" style="display: block; margin-bottom: 8px; color: var(--t1); font-weight: 500; font-size: 14px">Tracking Number</label>
+                        <input type="text" name="tracking_number" id="tracking-number" 
+                               class="form-control neumorphic-input" 
+                               placeholder="e.g., C-XXXX-XXXX" 
+                               required
+                               pattern="^C-[A-Z0-9]{4}-[A-Z0-9]{4}$"
+                               title="Format: C-XXXX-XXXX (e.g., C-A1B2-C3D4)"
+                               style="width: 100%; padding: 12px 14px; font-size: 15px; font-weight: 500">
+                        <span id="tracking-error" class="field-error" style="margin-top: 6px"></span>
+                    </div>
+                    <button type="submit" class="btn-cta" style="margin-top: 8px; text-align: center">
+                        <i class="bi bi-search" style="margin-right: 8px"></i>Track Shipment
+                    </button>
+                </div>
+            </form>
+            
+            <div style="text-align: center; margin-top: 32px; color: var(--t2); font-size: 14px">
+                <p>No account needed. Tracking is available to everyone.</p>
+            </div>
+        </div>
+        
+        <script>
+        document.getElementById('tracking-number').addEventListener('blur', function() {
+            const value = this.value.trim().toUpperCase();
+            const errorEl = document.getElementById('tracking-error');
+            const pattern = /^C-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+            
+            if (!value) {
+                errorEl.textContent = '';
+                this.classList.remove('is-invalid');
+            } else if (!pattern.test(value)) {
+                errorEl.textContent = 'Invalid format. Use: C-XXXX-XXXX (e.g., C-A1B2-C3D4)';
+                this.classList.add('is-invalid');
+            } else {
+                errorEl.textContent = '';
+                this.classList.remove('is-invalid');
+            }
+        });
+        </script>
     </section>
 
     <!-- ═══════════════════════════════════════════════════════════

@@ -66,12 +66,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         // Delete Agent
         elseif ($_POST['action'] === 'delete_agent') {
             $agent_id = (int) $_POST['agent_id'];
-            try {
-                $stmt = $pdo->prepare("DELETE FROM agents WHERE id = ?");
-                $stmt->execute([$agent_id]);
-                $msg = display_alert("Agent removed.", "success");
-            } catch (PDOException $e) {
-                $msg = display_alert("Cannot delete agent with linked shipments.", "danger");
+            
+            // Check for active shipments (not Delivered, Cancelled, Returned)
+            $active_check = agent_has_active_shipments($agent_id);
+            
+            if ($active_check['has_active']) {
+                $msg = display_alert("This agent cannot be deleted because there are active shipments that are not yet Completed.", "danger");
+            } else {
+                try {
+                    $stmt = $pdo->prepare("DELETE FROM agents WHERE id = ?");
+                    $stmt->execute([$agent_id]);
+                    $msg = display_alert("Agent removed.", "success");
+                } catch (PDOException $e) {
+                    $msg = display_alert("Cannot delete agent.", "danger");
+                }
             }
         }
 

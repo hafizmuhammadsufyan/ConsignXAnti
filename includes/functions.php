@@ -183,4 +183,179 @@ function get_user_profile_image($image_name)
     }
     return '../assets/images/default-avatar.png'; // Placeholder if no image set
 }
+
+/**
+ * ============================================
+ * GLOBAL FORM VALIDATION FUNCTIONS
+ * ============================================
+ */
+
+/**
+ * Validates name (alphabets and spaces only)
+ * @return array ['valid' => bool, 'message' => string]
+ */
+function validate_name($name)
+{
+    $name = trim($name);
+    
+    if (empty($name)) {
+        return ['valid' => false, 'message' => 'Name is required.'];
+    }
+    
+    // Allow only alphabets and spaces
+    if (!preg_match('/^[a-zA-Z\s]+$/', $name)) {
+        return ['valid' => false, 'message' => 'Name must contain only letters and spaces.'];
+    }
+    
+    if (strlen($name) < 2) {
+        return ['valid' => false, 'message' => 'Name must be at least 2 characters long.'];
+    }
+    
+    if (strlen($name) > 100) {
+        return ['valid' => false, 'message' => 'Name must not exceed 100 characters.'];
+    }
+    
+    return ['valid' => true, 'message' => ''];
+}
+
+/**
+ * Validates email format
+ * @return array ['valid' => bool, 'message' => string]
+ */
+function validate_email($email)
+{
+    $email = trim($email);
+    
+    if (empty($email)) {
+        return ['valid' => false, 'message' => 'Email is required.'];
+    }
+    
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return ['valid' => false, 'message' => 'Please provide a valid email address.'];
+    }
+    
+    return ['valid' => true, 'message' => ''];
+}
+
+/**
+ * Validates phone number (digits only, 10-20 characters)
+ * @return array ['valid' => bool, 'message' => string]
+ */
+function validate_phone($phone)
+{
+    $phone = trim($phone);
+    
+    if (empty($phone)) {
+        return ['valid' => false, 'message' => 'Phone number is required.'];
+    }
+    
+    // Allow only digits
+    if (!preg_match('/^[0-9]+$/', $phone)) {
+        return ['valid' => false, 'message' => 'Phone number must contain only digits.'];
+    }
+    
+    if (strlen($phone) < 10 || strlen($phone) > 20) {
+        return ['valid' => false, 'message' => 'Phone number must be between 10 and 20 digits.'];
+    }
+    
+    return ['valid' => true, 'message' => ''];
+}
+
+/**
+ * Displays inline validation error
+ * @param string $field_id HTML element ID
+ * @param string $message Error message
+ * @return string HTML error span
+ */
+function display_field_error($field_id, $message = '')
+{
+    if (empty($message)) {
+        return '';
+    }
+    return "<span id='{$field_id}-error' class='d-block text-danger small mt-1' style='font-size: 12px;'>" . escape($message) . "</span>";
+}
+
+/**
+ * Checks if email is blocked from registration
+ * @return bool true if blocked, false otherwise
+ */
+function is_email_blocked($email)
+{
+    global $pdo;
+    
+    try {
+        $stmt = $pdo->prepare("SELECT id FROM company_requests WHERE email = ? AND status = 'blocked'");
+        $stmt->execute([trim($email)]);
+        return $stmt->fetch() !== false;
+    } catch (PDOException $e) {
+        error_log("Email block check error: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Adds email to block list
+ * @param string $email Email to block
+ * @return bool Success status
+ */
+function block_email($email)
+{
+    global $pdo;
+    
+    try {
+        // Mark as blocked in company_requests by status
+        $stmt = $pdo->prepare("INSERT INTO company_requests (name, company_name, email, phone, status) VALUES ('BLOCKED', 'BLOCKED', ?, 'BLOCKED', 'blocked') ON DUPLICATE KEY UPDATE status = 'blocked'");
+        $stmt->execute([trim($email)]);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Email block error: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Unblocks an email
+ * @param string $email Email to unblock
+ * @return bool Success status
+ */
+function unblock_email($email)
+{
+    global $pdo;
+    
+    try {
+        $stmt = $pdo->prepare("DELETE FROM company_requests WHERE email = ? AND status = 'blocked'");
+        $stmt->execute([trim($email)]);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Email unblock error: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Checks if agent has active shipments
+ * @param int $agent_id Agent ID
+ * @return array ['has_active' => bool, 'count' => int]
+ */
+function agent_has_active_shipments($agent_id)
+{
+    global $pdo;
+    
+    try {
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*) as count 
+            FROM shipments 
+            WHERE agent_id = ? 
+            AND status NOT IN ('Delivered', 'Cancelled', 'Returned')
+        ");
+        $stmt->execute([$agent_id]);
+        $result = $stmt->fetch();
+        $count = $result['count'] ?? 0;
+        
+        return ['has_active' => $count > 0, 'count' => $count];
+    } catch (PDOException $e) {
+        error_log("Active shipment check error: " . $e->getMessage());
+        return ['has_active' => true, 'count' => 0]; // Default to blocking deletion on error
+    }
+}
 ?>

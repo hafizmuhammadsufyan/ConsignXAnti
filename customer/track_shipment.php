@@ -5,8 +5,15 @@ require_once '../includes/db.php';
 require_once '../includes/middleware.php';
 require_once '../includes/functions.php';
 
-// Only customers can track shipments
-require_role('customer');
+// Allow both logged-in customers and guest users
+$is_guest = !is_logged_in();
+$is_customer = is_logged_in() && current_user_role() === 'customer';
+
+// If logged-in but not a customer, redirect
+if (is_logged_in() && !$is_customer) {
+    header('Location: ../auth/login.php');
+    exit;
+}
 
 $customer_id = current_user_id();
 $tracking_number = trim($_REQUEST['tracking_number'] ?? '');
@@ -15,51 +22,77 @@ $ship = null;
 $history = [];
 
 // View settings
-$role = 'customer';
-$active_page = 'dashboard.php';
+if ($is_customer) {
+    $role = 'customer';
+    $active_page = 'dashboard.php';
+}
 $page_title = 'Track Shipment';
 
 // Error Resilience: Attempt data fetch but don't die yet
 if ($tracking_number) {
-    try {
-        // 1. Fetch Shipment main details
-        $stmt = $pdo->prepare("
-            SELECT s.*, 
-                   orig.name as origin_city, dest.name as dest_city,
-                   a.company_name as agent_name, a.email as agent_email, a.phone as agent_phone,
-                   c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
-                   (SELECT location FROM shipment_status_history WHERE shipment_id = s.id ORDER BY id DESC LIMIT 1) as current_location
-            FROM shipments s
-            LEFT JOIN cities orig ON s.origin_city_id = orig.id
-            LEFT JOIN cities dest ON s.destination_city_id = dest.id
-            LEFT JOIN agents a ON s.agent_id = a.id
-            LEFT JOIN customers c ON s.customer_id = c.id
-            WHERE s.tracking_number = ? AND s.customer_id = ?
-        ");
-        $stmt->execute([$tracking_number, $customer_id]);
-        $ship = $stmt->fetch();
-
-        if ($ship) {
-            // 2. Fetch Status History
-            $stmtH = $pdo->prepare("SELECT * FROM shipment_status_history WHERE shipment_id = ? ORDER BY created_at DESC");
-            $stmtH->execute([$ship['id']]);
-            $history = $stmtH->fetchAll();
-
-            // 3. Fallback: If no history exists, create a virtual 'Pending' entry
-            if (empty($history)) {
-                $history = [[
-                    'status' => $ship['status'] ?: 'Pending',
-                    'location' => $ship['origin_city'] ?: 'Processing Center',
-                    'remarks' => 'Shipment information recorded and processing.',
-                    'created_at' => $ship['created_at']
-                ]];
+    // Validate tracking number format
+    if (!is_valid_tracking_number($tracking_number)) {
+        $msg = display_alert("Invalid tracking number format. Use: C-XXXX-XXXX", "danger");
+    } else {
+        try {
+            // 1. Fetch Shipment main details
+            if ($is_guest) {
+                // Guest can view any shipment by tracking number
+                $stmt = $pdo->prepare("
+                    SELECT s.*, 
+                           orig.name as origin_city, dest.name as dest_city,
+                           a.company_name as agent_name, a.email as agent_email, a.phone as agent_phone,
+                           c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
+                           (SELECT location FROM shipment_status_history WHERE shipment_id = s.id ORDER BY id DESC LIMIT 1) as current_location
+                    FROM shipments s
+                    LEFT JOIN cities orig ON s.origin_city_id = orig.id
+                    LEFT JOIN cities dest ON s.destination_city_id = dest.id
+                    LEFT JOIN agents a ON s.agent_id = a.id
+                    LEFT JOIN customers c ON s.customer_id = c.id
+                    WHERE s.tracking_number = ?
+                ");
+                $stmt->execute([$tracking_number]);
+            } else {
+                // Logged-in customer can only view their own shipments
+                $stmt = $pdo->prepare("
+                    SELECT s.*, 
+                           orig.name as origin_city, dest.name as dest_city,
+                           a.company_name as agent_name, a.email as agent_email, a.phone as agent_phone,
+                           c.name as customer_name, c.email as customer_email, c.phone as customer_phone,
+                           (SELECT location FROM shipment_status_history WHERE shipment_id = s.id ORDER BY id DESC LIMIT 1) as current_location
+                    FROM shipments s
+                    LEFT JOIN cities orig ON s.origin_city_id = orig.id
+                    LEFT JOIN cities dest ON s.destination_city_id = dest.id
+                    LEFT JOIN agents a ON s.agent_id = a.id
+                    LEFT JOIN customers c ON s.customer_id = c.id
+                    WHERE s.tracking_number = ? AND s.customer_id = ?
+                ");
+                $stmt->execute([$tracking_number, $customer_id]);
             }
-        } else {
-            $msg = display_alert("Shipment not found or access denied.", "danger");
-        }
+            $ship = $stmt->fetch();
 
-    } catch (PDOException $e) {
-        $msg = display_alert("System error tracking shipment details.", "danger");
+            if ($ship) {
+                // 2. Fetch Status History
+                $stmtH = $pdo->prepare("SELECT * FROM shipment_status_history WHERE shipment_id = ? ORDER BY created_at DESC");
+                $stmtH->execute([$ship['id']]);
+                $history = $stmtH->fetchAll();
+
+                // 3. Fallback: If no history exists, create a virtual 'Pending' entry
+                if (empty($history)) {
+                    $history = [[
+                        'status' => $ship['status'] ?: 'Pending',
+                        'location' => $ship['origin_city'] ?: 'Processing Center',
+                        'remarks' => 'Shipment information recorded and processing.',
+                        'created_at' => $ship['created_at']
+                    ]];
+                }
+            } else {
+                $msg = display_alert("Shipment not found.", "danger");
+            }
+
+        } catch (PDOException $e) {
+            $msg = display_alert("System error tracking shipment details.", "danger");
+        }
     }
 } else {
     $msg = display_alert("Invalid tracking request.", "warning");
@@ -102,18 +135,34 @@ if ($ship) {
 <body class="neumorphic-bg">
 
     <div class="admin-wrapper">
-        <!-- Sidebar Navigation -->
-        <?php require_once '../includes/sidebar.php'; ?>
+        <!-- Sidebar Navigation - Only for logged-in customers -->
+        <?php if ($is_customer): ?>
+            <?php require_once '../includes/sidebar.php'; ?>
+        <?php endif; ?>
 
         <!-- Main Content Area -->
-        <main class="main-content">
-            <?php require_once '../includes/top_header.php'; ?>
+        <main class="main-content <?= $is_guest ? 'w-100' : '' ?>">
+            <!-- Top Header - Only for logged-in customers -->
+            <?php if ($is_customer): ?>
+                <?php require_once '../includes/top_header.php'; ?>
+            <?php else: ?>
+                <!-- Guest Header with back to home -->
+                <div class="p-4 border-bottom border-light" style="background: var(--bg1)">
+                    <div class="container-fluid d-flex justify-content-between align-items-center">
+                        <a href="../index.php" class="text-decoration-none fw-bold" style="color: var(--a)">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Home
+                        </a>
+                        <h5 class="mb-0" style="color: var(--t1)">Track Shipment</h5>
+                        <div style="width: 40px"></div>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <div class="container-fluid">
                 <!-- Back Button ALWAYS VISIBLE -->
-                <div class="d-flex align-items-center mb-4">
-                    <a href="javascript:history.back()" class="btn-back me-3">
-                        <i class="bi bi-arrow-left me-2"></i> Back
+                <div class="d-flex align-items-center mb-4 mt-4">
+                    <a href="<?= $is_guest ? '../index.php' : 'javascript:history.back()' ?>" class="btn-back me-3">
+                        <i class="bi bi-arrow-left me-2"></i> <?= $is_guest ? 'Home' : 'Back' ?>
                     </a>
                 </div>
 

@@ -48,14 +48,22 @@
                     </li>
                     <li><hr class="dropdown-divider opacity-10"></li>
                     <li>
-                        <form method="POST" class="px-3 pb-2" onsubmit="return confirm('Are you sure you want to reject this request?');">
-                            <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
-                            <input type="hidden" name="action" value="reject">
-                            <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                            <button type="submit" class="btn btn-sm text-danger text-start w-100 p-2 rounded-3 border-0 bg-transparent dropdown-item-danger">
-                                <i class="bi bi-x-circle me-2"></i> Reject Request
-                            </button>
-                        </form>
+                        <div class="px-3 pb-2">
+                            <form method="POST" onsubmit="return confirm('Are you sure you want to reject this request?');">
+                                <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
+                                <input type="hidden" name="action" value="reject">
+                                <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" class="form-check-input" id="block_email_<?= $req['id'] ?>" name="block_email" value="1">
+                                    <label class="form-check-label small" for="block_email_<?= $req['id'] ?>">
+                                        Block this email from re-registering
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-sm text-danger text-start w-100 p-2 rounded-3 border-0 bg-transparent dropdown-item-danger">
+                                    <i class="bi bi-x-circle me-2"></i> Reject Request
+                                </button>
+                            </form>
+                        </div>
                     </li>
                 </ul>
             </div>
