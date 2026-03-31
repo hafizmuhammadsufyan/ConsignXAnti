@@ -29,14 +29,6 @@ try {
         `created_at` timestamp NOT NULL DEFAULT current_timestamp(), 
         PRIMARY KEY (`id`) 
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;");
-    
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `blocked_emails` ( 
-        `id` int(11) NOT NULL AUTO_INCREMENT, 
-        `email` varchar(100) NOT NULL UNIQUE, 
-        `reason` varchar(255), 
-        `created_at` timestamp NOT NULL DEFAULT current_timestamp(), 
-        PRIMARY KEY (`id`) 
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;");
 } catch (PDOException $e) {}
 
 // Function to safely execute queries

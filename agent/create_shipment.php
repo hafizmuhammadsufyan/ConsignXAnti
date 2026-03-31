@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf = $_POST['csrf_token'] ?? '';
 
     if (!validate_csrf_token($csrf)) {
-        $msg = display_premium_error("Invalid security token.");
+        $msg = display_alert("Invalid security token.", "danger");
     } else {
         $customer_name = trim($_POST['customer_name'] ?? '');
         $customer_email = filter_input(INPUT_POST, 'customer_email', FILTER_SANITIZE_EMAIL);
@@ -35,99 +35,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dest_city = (int) $_POST['destination_city_id'];
         $weight = (float) $_POST['weight'];
         
-        // Validate inputs
-        $validation_error = '';
-        
-        if (empty($customer_name) || empty($customer_email) || empty($customer_phone) || 
-            empty($recipient_name) || empty($recipient_phone) || empty($recipient_address) ||
-            $origin_city <= 0 || $dest_city <= 0 || $weight <= 0) {
-            $validation_error = "All fields are required.";
-        } elseif (!validate_name($customer_name)) {
-            $validation_error = "Customer name must contain only letters and spaces.";
-        } elseif (!validate_email($customer_email)) {
-            $validation_error = "Please provide a valid customer email address.";
-        } elseif (!validate_phone($customer_phone)) {
-            $validation_error = "Customer phone must contain only digits (10-15 characters).";
-        } elseif (!validate_name($recipient_name)) {
-            $validation_error = "Recipient name must contain only letters and spaces.";
-        } elseif (!validate_phone($recipient_phone)) {
-            $validation_error = "Recipient phone must contain only digits (10-15 characters).";
-        } elseif ($weight <= 0 || $weight > 500) {
-            $validation_error = "Weight must be a positive number (max 500 kg).";
-        }
-        
-        if (!empty($validation_error)) {
-            $msg = display_premium_error($validation_error);
-        } else {
-            // Use auto-calculated price server-side for integrity
-            $price = calculate_shipment_price($origin_city, $dest_city, $weight);
+        // Use auto-calculated price server-side for integrity
+        $price = calculate_shipment_price($origin_city, $dest_city, $weight);
 
-            try {
-                $pdo->beginTransaction();
+        try {
+            $pdo->beginTransaction();
 
-                // 1. Find or create customer
-                $stmt = $pdo->prepare("SELECT id FROM customers WHERE email = :email LIMIT 1");
-                $stmt->execute(['email' => $customer_email]);
-                $customer = $stmt->fetch();
+            // 1. Find or create customer
+            $stmt = $pdo->prepare("SELECT id FROM customers WHERE email = :email LIMIT 1");
+            $stmt->execute(['email' => $customer_email]);
+            $customer = $stmt->fetch();
 
-                if ($customer) {
-                    $customer_id = $customer['id'];
-                    $is_new_customer = false;
-                } else {
-                    // Auto-generate password for new customer
-                    $temp_password = strtolower(str_replace(' ', '', $customer_name)) . rand(100, 999);
-                    $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
+            if ($customer) {
+                $customer_id = $customer['id'];
+                $is_new_customer = false;
+            } else {
+                // Auto-generate password for new customer
+                $temp_password = strtolower(str_replace(' ', '', $customer_name)) . rand(100, 999);
+                $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
 
-                    $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, password_hash) VALUES (:name, :email, :phone, :pass)");
-                    $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $hashed_password]);
-                    $customer_id = $pdo->lastInsertId();
-                    $is_new_customer = true;
-                }
-
-                // 2. Generate Tracking
-                $tracking_number = generate_tracking_number();
-
-                // 3. Trigger Email
-                if ($is_new_customer) {
-                    send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
-                } else {
-                    send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
-                }
-
-                // 4. Create Shipment linked to AGENT
-                $stmt = $pdo->prepare("
-                    INSERT INTO shipments 
-                    (tracking_number, agent_id, customer_id, origin_city_id, destination_city_id, recipient_name, recipient_phone, recipient_address, weight, price, status) 
-                    VALUES (:tracking, :agent_id, :cust_id, :origin, :dest, :rec_name, :rec_phone, :rec_address, :weight, :price, 'Pending')
-                ");
-                $stmt->execute([
-                    'tracking' => $tracking_number,
-                    'agent_id' => $agent_id,
-                    'cust_id' => $customer_id,
-                    'origin' => $origin_city,
-                    'dest' => $dest_city,
-                    'rec_name' => $recipient_name,
-                    'rec_phone' => $recipient_phone,
-                    'rec_address' => $recipient_address,
-                    'weight' => $weight,
-                    'price' => $price
-                ]);
-                $shipment_id = $pdo->lastInsertId();
-
-                // 5. Create Initial Status History
-                $stmt = $pdo->prepare("INSERT INTO shipment_status_history (shipment_id, status, remarks, changed_by_role, changed_by_id) VALUES (?, ?, ?, ?, ?)");
-                $stmt->execute([$shipment_id, 'Pending', 'Shipment Created by Agent', 'agent', $agent_id]);
-
-                $pdo->commit();
-                $msg = display_premium_success("Shipment ($tracking_number) created successfully.");
-
-                // Clear selections but keep msg
-                $_POST = array();
-
-            } catch (PDOException $e) {
-                if ($pdo->inTransaction()) $pdo->rollBack();
-                $msg = display_premium_error("Failed to create shipment. Please try again.");
+                $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, password_hash) VALUES (:name, :email, :phone, :pass)");
+                $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $hashed_password]);
+                $customer_id = $pdo->lastInsertId();
+                $is_new_customer = true;
             }
+
+            // 2. Generate Tracking
+            $tracking_number = generate_tracking_number();
+
+            // 3. Trigger Email
+            if ($is_new_customer) {
+                send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
+            } else {
+                send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
+            }
+
+            // 4. Create Shipment linked to AGENT
+            $stmt = $pdo->prepare("
+                INSERT INTO shipments 
+                (tracking_number, agent_id, customer_id, origin_city_id, destination_city_id, recipient_name, recipient_phone, recipient_address, weight, price, status) 
+                VALUES (:tracking, :agent_id, :cust_id, :origin, :dest, :rec_name, :rec_phone, :rec_address, :weight, :price, 'Pending')
+            ");
+            $stmt->execute([
+                'tracking' => $tracking_number,
+                'agent_id' => $agent_id,
+                'cust_id' => $customer_id,
+                'origin' => $origin_city,
+                'dest' => $dest_city,
+                'rec_name' => $recipient_name,
+                'rec_phone' => $recipient_phone,
+                'rec_address' => $recipient_address,
+                'weight' => $weight,
+                'price' => $price
+            ]);
+            $shipment_id = $pdo->lastInsertId();
+
+            // 5. Create Initial Status History
+            $stmt = $pdo->prepare("INSERT INTO shipment_status_history (shipment_id, status, remarks, changed_by_role, changed_by_id) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$shipment_id, 'Pending', 'Shipment Created by Agent', 'agent', $agent_id]);
+
+            $pdo->commit();
+            $msg = display_alert("Shipment ($tracking_number) created successfully." ,"success");
+
+            // Clear selections but keep msg
+            $_POST = array();
+
+        } catch (PDOException $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            $msg = display_alert("Failed to create shipment: " . escape($e->getMessage()), "danger");
         }
     }
 }

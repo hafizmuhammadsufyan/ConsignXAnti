@@ -44,14 +44,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     // Send credentials via email
                     send_agent_welcome_email($req['email'], $req['company_name'], 'active', $generated_password);
                     
-                    $msg = display_premium_success("Company request approved. Agent account created and credentials emailed.");
+                    $msg = "<div class='alert alert-success alert-dismissible fade show'>Company request approved. Agent account created and credentials emailed.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
                 }
                 $pdo->commit();
             } catch (PDOException $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
-                $msg = display_premium_error("Failed to approve request. Please try again.");
+                $msg = "<div class='alert alert-danger alert-dismissible fade show'>Failed to approve request: " . escape($e->getMessage()) . "<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
             }
         }
         
@@ -60,9 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             try {
                 $stmt = $pdo->prepare("UPDATE company_requests SET status = 'rejected' WHERE id = ?");
                 $stmt->execute([$request_id]);
-                $msg = display_premium_success("Company request rejected.");
+                $msg = "<div class='alert alert-success alert-dismissible fade show'>Company request rejected.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
             } catch (PDOException $e) {
-                $msg = display_premium_error("Failed to reject request.");
+                $msg = "<div class='alert alert-danger alert-dismissible fade show'>Failed to reject request.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
             }
         }
     }
