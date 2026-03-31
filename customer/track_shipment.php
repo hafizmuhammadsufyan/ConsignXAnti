@@ -147,6 +147,22 @@ if ($ship) {
             --expo: cubic-bezier(.16, 1, .3, 1);
         }
 
+        /* Light Theme Overrides */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg0: #f8f9fa;
+                --bg1: #ffffff;
+                --bg2: #f0f3f8;
+                --bg3: #e8ecf2;
+                --card: #ffffff;
+                --t1: #1a202c;
+                --t2: #4a5568;
+                --t3: #718096;
+                --ln: rgba(0, 0, 0, 0.08);
+                --lnh: rgba(0, 0, 0, 0.15);
+            }
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -166,6 +182,113 @@ if ($ship) {
             line-height: 1.6;
             overflow-x: hidden;
         }
+
+        /* Light Theme - Logged In User Fixes */
+        @media (prefers-color-scheme: light) {
+            .tracking-info-card,
+            .neumorphic-card,
+            .alert-card {
+                background: #ffffff !important;
+                color: #1a202c !important;
+                border-color: #e2e8f0 !important;
+            }
+
+            .text-muted {
+                color: #4a5568 !important;
+            }
+
+            .smaller {
+                color: #4a5568 !important;
+            }
+
+            .fw-bold,
+            h2, h3, h4, h5, h6 {
+                color: #1a202c !important;
+            }
+
+            .text-primary {
+                color: #3b7cfd !important;
+            }
+
+            .form-label {
+                color: #1a202c !important;
+            }
+
+            .form-control,
+            .neumorphic-input,
+            input,
+            textarea,
+            select {
+                background-color: #ffffff !important;
+                color: #1a202c !important;
+                border-color: #e2e8f0 !important;
+            }
+
+            .form-control::placeholder,
+            input::placeholder {
+                color: #9ca3af !important;
+            }
+
+            .btn-primary,
+            .neumorphic-btn {
+                background-color: #3b7cfd !important;
+                color: #ffffff !important;
+                border-color: #3b7cfd !important;
+            }
+
+            .btn-track {
+                background-color: #3b7cfd !important;
+                color: #ffffff !important;
+                border: none !important;
+            }
+
+            .badge-neumorphic {
+                color: #ffffff !important;
+            }
+
+            .bg-opacity-10 {
+                opacity: 0.1 !important;
+            }
+
+            /* Courier info box */
+            .courier-info-box {
+                background: #f8f9fa !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+
+            /* Progress bar styling for light theme */
+            .progress-track-bar {
+                background: linear-gradient(90deg, #3b7cfd 0%, #6366f1 100%) !important;
+            }
+
+            .progress-track-point.active {
+                color: #3b7cfd !important;
+            }
+
+            /* Status badges background */
+            .status-delivered {
+                background: rgba(34, 197, 94, 0.2) !important;
+                color: #22c55e !important;
+            }
+
+            .status-pending {
+                background: rgba(245, 158, 11, 0.2) !important;
+                color: #f59e0b !important;
+            }
+
+            .status-cancelled {
+                background: rgba(220, 53, 69, 0.2) !important;
+                color: #dc3545 !important;
+            }
+
+            .status-in-transit,
+            .status-picked-up,
+            .status-out-delivery {
+                background: rgba(59, 124, 253, 0.2) !important;
+                color: #3b7cfd !important;
+            }
+        }
+    </style>
     </style>
 </head>
 <body class="neumorphic-bg">
@@ -230,20 +353,20 @@ if ($ship) {
                     <?php endif; ?>
 
                     <?php if ($ship): ?>
-                        <!-- Shipment Details -->
+                        <!-- Shipment Details Card -->
                         <div style="background: var(--card); border: 1px solid var(--ln); border-radius: 16px; padding: 32px; margin-bottom: 32px;">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 32px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 32px; flex-wrap: wrap; gap: 16px;">
                                 <div>
-                                    <h2 style="color: var(--t1); font-weight: 700; font-size: 20px; margin-bottom: 8px;">Shipment Progress</h2>
-                                    <p style="color: var(--t2); font-size: 14px; margin-bottom: 4px;">Tracking: <span style="color: var(--a); font-weight: 600;"><?= escape($ship['tracking_number']) ?></span></p>
+                                    <h2 style="color: var(--t1); font-weight: 700; font-size: 24px; margin-bottom: 8px;">Shipment Details</h2>
+                                    <p style="color: var(--t2); font-size: 14px; margin-bottom: 4px;">Tracking Number: <span style="color: var(--a); font-weight: 600; font-size: 15px;"><?= escape($ship['tracking_number']) ?></span></p>
                                     <p style="color: var(--t2); font-size: 13px; margin: 0;">Created: <?= date('M d, Y g:i A', strtotime($ship['created_at'])) ?></p>
                                 </div>
                                 <span style="background: <?php 
                                     echo match($ship['status']) {
-                                        'Delivered' => 'rgba(34, 197, 94, 0.1)',
-                                        'Pending' => 'rgba(245, 158, 11, 0.1)',
-                                        'Cancelled' => 'rgba(220, 53, 69, 0.1)',
-                                        default => 'rgba(59, 124, 253, 0.1)'
+                                        'Delivered' => 'rgba(34, 197, 94, 0.2)',
+                                        'Pending' => 'rgba(245, 158, 11, 0.2)',
+                                        'Cancelled' => 'rgba(220, 53, 69, 0.2)',
+                                        default => 'rgba(59, 124, 253, 0.2)'
                                     };
                                 ?>; color: <?php
                                     echo match($ship['status']) {
@@ -252,64 +375,80 @@ if ($ship) {
                                         'Cancelled' => '#dc3545',
                                         default => 'var(--a)'
                                     };
-                                ?>; border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 13px; font-weight: 700;"><?= escape($ship['status']) ?></span>
+                                ?>; border-radius: 10px; padding: 12px 24px; font-weight: 700; font-size: 14px; display: inline-block; border: 1px solid currentColor; opacity: 0.6;"><?= escape($ship['status']) ?></span>
                             </div>
 
-                            <!-- From/To -->
-                            <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; margin-bottom: 32px;">
+                            <!-- From/To with improved styling -->
+                            <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: center; margin-bottom: 40px; background: var(--bg2); padding: 24px; border-radius: 12px;">
                                 <div>
-                                    <div style="color: var(--t2); font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">From</div>
-                                    <div style="color: var(--t1); font-size: 18px; font-weight: 700;"><?= escape($ship['origin_city']) ?></div>
+                                    <div style="color: var(--t3); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Origin</div>
+                                    <div style="color: var(--t1); font-size: 20px; font-weight: 800;">📍 <?= escape($ship['origin_city']) ?></div>
                                 </div>
-                                <div style="text-align: center;">
-                                    <i class="bi bi-arrow-right" style="font-size: 24px; color: var(--t3);"></i>
+                                <div style="text-align: center; color: var(--t3);">
+                                    <i class="bi bi-arrow-right-circle-fill" style="font-size: 32px; opacity: 0.6;"></i>
                                 </div>
-                                <div>
-                                    <div style="color: var(--t2); font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">To</div>
-                                    <div style="color: var(--t1); font-size: 18px; font-weight: 700;"><?= escape($ship['dest_city']) ?></div>
+                                <div style="text-align: right;">
+                                    <div style="color: var(--t3); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Destination</div>
+                                    <div style="color: var(--t1); font-size: 20px; font-weight: 800;">🚩 <?= escape($ship['dest_city']) ?></div>
                                 </div>
                             </div>
 
-                            <!-- Shipment Details Grid -->
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
-                                <div style="background: var(--bg2); padding: 16px; border-radius: 10px;">
-                                    <div style="color: var(--t2); font-size: 12px; margin-bottom: 4px;">Weight</div>
-                                    <div style="color: var(--t1); font-weight: 700; font-size: 16px;"><?= $ship['weight'] ?> kg</div>
+                            <!-- Shipment Details Grid - Enhanced -->
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;">
+                                <div style="background: linear-gradient(135deg, rgba(59, 124, 253, 0.1) 0%, rgba(59, 124, 253, 0.05) 100%); padding: 20px; border-radius: 12px; border: 1px solid rgba(59, 124, 253, 0.2);">
+                                    <div style="color: var(--t2); font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Weight</div>
+                                    <div style="color: var(--a); font-weight: 800; font-size: 18px;"><?= $ship['weight'] ?> <span style="font-size: 14px;">kg</span></div>
                                 </div>
-                                <div style="background: var(--bg2); padding: 16px; border-radius: 10px;">
-                                    <div style="color: var(--t2); font-size: 12px; margin-bottom: 4px;">Shipping Cost</div>
-                                    <div style="color: var(--t1); font-weight: 700; font-size: 16px;">PKR <?= number_format($ship['price'], 0) ?></div>
+                                <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%); padding: 20px; border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                                    <div style="color: var(--t2); font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Shipping Cost</div>
+                                    <div style="color: #22c55e; font-weight: 800; font-size: 18px;">PKR <?= number_format($ship['price'], 0) ?></div>
                                 </div>
-                                <div style="background: var(--bg2); padding: 16px; border-radius: 10px;">
-                                    <div style="color: var(--t2); font-size: 12px; margin-bottom: 4px;">Agent</div>
-                                    <div style="color: var(--t1); font-weight: 700; font-size: 16px;"><?= escape($ship['agent_name'] ?? 'N/A') ?></div>
+                                <div style="background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%); padding: 20px; border-radius: 12px; border: 1px solid rgba(20, 184, 166, 0.2);">
+                                    <div style="color: var(--t2); font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px;">Courier</div>
+                                    <div style="color: #14b8a6; font-weight: 800; font-size: 16px;"><?= escape($ship['agent_name'] ?? 'ConsignX') ?></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Status Timeline -->
+                        <!-- Delivery Timeline / Journey Section -->
                         <?php if (!empty($history)): ?>
-                        <div style="background: var(--card); border: 1px solid var(--ln); border-radius: 16px; padding: 32px;">
-                            <h3 style="color: var(--t1); font-weight: 700; margin-bottom: 24px;">Delivery Timeline</h3>
+                        <div style="background: var(--card); border: 1px solid var(--ln); border-radius: 16px; padding: 32px; margin-bottom: 32px;">
+                            <h3 style="color: var(--t1); font-weight: 800; margin-bottom: 28px; font-size: 20px;">🛣️ Shipment Journey</h3>
                             <div style="position: relative;">
                                 <?php foreach ($history as $index => $event): ?>
-                                <div style="display: flex; margin-bottom: <?= $index === count($history) - 1 ? '0' : '24px' ?>;">
-                                    <div style="width: 40px; display: flex; justify-content: center; flex-shrink: 0;">
-                                        <div style="width: 16px; height: 16px; background: var(--a); border-radius: 50%; border: 3px solid var(--bg0); position: relative; z-index: 2;"></div>
+                                <div style="display: flex; margin-bottom: <?= $index === count($history) - 1 ? '0' : '32px' ?>;">
+                                    <!-- Timeline Dot -->
+                                    <div style="width: 50px; display: flex; flex-direction: column; justify-content: flex-start; flex-shrink: 0; align-items: center;">
+                                        <div style="width: 20px; height: 20px; background: linear-gradient(135deg, var(--a) 0%, var(--am) 100%); border-radius: 50%; border: 4px solid var(--card); position: relative; z-index: 3; box-shadow: 0 0 0 4px var(--bg0);"></div>
                                         <?php if ($index < count($history) - 1): ?>
-                                        <div style="position: absolute; width: 2px; height: 40px; background: var(--ln); top: 20px; left: 50%; transform: translateX(-50%);"></div>
+                                        <div style="width: 3px; height: 40px; background: linear-gradient(to bottom, var(--a), rgba(59, 124, 253, 0.2)); margin-top: 4px;"></div>
                                         <?php endif; ?>
                                     </div>
-                                    <div style="margin-left: 20px; flex: 1;">
-                                        <div style="color: var(--t1); font-weight: 600; margin-bottom: 4px;"><?= escape($event['status']) ?></div>
-                                        <div style="color: var(--t2); font-size: 14px; margin-bottom: 4px;"><?= escape($event['remarks']) ?></div>
-                                        <div style="color: var(--t3); font-size: 12px;"><?= date('M d, Y g:i A', strtotime($event['created_at'])) ?></div>
+                                    <!-- Event Content -->
+                                    <div style="margin-left: 24px; flex: 1; padding-top: 2px;">
+                                        <div style="background: rgba(59, 124, 253, 0.05); border-left: 3px solid var(--a); padding: 16px; border-radius: 8px;">
+                                            <div style="color: var(--t1); font-weight: 700; margin-bottom: 6px; font-size: 16px;">✓ <?= escape($event['status']) ?></div>
+                                            <div style="color: var(--t2); font-size: 14px; margin-bottom: 6px; line-height: 1.5;"><?= escape($event['remarks']) ?></div>
+                                            <div style="color: var(--t3); font-size: 12px; font-weight: 600;">📅 <?= date('M d, Y \a\t g:i A', strtotime($event['created_at'])) ?></div>
+                                        </div>
                                     </div>
                                 </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
                         <?php endif; ?>
+
+                        <!-- PDF Export Card -->
+                        <div style="background: linear-gradient(135deg, rgba(59, 124, 253, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%); border: 1px solid var(--ln); border-radius: 16px; padding: 32px; text-align: center;">
+                            <div style="margin-bottom: 16px;">
+                                <i class="bi bi-file-earmark-pdf" style="font-size: 48px; color: var(--a); opacity: 0.8;"></i>
+                            </div>
+                            <h4 style="color: var(--t1); font-weight: 700; margin-bottom: 8px;">Download Shipment Report</h4>
+                            <p style="color: var(--t2); margin-bottom: 24px; font-size: 14px;">Get your official electronic receipt and complete tracking documentation in PDF format.</p>
+                            <button id="exportPDF-public" style="background: var(--a); color: #fff; border: none; padding: 12px 32px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 14px; transition: all .3s ease; box-shadow: 0 4px 15px rgba(59, 124, 253, 0.3);">
+                                <i class="bi bi-download me-2"></i> Export as PDF
+                            </button>
+                        </div>
                     <?php endif; ?>
                 </div>
             </main>
@@ -525,98 +664,120 @@ if ($ship) {
     <script src="../assets/js/main.js"></script>
     
     <script>
+        // PDF Export Function Shared by Both Public and Logged-In Pages
+        function generateShipmentPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // 1. Professional Header Area
+            doc.setFillColor(44, 62, 80); // Deep Navy
+            doc.rect(0, 0, 210, 50, 'F');
+            
+            doc.setFontSize(32);
+            doc.setTextColor(255, 255, 255);
+            doc.text("CONSIGNX", 14, 25);
+            
+            doc.setFontSize(10);
+            doc.text("PREMIUM ELECTRONIC SHIPMENT REPORT", 14, 33);
+            doc.text("Official Tracking & Delivery Documentation", 14, 38);
+            
+            doc.setFontSize(11);
+            doc.text("Tracking ID:", 140, 20);
+            doc.setFont(undefined, 'bold');
+            doc.text("<?= $ship['tracking_number'] ?>", 165, 20);
+            doc.setFont(undefined, 'normal');
+            doc.text("Report Date:", 140, 27);
+            doc.text(new Date().toLocaleDateString(), 165, 27);
+            doc.text("Current Status:", 140, 34);
+            doc.text("<?= $ship['status'] ?>", 165, 34);
+
+            // 2. Logistics Details Grid
+            doc.setTextColor(44, 62, 80);
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text("Shipment Overview", 14, 65);
+            
+            const overviewData = [
+                ["Customer Name", "<?= escape($ship['customer_name']) ?>", "Weight (kg)", "<?= $ship['weight'] ?>"],
+                ["Origin City", "<?= escape($ship['origin_city']) ?>", "Total Value", "PKR <?= number_format($ship['price'], 0) ?>"],
+                ["Destination", "<?= escape($ship['dest_city']) ?>", "Service Level", "Premium Express"],
+                ["Courier Partner", "<?= escape($ship['agent_name'] ?? 'ConsignX HQ') ?>", "Created At", "<?= date('M d, Y', strtotime($ship['created_at'])) ?>"]
+            ];
+            
+            doc.autoTable({
+                startY: 70,
+                body: overviewData,
+                theme: 'striped',
+                styles: { fontSize: 10, cellPadding: 5 },
+                columnStyles: { 
+                    0: { fontStyle: 'bold', fillColor: [245, 245, 245], width: 40 }, 
+                    2: { fontStyle: 'bold', fillColor: [245, 245, 245], width: 40 } 
+                }
+            });
+
+            // 3. Status & ETA Highlights
+            doc.setFontSize(16);
+            doc.text("Logistics Summary & ETA", 14, doc.lastAutoTable.finalY + 15);
+            
+            const etaData = [
+                ["Current Status", "<?= escape($ship['status']) ?>", "Last Update", "<?= date('M d, Y H:i', strtotime($ship['created_at'])) ?>"],
+                ["Service Partner", "<?= escape($ship['agent_name'] ?? 'ConsignX HQ') ?>", "Est. Arrival", "<?= $ship['status'] == 'Delivered' ? 'Delivered' : date('M d, Y', strtotime('+2 days')) ?>"]
+            ];
+            
+            doc.autoTable({
+                startY: doc.lastAutoTable.finalY + 20,
+                body: etaData,
+                theme: 'grid',
+                styles: { fontSize: 9, cellPadding: 4 },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 1 && data.cell.raw === 'Delivered') {
+                        data.cell.styles.textColor = [56, 161, 105];
+                        data.cell.styles.fontStyle = 'bold';
+                    }
+                }
+            });
+
+            // 4. Final Summary & Verification
+            const finalY = doc.lastAutoTable.finalY;
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text("Official Verification Summary", 14, finalY + 15);
+            doc.setFontSize(9);
+            doc.text("This document confirms the current logistics status for Tracking ID <?= $ship['tracking_number'] ?>.", 14, finalY + 22);
+            doc.text("All logistics milestones are verified via the ConsignX Network integrity system.", 14, finalY + 27);
+            
+            // Final Brand Footer
+            doc.setFontSize(8);
+            doc.text("Generated via ConsignX Customer Portal on " + new Date().toLocaleString(), 105, 285, { align: 'center' });
+            doc.text("ConsignX Logistics - Verified Global Transit Documentation", 105, 290, { align: 'center' });
+            
+            doc.save("ConsignX_Logistics_<?= $ship['tracking_number'] ?>.pdf");
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            const exportBtn = document.getElementById('exportPDF');
-            if (exportBtn) {
-                exportBtn.addEventListener('click', () => {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF();
-                    
-                    // 1. Professional Header Area
-                    doc.setFillColor(44, 62, 80); // Deep Navy
-                    doc.rect(0, 0, 210, 50, 'F');
-                    
-                    doc.setFontSize(32);
-                    doc.setTextColor(255, 255, 255);
-                    doc.text("CONSIGNX", 14, 25);
-                    
-                    doc.setFontSize(10);
-                    doc.text("PREMIUM ELECTRONIC SHIPMENT REPORT", 14, 33);
-                    doc.text("Official Tracking & Delivery Documentation", 14, 38);
-                    
-                    doc.setFontSize(11);
-                    doc.text("Tracking ID:", 140, 20);
-                    doc.setFont(undefined, 'bold');
-                    doc.text("<?= $ship['tracking_number'] ?>", 165, 20);
-                    doc.setFont(undefined, 'normal');
-                    doc.text("Report Date:", 140, 27);
-                    doc.text(new Date().toLocaleDateString(), 165, 27);
-                    doc.text("Current Status:", 140, 34);
-                    doc.text("<?= $ship['status'] ?>", 165, 34);
-
-                    // 2. Logistics Details Grid
-                    doc.setTextColor(44, 62, 80);
-                    doc.setFontSize(16);
-                    doc.setFont(undefined, 'bold');
-                    doc.text("Shipment Overview", 14, 65);
-                    
-                    const overviewData = [
-                        ["Customer Name", "<?= escape($ship['customer_name']) ?>", "Weight (kg)", "<?= $ship['weight'] ?>"],
-                        ["Origin City", "<?= escape($ship['origin_city']) ?>", "Total Value", "<?= format_currency($ship['price']) ?>"],
-                        ["Destination", "<?= escape($ship['dest_city']) ?>", "Service Level", "Premium Express"],
-                        ["Courier Partner", "<?= escape($ship['agent_name'] ?? 'ConsignX HQ') ?>", "Created At", "<?= date('M d, Y', strtotime($ship['created_at'])) ?>"]
-                    ];
-                    
-                    doc.autoTable({
-                        startY: 70,
-                        body: overviewData,
-                        theme: 'striped',
-                        styles: { fontSize: 10, cellPadding: 5 },
-                        columnStyles: { 
-                            0: { fontStyle: 'bold', fillColor: [245, 245, 245], width: 40 }, 
-                            2: { fontStyle: 'bold', fillColor: [245, 245, 245], width: 40 } 
-                        }
-                    });
-
-                    // 3. Status & ETA Highlights (Phase 11 Special)
-                    doc.setFontSize(16);
-                    doc.text("Logistics Summary & ETA", 14, doc.lastAutoTable.finalY + 15);
-                    
-                    const etaData = [
-                        ["Current Status", "<?= escape($ship['status']) ?>", "Last Update", "<?= date('M d, Y H:i', strtotime($ship['created_at'])) ?>"],
-                        ["Service Partner", "<?= escape($ship['agent_name'] ?? 'ConsignX HQ') ?>", "Est. Arrival", "<?= $ship['status'] == 'Delivered' ? 'Delivered' : date('M d, Y', strtotime('+2 days')) ?>"]
-                    ];
-                    
-                    doc.autoTable({
-                        startY: doc.lastAutoTable.finalY + 20,
-                        body: etaData,
-                        theme: 'grid',
-                        styles: { fontSize: 9, cellPadding: 4 },
-                        didParseCell: function(data) {
-                            if (data.section === 'body' && data.column.index === 1 && data.cell.raw === 'Delivered') {
-                                data.cell.styles.textColor = [56, 161, 105];
-                                data.cell.styles.fontStyle = 'bold';
-                            }
-                        }
-                    });
-
-                    // 3. Final Summary & Verification
-                    const finalY = doc.lastAutoTable.finalY;
-                    doc.setFontSize(10);
-                    doc.setTextColor(100, 100, 100);
-                    doc.text("Official Verification Summary", 14, finalY + 15);
-                    doc.setFontSize(9);
-                    doc.text("This document confirms the current logistics status for Tracking ID <?= $ship['tracking_number'] ?>.", 14, finalY + 22);
-                    doc.text("All logistics milestones are verified via the ConsignX Network integrity system.", 14, finalY + 27);
-                    
-                    // Final Brand Footer
-                    doc.setFontSize(8);
-                    doc.text("Generated via ConsignX Customer Portal on " + new Date().toLocaleString(), 105, 285, { align: 'center' });
-                    doc.text("ConsignX Logistics - Verified Global Transit Documentation", 105, 290, { align: 'center' });
-                    
-                    doc.save("ConsignX_Logistics_<?= $ship['tracking_number'] ?>.pdf");
-                });
+            // PDF Export for Logged-In Users
+            const exportBtnLoggedIn = document.getElementById('exportPDF');
+            if (exportBtnLoggedIn) {
+                exportBtnLoggedIn.addEventListener('click', generateShipmentPDF);
             }
+
+            // PDF Export for Public Users
+            const exportBtnPublic = document.getElementById('exportPDF-public');
+            if (exportBtnPublic) {
+                exportBtnPublic.addEventListener('click', generateShipmentPDF);
+            }
+
+            // Add hover effects
+            document.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('mouseover', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 6px 20px rgba(59, 124, 253, 0.4)';
+                });
+                btn.addEventListener('mouseout', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '';
+                });
+            });
         });
     </script>
 </body>
