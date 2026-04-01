@@ -45,7 +45,7 @@
                 <button class="btn btn-sm neumorphic-btn" type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-three-dots-vertical"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end premium-status-dropdown shadow-lg border-0 mt-2">
+                <ul class="dropdown-menu dropdown-menu-end premium-status-dropdown shadow-lg border-0 mt-2" style="position: absolute; bottom: 100%; top: auto; z-index: 1050;">
                     <li><h6 class="dropdown-header fw-bold text-muted smaller tracking-wider px-3 pt-2 pb-2">REFINE STATUS</h6></li>
                     <li>
                         <form method="POST" class="px-3 py-1">

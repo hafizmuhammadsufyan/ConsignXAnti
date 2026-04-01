@@ -119,6 +119,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $msg = display_alert("Failed to create shipment: " . escape($e->getMessage()), "danger");
                 }
             }
+        } elseif ($action === 'update_status') {
+            // Update existing shipment status
             $shipment_id = (int) $_POST['shipment_id'];
             $new_status = trim($_POST['new_status'] ?? '');
             $remarks = trim($_POST['remarks'] ?? '');
