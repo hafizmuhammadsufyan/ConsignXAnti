@@ -16,13 +16,14 @@ define('DB_NAME', 'consignx_database');
 define('APP_NAME', 'ConsignX - Courier Management System');
 define('APP_URL', 'http://localhost/consignxAnti');
 
-// Email Configuration (PHPMailer using .env concept via constants)
-define('SMTP_HOST', 'smtp.mailtrap.io'); // Replace with real SMTP server in production
-define('SMTP_USER', 'your_smtp_user');
-define('SMTP_PASS', 'your_smtp_pass');
-define('SMTP_PORT', 2525);
-define('MAIL_FROM', 'noreply@consignx.com');
-define('MAIL_FROM_NAME', 'ConsignX Admin');
+// Email Configuration (Gmail SMTP)
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_USER', 'sufyanfortech810@gmail.com');
+define('SMTP_PASS', 'jmhvavxfhfcjkseu'); // Gmail App Password
+define('SMTP_PORT', 587);
+define('SMTP_ENCRYPTION', 'tls');
+define('MAIL_FROM', 'sufyanfortech810@gmail.com');
+define('MAIL_FROM_NAME', 'ConsignX Team');
 
 // Start secure sessions
 if (session_status() === PHP_SESSION_NONE) {

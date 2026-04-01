@@ -82,10 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $tracking_number = generate_tracking_number();
 
                     // Send notification email to customer
+                    $email_result = ['success' => false, 'error' => 'Not sent'];
                     if ($is_new_customer) {
-                        send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
+                        $email_result = send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
                     } else {
-                        send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
+                        $email_result = send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
                     }
 
                     // Create the shipment record
@@ -112,7 +113,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $stmt->execute([$shipment_id, 'Pending', 'Shipment Created by Admin', 'admin', $admin_id]);
 
                     $pdo->commit();
-                    $msg = display_alert("Shipment ($tracking_number) created successfully.", "success");
+                    
+                    // Build success message
+                    $success_msg = "Shipment ($tracking_number) created successfully.";
+                    if (!$email_result['success']) {
+                        $success_msg .= " Warning: Failed to send notification email: " . $email_result['error'];
+                        $msg = display_alert($success_msg, "warning");
+                    } else {
+                        $msg = display_alert($success_msg, "success");
+                    }
 
                 } catch (PDOException $e) {
                     $pdo->rollBack();

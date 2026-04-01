@@ -12,34 +12,46 @@ use PHPMailer\PHPMailer\Exception;
 require_once 'config.php';
 
 /**
- * Sends a transactional email using Gmail SMTP
+ * Sends a transactional email using SMTP
  * 
  * @param string $to Email address
  * @param string $subject Email subject
  * @param string $htmlBody HTML content of the email
- * @return bool True on success, false on failure
+ * @return array ['success' => bool, 'message' => string, 'error' => string]
  */
 function send_email($to, $subject, $htmlBody)
 {
-    // Gmail SMTP sender
-    $sender_email = 'sufyanfortech810@gmail.com'; // Gmail address
-    $sender_name = 'ConsignX Team';
+    // Validate email address
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+        $error = "Invalid recipient email address: $to";
+        error_log("Mail Error: $error");
+        return ['success' => false, 'message' => '', 'error' => $error];
+    }
 
     $mail = new PHPMailer(true);
 
     try {
-        // Server settings
+        // Server settings using config constants
         $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
+        $mail->Host = SMTP_HOST; 
+        $mail->Port = SMTP_PORT;
         $mail->SMTPAuth = true;
-        $mail->Username = $sender_email;
-        $mail->Password = 'rjrsdxzhsjsgrbnp'; // Gmail App Password - generate from https://myaccount.google.com/apppasswords
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // TLS encryption
-        $mail->Port = 587; // TLS port for Gmail
-        $mail->SMTPDebug = 0; // Set to 2 for debugging
+        $mail->Username = SMTP_USER;
+        $mail->Password = SMTP_PASS;
+        
+        // Set encryption based on port
+        if (SMTP_PORT == 465) {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+        } else {
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        }
+        
+        $mail->SMTPDebug = 0; // Set to 2 for detailed debugging
 
+        // Set From using config
+        $mail->setFrom(MAIL_FROM, MAIL_FROM_NAME);
+        
         // Recipients
-        $mail->setFrom($sender_email, $sender_name);
         $mail->addAddress($to);
 
         // Content
@@ -48,18 +60,30 @@ function send_email($to, $subject, $htmlBody)
         $mail->Body = $htmlBody;
         $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '</p>'], "\n", $htmlBody));
 
-        return $mail->send();
+        // Send email
+        if ($mail->send()) {
+            return ['success' => true, 'message' => "Email sent successfully to $to", 'error' => ''];
+        } else {
+            $error = "Failed to send email: {$mail->ErrorInfo}";
+            error_log("Mail Error: $error");
+            return ['success' => false, 'message' => '', 'error' => $error];
+        }
     } catch (Exception $e) {
-        $error_msg = "Email Error: {$mail->ErrorInfo}";
-        error_log($error_msg);
-        // Log to syslog for debugging
-        error_log("Failed to send email to $to. Subject: $subject. Error: " . $mail->ErrorInfo, 0);
-        return false;
+        $error = "Email Exception: {$mail->ErrorInfo}";
+        error_log("Mail Error: $error");
+        error_log("Full exception: " . $e->getMessage());
+        return ['success' => false, 'message' => '', 'error' => $error];
     }
 }
 
 /**
  * Sends a welcome email to a new customer
+ * 
+ * @param string $to Email address
+ * @param string $name Customer name
+ * @param string $password Temporary password
+ * @param string $tracking_number Shipment tracking number
+ * @return array ['success' => bool, 'message' => string, 'error' => string]
  */
 function send_shipment_notification_new($to, $name, $password, $tracking_number)
 {
@@ -86,6 +110,11 @@ function send_shipment_notification_new($to, $name, $password, $tracking_number)
 
 /**
  * Sends a shipment notification to an existing customer
+ * 
+ * @param string $to Email address
+ * @param string $name Customer name
+ * @param string $tracking_number Shipment tracking number
+ * @return array ['success' => bool, 'message' => string, 'error' => string]
  */
 function send_shipment_notification_existing($to, $name, $tracking_number)
 {
@@ -107,6 +136,12 @@ function send_shipment_notification_existing($to, $name, $tracking_number)
 
 /**
  * Sends a welcome email to a new agent
+ * 
+ * @param string $to Agent email address
+ * @param string $company Company name
+ * @param string $status Agent status
+ * @param string $password Temporary password
+ * @return array ['success' => bool, 'message' => string, 'error' => string]
  */
 function send_agent_welcome_email($to, $company, $status, $password)
 {

@@ -46,9 +46,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $stmt->execute([$name, $company, $email, $phone, $hashed_password]);
                     
                     // Send email
-                    send_agent_welcome_email($email, $company, 'active', $generated_password);
+                    $email_result = send_agent_welcome_email($email, $company, 'active', $generated_password);
                     
-                    $msg = display_alert("Agent added successfully. Credentials emailed.", "success");
+                    if ($email_result['success']) {
+                        $msg = display_alert("Agent added successfully. Credentials emailed.", "success");
+                    } else {
+                        $msg = display_alert("Agent added successfully, but email failed to send: " . $email_result['error'], "warning");
+                    }
                 } catch (PDOException $e) {
                     if ($e->getCode() == 23000) {
                         $msg = display_alert("An agent with this email or phone number already exists.", "warning");
