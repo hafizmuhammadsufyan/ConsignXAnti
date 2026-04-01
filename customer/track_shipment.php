@@ -149,14 +149,17 @@ if ($ship) {
             <?php if ($is_customer): ?>
                 <?php require_once '../includes/top_header.php'; ?>
             <?php else: ?>
-                <!-- Guest Header with back to home -->
-                <div class="p-4 border-bottom border-light" style="background: var(--bg1)">
-                    <div class="container-fluid d-flex justify-content-between align-items-center">
-                        <a href="../index.php" class="text-decoration-none fw-bold" style="color: var(--a)">
-                            <i class="bi bi-arrow-left me-2"></i>Back to Home
-                        </a>
-                        <h5 class="mb-0" style="color: var(--t1)">Track Shipment</h5>
-                        <div style="width: 40px"></div>
+                <!-- Guest Header - Enhanced Design -->
+                <div style="background: linear-gradient(135deg, var(--bg1) 0%, rgba(255,255,255,0.05) 100%); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 2.5rem 0;">
+                    <div class="container-fluid">
+                        <div class="d-flex align-items-center justify-content-center position-relative">
+                            <div class="text-center">
+                                <h3 class="mb-2 fw-bold" style="color: var(--t1); font-size: 1.75rem; letter-spacing: 0.5px;">
+                                    <i class="bi bi-box-seam me-2" style="color: #007bff; font-size: 1.9rem;"></i>Track Shipment
+                                </h3>
+                                <p class="mb-0" style="color: var(--t2); font-size: 0.9rem;">Monitor your delivery in real-time</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             <?php endif; ?>
