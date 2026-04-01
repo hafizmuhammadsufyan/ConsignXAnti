@@ -249,19 +249,23 @@ try {
                                                                     <input type="hidden" name="agent_id" value="<?= $agent['id'] ?>">
                                                                     <div class="mb-3">
                                                                         <label class="form-label text-muted small fw-bold">Company Name</label>
-                                                                        <input type="text" name="company_name" class="form-control neumorphic-input w-100" value="<?= escape($agent['company_name']) ?>" required>
+                                                                        <input type="text" id="edit_company_name_<?= $agent['id'] ?>" name="company_name" class="form-control neumorphic-input w-100" value="<?= escape($agent['company_name']) ?>" required>
+                                                                        <span id="edit_company_name_<?= $agent['id'] ?>-error" class="field-error"></span>
                                                                     </div>
                                                                     <div class="mb-3">
                                                                         <label class="form-label text-muted small fw-bold">Agent Name</label>
-                                                                        <input type="text" name="name" class="form-control neumorphic-input w-100" value="<?= escape($agent['name']) ?>" required>
+                                                                        <input type="text" id="edit_agent_name_<?= $agent['id'] ?>" name="name" class="form-control neumorphic-input w-100" value="<?= escape($agent['name']) ?>" required>
+                                                                        <span id="edit_agent_name_<?= $agent['id'] ?>-error" class="field-error"></span>
                                                                     </div>
                                                                     <div class="mb-3">
                                                                         <label class="form-label text-muted small fw-bold">Email</label>
-                                                                        <input type="email" name="email" class="form-control neumorphic-input w-100" value="<?= escape($agent['email']) ?>" required>
+                                                                        <input type="email" id="edit_agent_email_<?= $agent['id'] ?>" name="email" class="form-control neumorphic-input w-100" value="<?= escape($agent['email']) ?>" required>
+                                                                        <span id="edit_agent_email_<?= $agent['id'] ?>-error" class="field-error"></span>
                                                                     </div>
                                                                     <div class="mb-3">
                                                                         <label class="form-label text-muted small fw-bold">Phone</label>
-                                                                        <input type="text" name="phone" class="form-control neumorphic-input w-100" value="<?= escape($agent['phone']) ?>" required>
+                                                                        <input type="text" id="edit_agent_phone_<?= $agent['id'] ?>" name="phone" class="form-control neumorphic-input w-100" value="<?= escape($agent['phone']) ?>" required>
+                                                                        <span id="edit_agent_phone_<?= $agent['id'] ?>-error" class="field-error"></span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="modal-footer border-0">
@@ -321,19 +325,23 @@ try {
                                 <input type="hidden" name="action" value="add_agent">
                                 <div class="mb-3 text-start">
                                     <label class="form-label text-muted small fw-bold">Company Name</label>
-                                    <input type="text" name="company_name" class="form-control neumorphic-input w-100" placeholder="e.g. Swift Logistics" required>
+                                    <input type="text" id="add_company_name" name="company_name" class="form-control neumorphic-input w-100" placeholder="e.g. Swift Logistics" required>
+                                    <span id="add_company_name-error" class="field-error"></span>
                                 </div>
                                 <div class="mb-3 text-start">
                                     <label class="form-label text-muted small fw-bold">Primary Contact Person</label>
-                                    <input type="text" name="name" class="form-control neumorphic-input w-100" placeholder="Agent Full Name" required>
+                                    <input type="text" id="add_agent_name" name="name" class="form-control neumorphic-input w-100" placeholder="Agent Full Name" required>
+                                    <span id="add_agent_name-error" class="field-error"></span>
                                 </div>
                                 <div class="mb-3 text-start">
                                     <label class="form-label text-muted small fw-bold">Official Email</label>
-                                    <input type="email" name="email" class="form-control neumorphic-input w-100" placeholder="contact@company.com" required>
+                                    <input type="email" id="add_agent_email" name="email" class="form-control neumorphic-input w-100" placeholder="contact@company.com" required>
+                                    <span id="add_agent_email-error" class="field-error"></span>
                                 </div>
                                 <div class="mb-3 text-start">
                                     <label class="form-label text-muted small fw-bold">Phone Number</label>
-                                    <input type="text" name="phone" class="form-control neumorphic-input w-100" placeholder="+123 456 7890" required>
+                                    <input type="text" id="add_agent_phone" name="phone" class="form-control neumorphic-input w-100" placeholder="+123 456 7890" required>
+                                    <span id="add_agent_phone-error" class="field-error"></span>
                                 </div>
                             </div>
                             <div class="modal-footer border-0">
@@ -350,6 +358,113 @@ try {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/main.js"></script>
     <script>
+        // REAL-TIME validation functions for agents
+        function validateNameFieldAgent(input) {
+            const value = input.value.trim();
+            const errorEl = document.getElementById(input.id + '-error');
+            
+            if (!value) {
+                errorEl.textContent = 'Name is required.';
+                input.classList.add('is-invalid');
+            } else if (!/^[a-zA-Z\s]+$/.test(value)) {
+                errorEl.textContent = 'Name must contain only letters and spaces.';
+                input.classList.add('is-invalid');
+            } else if (value.length < 2) {
+                errorEl.textContent = 'Name must be at least 2 characters long.';
+                input.classList.add('is-invalid');
+            } else {
+                errorEl.textContent = '';
+                input.classList.remove('is-invalid');
+            }
+        }
+        
+        function validateEmailFieldAgent(input) {
+            const value = input.value.trim();
+            const errorEl = document.getElementById(input.id + '-error');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!value) {
+                errorEl.textContent = 'Email is required.';
+                input.classList.add('is-invalid');
+            } else if (!emailRegex.test(value)) {
+                errorEl.textContent = 'Please provide a valid email address.';
+                input.classList.add('is-invalid');
+            } else {
+                errorEl.textContent = '';
+                input.classList.remove('is-invalid');
+            }
+        }
+        
+        function validatePhoneFieldAgent(input) {
+            const value = input.value.trim();
+            const errorEl = document.getElementById(input.id + '-error');
+            
+            if (!value) {
+                errorEl.textContent = 'Phone number is required.';
+                input.classList.add('is-invalid');
+            } else if (!/^[0-9]+$/.test(value)) {
+                errorEl.textContent = 'Phone number must contain only digits.';
+                input.classList.add('is-invalid');
+            } else if (value.length < 10 || value.length > 20) {
+                errorEl.textContent = 'Phone number must be between 10 and 20 digits.';
+                input.classList.add('is-invalid');
+            } else {
+                errorEl.textContent = '';
+                input.classList.remove('is-invalid');
+            }
+        }
+        
+        // Setup validation for add agent modal
+        document.addEventListener('shown.bs.modal', function(e) {
+            if (e.target.id === 'addAgentModal') {
+                const addFieldIds = ['add_company_name', 'add_agent_name', 'add_agent_email', 'add_agent_phone'];
+                addFieldIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener('input', function() {
+                            if (id.includes('name')) validateNameFieldAgent(this);
+                            else if (id.includes('email')) validateEmailFieldAgent(this);
+                            else if (id.includes('phone')) validatePhoneFieldAgent(this);
+                        });
+                        
+                        el.addEventListener('blur', function() {
+                            if (id.includes('name')) validateNameFieldAgent(this);
+                            else if (id.includes('email')) validateEmailFieldAgent(this);
+                            else if (id.includes('phone')) validatePhoneFieldAgent(this);
+                        });
+                    }
+                });
+            }
+            
+            // Setup validation for edit agent modals
+            if (e.target.id && e.target.id.startsWith('editAgentModal')) {
+                const agentId = e.target.id.replace('editAgentModal', '');
+                const editFieldIds = [
+                    `edit_company_name_${agentId}`,
+                    `edit_agent_name_${agentId}`,
+                    `edit_agent_email_${agentId}`,
+                    `edit_agent_phone_${agentId}`
+                ];
+                
+                editFieldIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener('input', function() {
+                            if (id.includes('name')) validateNameFieldAgent(this);
+                            else if (id.includes('email')) validateEmailFieldAgent(this);
+                            else if (id.includes('phone')) validatePhoneFieldAgent(this);
+                        });
+                        
+                        el.addEventListener('blur', function() {
+                            if (id.includes('name')) validateNameFieldAgent(this);
+                            else if (id.includes('email')) validateEmailFieldAgent(this);
+                            else if (id.includes('phone')) validatePhoneFieldAgent(this);
+                        });
+                    }
+                });
+            }
+        });
+        
         document.addEventListener('DOMContentLoaded', () => {
             const searchInput = document.getElementById('agentSearchInput');
             const tableBody = document.querySelector('#agentsTable tbody');

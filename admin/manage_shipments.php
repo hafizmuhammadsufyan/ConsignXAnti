@@ -523,18 +523,21 @@ try {
                                 <div class="row g-3">
                                     <div class="col-md-4">
                                         <label class="form-label small">Name</label>
-                                        <input type="text" name="customer_name"
+                                        <input type="text" id="admin_cust_name" name="customer_name"
                                             class="form-control neumorphic-input py-2" required>
+                                        <span id="admin_cust_name-error" class="field-error"></span>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small">Email (Auto-creates account)</label>
-                                        <input type="email" name="customer_email"
+                                        <input type="email" id="admin_cust_email" name="customer_email"
                                             class="form-control neumorphic-input py-2" required>
+                                        <span id="admin_cust_email-error" class="field-error"></span>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small">Phone</label>
-                                        <input type="text" name="customer_phone"
+                                        <input type="text" id="admin_cust_phone" name="customer_phone"
                                             class="form-control neumorphic-input py-2" required>
+                                        <span id="admin_cust_phone-error" class="field-error"></span>
                                     </div>
                                 </div>
                             </div>
@@ -545,13 +548,15 @@ try {
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label small">Name</label>
-                                        <input type="text" name="recipient_name"
+                                        <input type="text" id="admin_recip_name" name="recipient_name"
                                             class="form-control neumorphic-input py-2" required>
+                                        <span id="admin_recip_name-error" class="field-error"></span>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small">Phone</label>
-                                        <input type="text" name="recipient_phone"
+                                        <input type="text" id="admin_recip_phone" name="recipient_phone"
                                             class="form-control neumorphic-input py-2" required>
+                                        <span id="admin_recip_phone-error" class="field-error"></span>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label small">Delivery Address</label>
@@ -637,8 +642,85 @@ try {
         'Sialkot': [32.49, 74.52],
         'Gujranwala': [32.18, 74.19],
         'Bahawalpur': [29.35, 71.69]
-    };
-
+    };    
+    // REAL-TIME validation for admin modal
+    function validateNameFieldAdminShip(input) {
+        const value = input.value.trim();
+        const errorEl = document.getElementById(input.id + '-error');
+        
+        if (!value) {
+            errorEl.textContent = 'Name is required.';
+            input.classList.add('is-invalid');
+        } else if (!/^[a-zA-Z\s]+$/.test(value)) {
+            errorEl.textContent = 'Name must contain only letters and spaces.';
+            input.classList.add('is-invalid');
+        } else if (value.length < 2) {
+            errorEl.textContent = 'Name must be at least 2 characters long.';
+            input.classList.add('is-invalid');
+        } else {
+            errorEl.textContent = '';
+            input.classList.remove('is-invalid');
+        }
+    }
+    
+    function validateEmailFieldAdminShip(input) {
+        const value = input.value.trim();
+        const errorEl = document.getElementById(input.id + '-error');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!value) {
+            errorEl.textContent = 'Email is required.';
+            input.classList.add('is-invalid');
+        } else if (!emailRegex.test(value)) {
+            errorEl.textContent = 'Please provide a valid email address.';
+            input.classList.add('is-invalid');
+        } else {
+            errorEl.textContent = '';
+            input.classList.remove('is-invalid');
+        }
+    }
+    
+    function validatePhoneFieldAdminShip(input) {
+        const value = input.value.trim();
+        const errorEl = document.getElementById(input.id + '-error');
+        
+        if (!value) {
+            errorEl.textContent = 'Phone number is required.';
+            input.classList.add('is-invalid');
+        } else if (!/^[0-9]+$/.test(value)) {
+            errorEl.textContent = 'Phone number must contain only digits.';
+            input.classList.add('is-invalid');
+        } else if (value.length < 10 || value.length > 20) {
+            errorEl.textContent = 'Phone number must be between 10 and 20 digits.';
+            input.classList.add('is-invalid');
+        } else {
+            errorEl.textContent = '';
+            input.classList.remove('is-invalid');
+        }
+    }
+    
+    // Attach validation listeners when modal opens
+    document.addEventListener('shown.bs.modal', function(e) {
+        if (e.target.id === 'createShipmentModal') {
+            const adminFieldIds = ['admin_cust_name', 'admin_cust_email', 'admin_cust_phone', 'admin_recip_name', 'admin_recip_phone'];
+            adminFieldIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', function() {
+                        if (id.includes('name')) validateNameFieldAdminShip(this);
+                        else if (id.includes('email')) validateEmailFieldAdminShip(this);
+                        else if (id.includes('phone')) validatePhoneFieldAdminShip(this);
+                    });
+                    
+                    el.addEventListener('blur', function() {
+                        if (id.includes('name')) validateNameFieldAdminShip(this);
+                        else if (id.includes('email')) validateEmailFieldAdminShip(this);
+                        else if (id.includes('phone')) validatePhoneFieldAdminShip(this);
+                    });
+                }
+            });
+        }
+    });
     function calculateAdminPrice() {
         const modal = document.querySelector('#createShipmentModal');
         const originEl = modal.querySelector('select[name="origin_city_id"] option:checked');

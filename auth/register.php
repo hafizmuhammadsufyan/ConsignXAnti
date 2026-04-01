@@ -121,6 +121,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             if (empty($error)) {
                 try {
+                    // Check if there's a previous rejected request with same email/phone and DELETE it
+                    // This prevents duplicate key errors while allowing re-registration
+                    $stmt = $pdo->prepare("DELETE FROM company_requests WHERE (email = ? OR phone = ?) AND status = 'rejected'");
+                    $stmt->execute([$email, $phone]);
+                    
                     // Insert into company_requests
                     $insertStmt = $pdo->prepare("INSERT INTO company_requests (name, company_name, email, phone) VALUES (?, ?, ?, ?)");
                     $insertStmt->execute([$name, $company_name, $email, $phone]);
@@ -213,60 +218,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </form>
 
                     <script>
-                    // Client-side validation for form fields
-                    document.getElementById('name').addEventListener('blur', function() {
-                        const value = this.value.trim();
+                    // REAL-TIME validation for form fields (on input/typing)
+                    function validateNameField(input) {
+                        const value = input.value.trim();
                         const errorEl = document.getElementById('name-error');
                         
                         if (!value) {
                             errorEl.textContent = 'Name is required.';
-                            this.classList.add('is-invalid');
+                            input.classList.add('is-invalid');
                         } else if (!/^[a-zA-Z\s]+$/.test(value)) {
                             errorEl.textContent = 'Name must contain only letters and spaces.';
-                            this.classList.add('is-invalid');
+                            input.classList.add('is-invalid');
                         } else if (value.length < 2) {
                             errorEl.textContent = 'Name must be at least 2 characters long.';
-                            this.classList.add('is-invalid');
+                            input.classList.add('is-invalid');
                         } else {
                             errorEl.textContent = '';
-                            this.classList.remove('is-invalid');
+                            input.classList.remove('is-invalid');
                         }
-                    });
-
-                    document.getElementById('email').addEventListener('blur', function() {
-                        const value = this.value.trim();
+                    }
+                    
+                    function validateEmailField(input) {
+                        const value = input.value.trim();
                         const errorEl = document.getElementById('email-error');
                         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                         
                         if (!value) {
                             errorEl.textContent = 'Email is required.';
-                            this.classList.add('is-invalid');
+                            input.classList.add('is-invalid');
                         } else if (!emailRegex.test(value)) {
                             errorEl.textContent = 'Please provide a valid email address.';
-                            this.classList.add('is-invalid');
+                            input.classList.add('is-invalid');
                         } else {
                             errorEl.textContent = '';
-                            this.classList.remove('is-invalid');
+                            input.classList.remove('is-invalid');
                         }
-                    });
-
-                    document.getElementById('phone').addEventListener('blur', function() {
-                        const value = this.value.trim();
+                    }
+                    
+                    function validatePhoneField(input) {
+                        const value = input.value.trim();
                         const errorEl = document.getElementById('phone-error');
                         
                         if (!value) {
                             errorEl.textContent = 'Phone number is required.';
-                            this.classList.add('is-invalid');
+                            input.classList.add('is-invalid');
                         } else if (!/^[0-9]+$/.test(value)) {
                             errorEl.textContent = 'Phone number must contain only digits.';
-                            this.classList.add('is-invalid');
+                            input.classList.add('is-invalid');
                         } else if (value.length < 10 || value.length > 20) {
                             errorEl.textContent = 'Phone number must be between 10 and 20 digits.';
-                            this.classList.add('is-invalid');
+                            input.classList.add('is-invalid');
                         } else {
                             errorEl.textContent = '';
-                            this.classList.remove('is-invalid');
+                            input.classList.remove('is-invalid');
                         }
+                    }
+                    
+                    // REAL-TIME validation (on input event = as user types)
+                    document.getElementById('name').addEventListener('input', function() {
+                        validateNameField(this);
+                    });
+                    
+                    document.getElementById('email').addEventListener('input', function() {
+                        validateEmailField(this);
+                    });
+                    
+                    document.getElementById('phone').addEventListener('input', function() {
+                        validatePhoneField(this);
+                    });
+                    
+                    // Also validate on blur for completeness
+                    document.getElementById('name').addEventListener('blur', function() {
+                        validateNameField(this);
+                    });
+                    
+                    document.getElementById('email').addEventListener('blur', function() {
+                        validateEmailField(this);
+                    });
+                    
+                    document.getElementById('phone').addEventListener('blur', function() {
+                        validatePhoneField(this);
                     });
                     </script>
 

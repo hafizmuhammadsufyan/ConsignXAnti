@@ -172,20 +172,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     class="bi bi-person me-2"></i>Sender (Customer) Details</h5>
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Full Name</label>
-                                <input type="text" name="customer_name" class="form-control neumorphic-input py-2"
+                                <input type="text" id="customer_name" name="customer_name" class="form-control neumorphic-input py-2"
                                     required value="<?= escape($_POST['customer_name'] ?? '') ?>">
+                                <span id="customer_name-error" class="field-error"></span>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Email Address</label>
-                                <input type="email" name="customer_email" class="form-control neumorphic-input py-2"
+                                <input type="email" id="customer_email" name="customer_email" class="form-control neumorphic-input py-2"
                                     required value="<?= escape($_POST['customer_email'] ?? '') ?>">
+                                <span id="customer_email-error" class="field-error"></span>
                                 <div class="form-text small">An account will be created automatically if they are new.
                                 </div>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Phone Number</label>
-                                <input type="tel" name="customer_phone" class="form-control neumorphic-input py-2"
+                                <input type="tel" id="customer_phone" name="customer_phone" class="form-control neumorphic-input py-2"
                                     required value="<?= escape($_POST['customer_phone'] ?? '') ?>">
+                                <span id="customer_phone-error" class="field-error"></span>
                             </div>
                         </div>
 
@@ -195,13 +198,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     class="bi bi-person-check me-2"></i>Recipient Details</h5>
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Full Name</label>
-                                <input type="text" name="recipient_name" class="form-control neumorphic-input py-2"
+                                <input type="text" id="recipient_name" name="recipient_name" class="form-control neumorphic-input py-2"
                                     required value="<?= escape($_POST['recipient_name'] ?? '') ?>">
+                                <span id="recipient_name-error" class="field-error"></span>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Phone Number</label>
-                                <input type="tel" name="recipient_phone" class="form-control neumorphic-input py-2"
+                                <input type="tel" id="recipient_phone" name="recipient_phone" class="form-control neumorphic-input py-2"
                                     required value="<?= escape($_POST['recipient_phone'] ?? '') ?>">
+                                <span id="recipient_phone-error" class="field-error"></span>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small fw-bold">Delivery Address</label>
@@ -326,6 +331,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             el.addEventListener('change', calculatePrice);
             el.addEventListener('keyup', calculatePrice);
             el.addEventListener('input', calculatePrice);
+        });
+        
+        // REAL-TIME validation for agent shipment creation form
+        function validateNameFieldAgent(input) {
+            const value = input.value.trim();
+            const errorEl = document.getElementById(input.id + '-error');
+            
+            if (!value) {
+                errorEl.textContent = 'Name is required.';
+                input.classList.add('is-invalid');
+            } else if (!/^[a-zA-Z\s]+$/.test(value)) {
+                errorEl.textContent = 'Name must contain only letters and spaces.';
+                input.classList.add('is-invalid');
+            } else if (value.length < 2) {
+                errorEl.textContent = 'Name must be at least 2 characters long.';
+                input.classList.add('is-invalid');
+            } else {
+                errorEl.textContent = '';
+                input.classList.remove('is-invalid');
+            }
+        }
+        
+        function validateEmailFieldAgent(input) {
+            const value = input.value.trim();
+            const errorEl = document.getElementById(input.id + '-error');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!value) {
+                errorEl.textContent = 'Email is required.';
+                input.classList.add('is-invalid');
+            } else if (!emailRegex.test(value)) {
+                errorEl.textContent = 'Please provide a valid email address.';
+                input.classList.add('is-invalid');
+            } else {
+                errorEl.textContent = '';
+                input.classList.remove('is-invalid');
+            }
+        }
+        
+        function validatePhoneFieldAgent(input) {
+            const value = input.value.trim();
+            const errorEl = document.getElementById(input.id + '-error');
+            
+            if (!value) {
+                errorEl.textContent = 'Phone number is required.';
+                input.classList.add('is-invalid');
+            } else if (!/^[0-9]+$/.test(value)) {
+                errorEl.textContent = 'Phone number must contain only digits.';
+                input.classList.add('is-invalid');
+            } else if (value.length < 10 || value.length > 20) {
+                errorEl.textContent = 'Phone number must be between 10 and 20 digits.';
+                input.classList.add('is-invalid');
+            } else {
+                errorEl.textContent = '';
+                input.classList.remove('is-invalid');
+            }
+        }
+        
+        // REAL-TIME validation on input
+        document.getElementById('customer_name').addEventListener('input', function() {
+            validateNameFieldAgent(this);
+        });
+        document.getElementById('customer_email').addEventListener('input', function() {
+            validateEmailFieldAgent(this);
+        });
+        document.getElementById('customer_phone').addEventListener('input', function() {
+            validatePhoneFieldAgent(this);
+        });
+        document.getElementById('recipient_name').addEventListener('input', function() {
+            validateNameFieldAgent(this);
+        });
+        document.getElementById('recipient_phone').addEventListener('input', function() {
+            validatePhoneFieldAgent(this);
+        });
+        
+        // Also validate on blur
+        ['customer_name', 'customer_email', 'customer_phone', 'recipient_name', 'recipient_phone'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('blur', function() {
+                    if (id.includes('name')) validateNameFieldAgent(this);
+                    else if (id.includes('email')) validateEmailFieldAgent(this);
+                    else if (id.includes('phone')) validatePhoneFieldAgent(this);
+                });
+            }
         });
     </script>
 </body>
