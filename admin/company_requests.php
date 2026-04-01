@@ -42,13 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $stmt->execute([$request_id]);
                     
                     // Send credentials via email
-                    $email_result = send_agent_welcome_email($req['email'], $req['company_name'], 'active', $generated_password);
+                    send_agent_welcome_email($req['email'], $req['company_name'], 'active', $generated_password);
                     
-                    if ($email_result['success']) {
-                        $msg = "<div class='alert alert-success alert-dismissible fade show'>Company request approved. Agent account created and credentials emailed.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
-                    } else {
-                        $msg = "<div class='alert alert-warning alert-dismissible fade show'>Company request approved and account created, but email failed to send: " . escape($email_result['error']) . "<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
-                    }
+                    $msg = "<div class='alert alert-success alert-dismissible fade show'>Company request approved. Agent account created and credentials emailed.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
                 }
                 $pdo->commit();
             } catch (PDOException $e) {

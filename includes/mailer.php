@@ -12,61 +12,31 @@ use PHPMailer\PHPMailer\Exception;
 require_once 'config.php';
 
 /**
- * Sends a transactional email using configured SMTP settings
+ * Sends a transactional email using Gmail SMTP
  * 
  * @param string $to Email address
  * @param string $subject Email subject
  * @param string $htmlBody HTML content of the email
- * @return array Array with 'success' (bool), 'message' (string), and 'error' (string if failed)
+ * @return bool True on success, false on failure
  */
 function send_email($to, $subject, $htmlBody)
 {
-    // Validate recipient email
-    if (empty($to) || !filter_var($to, FILTER_VALIDATE_EMAIL)) {
-        $error = "Invalid recipient email address: $to";
-        error_log("EMAIL ERROR: " . $error);
-        return ['success' => false, 'message' => $error, 'error' => $error];
-    }
-
-    // Get SMTP configuration from constants (loaded from .env file)
-    $smtp_host = SMTP_HOST;
-    $smtp_port = SMTP_PORT;
-    $smtp_encryption = SMTP_ENCRYPTION;
-    $smtp_username = SMTP_USERNAME;
-    $smtp_password = SMTP_PASSWORD;
-    $sender_email = MAIL_FROM_ADDRESS;
-    $sender_name = MAIL_FROM_NAME;
-    $smtp_debug = SMTP_DEBUG;
-
-    // Validate SMTP configuration
-    if (empty($smtp_host) || empty($smtp_username) || empty($smtp_password)) {
-        $error = "SMTP configuration is incomplete. Please check your .env file.";
-        error_log("EMAIL ERROR: " . $error);
-        error_log("SMTP_HOST: $smtp_host, SMTP_USERNAME: $smtp_username");
-        return ['success' => false, 'message' => $error, 'error' => $error];
-    }
+    // Gmail SMTP sender
+    $sender_email = 'sufyanfortech810@gmail.com'; // Gmail address
+    $sender_name = 'ConsignX Team';
 
     $mail = new PHPMailer(true);
 
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host = $smtp_host;
+        $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = $smtp_username;
-        $mail->Password = $smtp_password;
-
-        // Set encryption based on configuration
-        if (strtolower($smtp_encryption) === 'tls') {
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        } elseif (strtolower($smtp_encryption) === 'ssl') {
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        } else {
-            $mail->SMTPSecure = false;
-        }
-
-        $mail->Port = (int) $smtp_port;
-        $mail->SMTPDebug = (int) $smtp_debug;
+        $mail->Username = $sender_email;
+        $mail->Password = 'rjrsdxzhsjsgrbnp'; // Gmail App Password - generate from https://myaccount.google.com/apppasswords
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // TLS encryption
+        $mail->Port = 587; // TLS port for Gmail
+        $mail->SMTPDebug = 0; // Set to 2 for debugging
 
         // Recipients
         $mail->setFrom($sender_email, $sender_name);
@@ -78,21 +48,13 @@ function send_email($to, $subject, $htmlBody)
         $mail->Body = $htmlBody;
         $mail->AltBody = strip_tags(str_replace(['<br>', '<br/>', '</p>'], "\n", $htmlBody));
 
-        // Send email
-        if ($mail->send()) {
-            $success_msg = "Email successfully sent to $to";
-            error_log("EMAIL SUCCESS: " . $success_msg);
-            return ['success' => true, 'message' => $success_msg];
-        } else {
-            $error = "Email failed to send to $to";
-            error_log("EMAIL ERROR: $error - {$mail->ErrorInfo}");
-            return ['success' => false, 'message' => $error, 'error' => $mail->ErrorInfo];
-        }
+        return $mail->send();
     } catch (Exception $e) {
-        $error = $mail->ErrorInfo ?? $e->getMessage();
-        $error_msg = "Failed to send email to $to. Subject: $subject. Error: " . $error;
-        error_log("EMAIL EXCEPTION: " . $error_msg);
-        return ['success' => false, 'message' => "Email sending failed", 'error' => $error];
+        $error_msg = "Email Error: {$mail->ErrorInfo}";
+        error_log($error_msg);
+        // Log to syslog for debugging
+        error_log("Failed to send email to $to. Subject: $subject. Error: " . $mail->ErrorInfo, 0);
+        return false;
     }
 }
 
