@@ -82,10 +82,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $tracking_number = generate_tracking_number();
 
                     // Send notification email to customer
+                    $email_sent = true;
+                    $email_error = '';
                     if ($is_new_customer) {
-                        send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
+                        $email_result = send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
+                        if (!$email_result['success']) {
+                            $email_sent = false;
+                            $email_error = $email_result['error'];
+                        }
                     } else {
-                        send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
+                        $email_result = send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
+                        if (!$email_result['success']) {
+                            $email_sent = false;
+                            $email_error = $email_result['error'];
+                        }
                     }
 
                     // Create the shipment record
@@ -112,7 +122,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $stmt->execute([$shipment_id, 'Pending', 'Shipment Created by Admin', 'admin', $admin_id]);
 
                     $pdo->commit();
-                    $msg = display_alert("Shipment ($tracking_number) created successfully.", "success");
+                    
+                    if ($email_sent) {
+                        $msg = display_alert("Shipment ($tracking_number) created successfully. Notification email sent to {$customer_email}.", "success");
+                    } else {
+                        $msg = display_alert("Shipment ($tracking_number) created successfully, but email notification failed: {$email_error}", "warning");
+                    }
 
                 } catch (PDOException $e) {
                     $pdo->rollBack();
