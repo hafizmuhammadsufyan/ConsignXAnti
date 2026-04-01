@@ -61,18 +61,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt = $pdo->prepare("UPDATE company_requests SET status = 'rejected' WHERE id = ?");
                 $stmt->execute([$request_id]);
                 
-                // If admin wants to block the email from re-registration
+                // If admin wants to block the email/phone from re-registration
                 $block_email_flag = isset($_POST['block_email']) && $_POST['block_email'] === '1';
-                if ($block_email_flag) {
-                    $stmt = $pdo->prepare("SELECT email FROM company_requests WHERE id = ?");
+                $block_phone_flag = isset($_POST['block_phone']) && $_POST['block_phone'] === '1';
+                
+                if ($block_email_flag || $block_phone_flag) {
+                    $stmt = $pdo->prepare("SELECT email, phone FROM company_requests WHERE id = ?");
                     $stmt->execute([$request_id]);
                     $req = $stmt->fetch();
                     if ($req) {
-                        block_email($req['email']);
+                        if ($block_email_flag) {
+                            block_email($req['email']);
+                        }
+                        if ($block_phone_flag) {
+                            block_phone($req['phone']);
+                        }
                     }
                 }
                 
-                $msg = "<div class='alert alert-success alert-dismissible fade show'>Company request rejected." . ($block_email_flag ? " Email has been blocked." : "") . "<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
+                $blocked_items = [];
+                if ($block_email_flag) $blocked_items[] = "email";
+                if ($block_phone_flag) $blocked_items[] = "phone";
+                $blocked_msg = !empty($blocked_items) ? " " . implode(" and ", $blocked_items) . " have been blocked." : "";
+                
+                $msg = "<div class='alert alert-success alert-dismissible fade show'>Company request rejected." . $blocked_msg . "<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
             } catch (PDOException $e) {
                 $msg = "<div class='alert alert-danger alert-dismissible fade show'>Failed to reject request.<button type='button' class='btn-close' data-bs-dismiss='alert'></button></div>";
             }

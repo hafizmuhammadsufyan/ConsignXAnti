@@ -3079,7 +3079,7 @@
                 <p class="ss rev" style="margin: 0 auto">Enter your tracking number to get real-time updates on your shipment status, location, and estimated delivery time.</p>
             </div>
             
-            <form method="GET" action="customer/track_shipment.php" style="max-width: 500px; margin: 0 auto">
+            <form method="GET" action="./customer/track_shipment.php" style="max-width: 500px; margin: 0 auto">
                 <div style="display: flex; gap: 10px; flex-direction: column; align-items: stretch">
                     <div>
                         <label for="tracking-number" style="display: block; margin-bottom: 8px; color: var(--t1); font-weight: 500; font-size: 14px">Tracking Number</label>

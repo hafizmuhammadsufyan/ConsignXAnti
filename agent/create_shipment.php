@@ -35,29 +35,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dest_city = (int) $_POST['destination_city_id'];
         $weight = (float) $_POST['weight'];
         
-        // Use auto-calculated price server-side for integrity
-        $price = calculate_shipment_price($origin_city, $dest_city, $weight);
+        // Validate inputs using global validation functions
+        $customer_name_validation = validate_name($customer_name);
+        $customer_email_validation = validate_email($customer_email);
+        $customer_phone_validation = validate_phone($customer_phone);
+        $recipient_name_validation = validate_name($recipient_name);
+        $recipient_phone_validation = validate_phone($recipient_phone);
+        
+        if (!$customer_name_validation['valid']) {
+            $msg = display_alert("Customer name validation failed: " . $customer_name_validation['message'], "danger");
+        } elseif (!$customer_email_validation['valid']) {
+            $msg = display_alert("Customer email validation failed: " . $customer_email_validation['message'], "danger");
+        } elseif (!$customer_phone_validation['valid']) {
+            $msg = display_alert("Customer phone validation failed: " . $customer_phone_validation['message'], "danger");
+        } elseif (!$recipient_name_validation['valid']) {
+            $msg = display_alert("Recipient name validation failed: " . $recipient_name_validation['message'], "danger");
+        } elseif (!$recipient_phone_validation['valid']) {
+            $msg = display_alert("Recipient phone validation failed: " . $recipient_phone_validation['message'], "danger");
+        } else {
+            // Use auto-calculated price server-side for integrity
+            $price = calculate_shipment_price($origin_city, $dest_city, $weight);
 
-        try {
-            $pdo->beginTransaction();
+            try {
+                $pdo->beginTransaction();
 
-            // 1. Find or create customer
-            $stmt = $pdo->prepare("SELECT id FROM customers WHERE email = :email LIMIT 1");
-            $stmt->execute(['email' => $customer_email]);
-            $customer = $stmt->fetch();
+                // 1. Find or create customer
+                $stmt = $pdo->prepare("SELECT id FROM customers WHERE email = :email LIMIT 1");
+                $stmt->execute(['email' => $customer_email]);
+                $customer = $stmt->fetch();
 
-            if ($customer) {
-                $customer_id = $customer['id'];
-                $is_new_customer = false;
-            } else {
-                // Auto-generate password for new customer
-                $temp_password = strtolower(str_replace(' ', '', $customer_name)) . rand(100, 999);
-                $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
+                if ($customer) {
+                    $customer_id = $customer['id'];
+                    $is_new_customer = false;
+                } else {
+                    // Auto-generate password for new customer
+                    $temp_password = strtolower(str_replace(' ', '', $customer_name)) . rand(100, 999);
+                    $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
 
-                $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, password_hash) VALUES (:name, :email, :phone, :pass)");
-                $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $hashed_password]);
-                $customer_id = $pdo->lastInsertId();
-                $is_new_customer = true;
+                    $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, password_hash) VALUES (:name, :email, :phone, :pass)");
+                    $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $hashed_password]);
+                    $customer_id = $pdo->lastInsertId();
+                    $is_new_customer = true;
             }
 
             // 2. Generate Tracking
@@ -104,6 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($pdo->inTransaction()) $pdo->rollBack();
             $msg = display_alert("Failed to create shipment: " . escape($e->getMessage()), "danger");
         }
+    }
     }
 }
 ?>

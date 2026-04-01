@@ -56,7 +56,13 @@
                                 <div class="form-check mb-2">
                                     <input type="checkbox" class="form-check-input" id="block_email_<?= $req['id'] ?>" name="block_email" value="1">
                                     <label class="form-check-label small" for="block_email_<?= $req['id'] ?>">
-                                        Block this email from re-registering
+                                        Block email from re-registering
+                                    </label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input type="checkbox" class="form-check-input" id="block_phone_<?= $req['id'] ?>" name="block_phone" value="1">
+                                    <label class="form-check-label small" for="block_phone_<?= $req['id'] ?>">
+                                        Block phone from re-registering
                                     </label>
                                 </div>
                                 <button type="submit" class="btn btn-sm text-danger text-start w-100 p-2 rounded-3 border-0 bg-transparent dropdown-item-danger">

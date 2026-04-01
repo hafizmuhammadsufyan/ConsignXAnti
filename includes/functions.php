@@ -333,6 +333,62 @@ function unblock_email($email)
 }
 
 /**
+ * Checks if phone is blocked from registration (same as email blocking)
+ * @return bool true if blocked, false otherwise
+ */
+function is_phone_blocked($phone)
+{
+    global $pdo;
+    
+    try {
+        $stmt = $pdo->prepare("SELECT id FROM company_requests WHERE phone = ? AND status = 'blocked'");
+        $stmt->execute([trim($phone)]);
+        return $stmt->fetch() !== false;
+    } catch (PDOException $e) {
+        error_log("Phone block check error: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Adds phone to block list
+ * @param string $phone Phone to block
+ * @return bool Success status
+ */
+function block_phone($phone)
+{
+    global $pdo;
+    
+    try {
+        $stmt = $pdo->prepare("INSERT INTO company_requests (name, company_name, email, phone, status) VALUES ('BLOCKED', 'BLOCKED', 'blocked@', ?, 'blocked') ON DUPLICATE KEY UPDATE status = 'blocked'");
+        $stmt->execute([trim($phone)]);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Phone block error: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Unblocks a phone number
+ * @param string $phone Phone to unblock
+ * @return bool Success status
+ */
+function unblock_phone($phone)
+{
+    global $pdo;
+    
+    try {
+        $stmt = $pdo->prepare("DELETE FROM company_requests WHERE phone = ? AND status = 'blocked'");
+        $stmt->execute([trim($phone)]);
+        return true;
+    } catch (PDOException $e) {
+        error_log("Phone unblock error: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
  * Checks if agent has active shipments
  * @param int $agent_id Agent ID
  * @return array ['has_active' => bool, 'count' => int]

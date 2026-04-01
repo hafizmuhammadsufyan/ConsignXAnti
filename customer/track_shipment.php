@@ -32,7 +32,7 @@ $page_title = 'Track Shipment';
 if ($tracking_number) {
     // Validate tracking number format
     if (!is_valid_tracking_number($tracking_number)) {
-        $msg = display_alert("Invalid tracking number format. Use: C-XXXX-XXXX", "danger");
+        $msg = display_alert("Invalid tracking number format. Use: C-XXXX-XXXX (e.g., C-A1B2-C3D4)", "danger");
     } else {
         try {
             // 1. Fetch Shipment main details
@@ -94,8 +94,11 @@ if ($tracking_number) {
             $msg = display_alert("System error tracking shipment details.", "danger");
         }
     }
-} else {
-    $msg = display_alert("Invalid tracking request.", "warning");
+} else if (!$tracking_number) {
+    // No tracking number provided - show helpful message instead of error
+    if ($is_guest) {
+        $msg = display_alert("Please enter a tracking number to track your shipment.", "info");
+    }
 }
 
 // Progress mapping

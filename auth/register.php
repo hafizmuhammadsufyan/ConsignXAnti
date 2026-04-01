@@ -46,7 +46,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // 2. Else if exists in agents → reject
             // 3. Else → allow
             
+            // Check phone validation order (same as email):
+            // 1. If phone is blocked → reject
+            // 2. Else if exists in agents → reject
+            // 3. Else → allow
+            
             global $pdo;
+            
+            // ==================== EMAIL VALIDATION ====================
             
             // Check if email is blocked
             if (is_email_blocked($email)) {
@@ -60,34 +67,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = "An agent account with this email already exists.";
                 } else {
                     // Check if there's a previous request with this email
-                    $stmt = $pdo->prepare("SELECT id, status FROM company_requests WHERE email = ? ORDER BY created_at DESC LIMIT 1");
+                    $stmt = $pdo->prepare("SELECT id, status FROM company_requests WHERE email = ? AND status != 'blocked' ORDER BY created_at DESC LIMIT 1");
                     $stmt->execute([$email]);
-                    $prev_request = $stmt->fetch();
+                    $prev_email_request = $stmt->fetch();
                     
                     // Allow re-registration if previous request was rejected
                     // Block if previous request was approved (agent exists) or pending
-                    if ($prev_request) {
-                        if ($prev_request['status'] === 'approved') {
+                    if ($prev_email_request) {
+                        if ($prev_email_request['status'] === 'approved') {
                             $error = "An account with this email already exists.";
-                        } elseif ($prev_request['status'] === 'pending') {
+                        } elseif ($prev_email_request['status'] === 'pending') {
                             $error = "A registration request with this email is already pending review.";
                         }
                         // If status is 'rejected', allow re-registration
                     }
+                }
+            }
+            
+            // ==================== PHONE VALIDATION ====================
+            
+            if (empty($error)) {
+                // Check if phone is blocked
+                if (is_phone_blocked($phone)) {
+                    $error = "This phone number is blocked from registration.";
+                } else {
+                    // Check if phone exists in agents table
+                    $stmt = $pdo->prepare("SELECT id FROM agents WHERE phone = ?");
+                    $stmt->execute([$phone]);
                     
-                    if (empty($error)) {
-                        try {
-                            // Insert into company_requests
-                            $insertStmt = $pdo->prepare("INSERT INTO company_requests (name, company_name, email, phone) VALUES (?, ?, ?, ?)");
-                            $insertStmt->execute([$name, $company_name, $email, $phone]);
-
-                            $success = "Registration request submitted successfully! An Admin will review your request shortly.";
-
-                        } catch (PDOException $e) {
-                            error_log("Registration Error: " . $e->getMessage());
-                            $error = "A system error occurred during registration. Please try again.";
+                    if ($stmt->fetch()) {
+                        $error = "An agent account with this phone number already exists.";
+                    } else {
+                        // Check if there's a previous request with this phone
+                        $stmt = $pdo->prepare("SELECT id, status FROM company_requests WHERE phone = ? AND status != 'blocked' ORDER BY created_at DESC LIMIT 1");
+                        $stmt->execute([$phone]);
+                        $prev_phone_request = $stmt->fetch();
+                        
+                        // Allow re-registration if previous request was rejected
+                        // Block if previous request was approved or pending
+                        if ($prev_phone_request) {
+                            if ($prev_phone_request['status'] === 'approved') {
+                                $error = "An account with this phone number already exists.";
+                            } elseif ($prev_phone_request['status'] === 'pending') {
+                                $error = "A registration request with this phone number is already pending review.";
+                            }
+                            // If status is 'rejected', allow re-registration
                         }
                     }
+                }
+            }
+            
+            // ==================== INSERT IF NO ERRORS ====================
+            
+            if (empty($error)) {
+                try {
+                    // Insert into company_requests
+                    $insertStmt = $pdo->prepare("INSERT INTO company_requests (name, company_name, email, phone) VALUES (?, ?, ?, ?)");
+                    $insertStmt->execute([$name, $company_name, $email, $phone]);
+
+                    $success = "Registration request submitted successfully! An Admin will review your request shortly.";
+
+                } catch (PDOException $e) {
+                    error_log("Registration Error: " . $e->getMessage());
+                    $error = "A system error occurred during registration. Please try again.";
                 }
             }
         }

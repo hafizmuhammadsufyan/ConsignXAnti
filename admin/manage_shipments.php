@@ -38,71 +38,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $dest_city = (int) $_POST['destination_city_id'];
             $weight = (float) $_POST['weight'];
             $price = (float) $_POST['price'];
+            
+            // Validate inputs using global validation functions
+            $customer_name_validation = validate_name($customer_name);
+            $customer_email_validation = validate_email($customer_email);
+            $customer_phone_validation = validate_phone($customer_phone);
+            $recipient_name_validation = validate_name($recipient_name);
+            $recipient_phone_validation = validate_phone($recipient_phone);
+            
+            if (!$customer_name_validation['valid']) {
+                $msg = display_alert("Customer name validation failed: " . $customer_name_validation['message'], "danger");
+            } elseif (!$customer_email_validation['valid']) {
+                $msg = display_alert("Customer email validation failed: " . $customer_email_validation['message'], "danger");
+            } elseif (!$customer_phone_validation['valid']) {
+                $msg = display_alert("Customer phone validation failed: " . $customer_phone_validation['message'], "danger");
+            } elseif (!$recipient_name_validation['valid']) {
+                $msg = display_alert("Recipient name validation failed: " . $recipient_name_validation['message'], "danger");
+            } elseif (!$recipient_phone_validation['valid']) {
+                $msg = display_alert("Recipient phone validation failed: " . $recipient_phone_validation['message'], "danger");
+            } else {
+                try {
+                    $pdo->beginTransaction();
 
-            try {
-                $pdo->beginTransaction();
+                    // Check if customer already exists or create new
+                    $stmt = $pdo->prepare("SELECT id FROM customers WHERE email = :email LIMIT 1");
+                    $stmt->execute(['email' => $customer_email]);
+                    $customer = $stmt->fetch();
 
-                // Check if customer already exists or create new
-                $stmt = $pdo->prepare("SELECT id FROM customers WHERE email = :email LIMIT 1");
-                $stmt->execute(['email' => $customer_email]);
-                $customer = $stmt->fetch();
+                    if ($customer) {
+                        $customer_id = $customer['id'];
+                        $is_new_customer = false;
+                    } else {
+                        // Create a new customer account
+                        $temp_password = strtolower(str_replace(' ', '', $customer_name)) . rand(100, 999);
+                        $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
+                        $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, password_hash) VALUES (:name, :email, :phone, :pass)");
+                        $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $hashed_password]);
+                        $customer_id = $pdo->lastInsertId();
+                        $is_new_customer = true;
+                    }
 
-                if ($customer) {
-                    $customer_id = $customer['id'];
-                    $is_new_customer = false;
-                } else {
-                    // Create a new customer account
-                    $temp_password = strtolower(str_replace(' ', '', $customer_name)) . rand(100, 999);
-                    $hashed_password = password_hash($temp_password, PASSWORD_DEFAULT);
-                    $stmt = $pdo->prepare("INSERT INTO customers (name, email, phone, password_hash) VALUES (:name, :email, :phone, :pass)");
-                    $stmt->execute(['name' => $customer_name, 'email' => $customer_email, 'phone' => $customer_phone, 'pass' => $hashed_password]);
-                    $customer_id = $pdo->lastInsertId();
-                    $is_new_customer = true;
+                    // Generate tracking number for this shipment
+                    $tracking_number = generate_tracking_number();
+
+                    // Send notification email to customer
+                    if ($is_new_customer) {
+                        send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
+                    } else {
+                        send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
+                    }
+
+                    // Create the shipment record
+                    $stmt = $pdo->prepare("
+                        INSERT INTO shipments 
+                        (tracking_number, customer_id, origin_city_id, destination_city_id, recipient_name, recipient_phone, recipient_address, weight, price, status) 
+                        VALUES (:tracking, :cust_id, :origin, :dest, :rec_name, :rec_phone, :rec_address, :weight, :price, 'Pending')
+                    ");
+                    $stmt->execute([
+                        'tracking' => $tracking_number,
+                        'cust_id' => $customer_id,
+                        'origin' => $origin_city,
+                        'dest' => $dest_city,
+                        'rec_name' => $recipient_name,
+                        'rec_phone' => $recipient_phone,
+                        'rec_address' => $recipient_address,
+                        'weight' => $weight,
+                        'price' => $price
+                    ]);
+                    $shipment_id = $pdo->lastInsertId();
+
+                    // Save initial shipment status in history log
+                    $stmt = $pdo->prepare("INSERT INTO shipment_status_history (shipment_id, status, remarks, changed_by_role, changed_by_id) VALUES (?, ?, ?, ?, ?)");
+                    $stmt->execute([$shipment_id, 'Pending', 'Shipment Created by Admin', 'admin', $admin_id]);
+
+                    $pdo->commit();
+                    $msg = display_alert("Shipment ($tracking_number) created successfully.", "success");
+
+                } catch (PDOException $e) {
+                    $pdo->rollBack();
+                    $msg = display_alert("Failed to create shipment: " . escape($e->getMessage()), "danger");
                 }
-
-                // Generate tracking number for this shipment
-                $tracking_number = generate_tracking_number();
-
-                // Send notification email to customer
-                if ($is_new_customer) {
-                    send_shipment_notification_new($customer_email, $customer_name, $temp_password, $tracking_number);
-                } else {
-                    send_shipment_notification_existing($customer_email, $customer_name, $tracking_number);
-                }
-
-                // Create the shipment record
-                $stmt = $pdo->prepare("
-                    INSERT INTO shipments 
-                    (tracking_number, customer_id, origin_city_id, destination_city_id, recipient_name, recipient_phone, recipient_address, weight, price, status) 
-                    VALUES (:tracking, :cust_id, :origin, :dest, :rec_name, :rec_phone, :rec_address, :weight, :price, 'Pending')
-                ");
-                $stmt->execute([
-                    'tracking' => $tracking_number,
-                    'cust_id' => $customer_id,
-                    'origin' => $origin_city,
-                    'dest' => $dest_city,
-                    'rec_name' => $recipient_name,
-                    'rec_phone' => $recipient_phone,
-                    'rec_address' => $recipient_address,
-                    'weight' => $weight,
-                    'price' => $price
-                ]);
-                $shipment_id = $pdo->lastInsertId();
-
-                // Save initial shipment status in history log
-                $stmt = $pdo->prepare("INSERT INTO shipment_status_history (shipment_id, status, remarks, changed_by_role, changed_by_id) VALUES (?, ?, ?, ?, ?)");
-                $stmt->execute([$shipment_id, 'Pending', 'Shipment Created by Admin', 'admin', $admin_id]);
-
-                $pdo->commit();
-                $msg = display_alert("Shipment ($tracking_number) created successfully.", "success");
-
-            } catch (PDOException $e) {
-                $pdo->rollBack();
-                $msg = display_alert("Failed to create shipment: " . escape($e->getMessage()), "danger");
             }
-
-        } elseif ($action === 'update_status') {
-            // Update the shipment status
             $shipment_id = (int) $_POST['shipment_id'];
             $new_status = trim($_POST['new_status'] ?? '');
             $remarks = trim($_POST['remarks'] ?? '');

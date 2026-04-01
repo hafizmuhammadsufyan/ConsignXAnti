@@ -24,24 +24,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $name = trim($_POST['name']);
             $email = trim($_POST['email']);
             $phone = trim($_POST['phone']);
+            
+            // Validate inputs
+            $name_validation = validate_name($name);
+            $email_validation = validate_email($email);
+            $phone_validation = validate_phone($phone);
+            
+            if (!$name_validation['valid']) {
+                $msg = display_alert("Name validation failed: " . $name_validation['message'], "danger");
+            } elseif (!$email_validation['valid']) {
+                $msg = display_alert("Email validation failed: " . $email_validation['message'], "danger");
+            } elseif (!$phone_validation['valid']) {
+                $msg = display_alert("Phone validation failed: " . $phone_validation['message'], "danger");
+            } else {
+                // Generate password
+                $generated_password = strtolower(str_replace(' ', '', $company)) . rand(100, 999);
+                $hashed_password = password_hash($generated_password, PASSWORD_DEFAULT);
 
-            // Generate password
-            $generated_password = strtolower(str_replace(' ', '', $company)) . rand(100, 999);
-            $hashed_password = password_hash($generated_password, PASSWORD_DEFAULT);
-
-            try {
-                $stmt = $pdo->prepare("INSERT INTO agents (name, company_name, email, phone, password_hash, status) VALUES (?, ?, ?, ?, ?, 'active')");
-                $stmt->execute([$name, $company, $email, $phone, $hashed_password]);
-                
-                // Send email
-                send_agent_welcome_email($email, $company, 'active', $generated_password);
-                
-                $msg = display_alert("Agent added successfully. Credentials emailed.", "success");
-            } catch (PDOException $e) {
-                if ($e->getCode() == 23000) {
-                    $msg = display_alert("An agent with this email already exists.", "warning");
-                } else {
-                    $msg = display_alert("Failed to add agent.", "danger");
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO agents (name, company_name, email, phone, password_hash, status) VALUES (?, ?, ?, ?, ?, 'active')");
+                    $stmt->execute([$name, $company, $email, $phone, $hashed_password]);
+                    
+                    // Send email
+                    send_agent_welcome_email($email, $company, 'active', $generated_password);
+                    
+                    $msg = display_alert("Agent added successfully. Credentials emailed.", "success");
+                } catch (PDOException $e) {
+                    if ($e->getCode() == 23000) {
+                        $msg = display_alert("An agent with this email or phone number already exists.", "warning");
+                    } else {
+                        $msg = display_alert("Failed to add agent: " . $e->getMessage(), "danger");
+                    }
                 }
             }
         }
@@ -53,13 +66,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $name = trim($_POST['name']);
             $email = trim($_POST['email']);
             $phone = trim($_POST['phone']);
-
-            try {
-                $stmt = $pdo->prepare("UPDATE agents SET name = ?, company_name = ?, email = ?, phone = ? WHERE id = ?");
-                $stmt->execute([$name, $company, $email, $phone, $agent_id]);
-                $msg = display_alert("Agent details updated.", "success");
-            } catch (PDOException $e) {
-                $msg = display_alert("Update failed.", "danger");
+            
+            // Validate inputs
+            $name_validation = validate_name($name);
+            $email_validation = validate_email($email);
+            $phone_validation = validate_phone($phone);
+            
+            if (!$name_validation['valid']) {
+                $msg = display_alert("Name validation failed: " . $name_validation['message'], "danger");
+            } elseif (!$email_validation['valid']) {
+                $msg = display_alert("Email validation failed: " . $email_validation['message'], "danger");
+            } elseif (!$phone_validation['valid']) {
+                $msg = display_alert("Phone validation failed: " . $phone_validation['message'], "danger");
+            } else {
+                try {
+                    $stmt = $pdo->prepare("UPDATE agents SET name = ?, company_name = ?, email = ?, phone = ? WHERE id = ?");
+                    $stmt->execute([$name, $company, $email, $phone, $agent_id]);
+                    $msg = display_alert("Agent details updated successfully.", "success");
+                } catch (PDOException $e) {
+                    if ($e->getCode() == 23000) {
+                        // Duplicate entry error
+                        $msg = display_alert("Failed to update: Email or phone number is already in use by another agent.", "danger");
+                    } else {
+                        $msg = display_alert("Update failed: " . $e->getMessage(), "danger");
+                    }
+                }
             }
         }
 
