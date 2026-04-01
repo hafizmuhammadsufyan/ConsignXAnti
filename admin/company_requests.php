@@ -311,6 +311,9 @@ try {
 
             <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // Bootstrap dropdowns use default positioning via inline styles
+                // No custom configuration needed
+                
                 let offset = <?= $limit ?>;
                 const loadMoreBtn = document.getElementById('loadMoreBtn');
                 const tableBody = document.querySelector('#companyRequestsTable tbody');

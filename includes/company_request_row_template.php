@@ -30,46 +30,49 @@
     </td>
     <td class="text-end">
         <?php if ($req['status'] === 'pending'): ?>
-            <div class="dropdown dropup">
+            <div class="dropdown">
                 <button class="btn btn-sm neumorphic-btn" type="button" data-bs-toggle="dropdown">
                     <i class="bi bi-three-dots-vertical"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end premium-status-dropdown shadow-lg border-0 mt-2" style="position: absolute; bottom: 100%; top: auto; z-index: 1000;">
+                <ul class="dropdown-menu dropdown-menu-end premium-status-dropdown shadow-lg border-0 mt-2" style="position: absolute; bottom: 100%; top: auto; z-index: 1050;">
                     <li><h6 class="dropdown-header fw-bold text-muted smaller tracking-wider px-3 pt-2 pb-2">REQUEST ACTION</h6></li>
                     <li>
                         <form method="POST" class="px-3 py-2" onsubmit="return confirm('Are you sure you want to approve this company and create an agent account?');">
                             <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
                             <input type="hidden" name="action" value="approve">
                             <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                            <button type="submit" class="btn btn-sm btn-success w-100 neumorphic-btn py-2 fw-bold">
+                            <button type="submit" class="btn btn-sm btn-success w-100 neumorphic-btn py-2 fw-bold" style="font-size: 13px;">
                                 <i class="bi bi-check-circle me-2"></i> Approve & Create Account
                             </button>
                         </form>
                     </li>
-                    <li><hr class="dropdown-divider opacity-10"></li>
+                    <li><hr class="dropdown-divider opacity-10 my-1"></li>
                     <li>
-                        <div class="px-3 pb-2">
-                            <form method="POST" onsubmit="return confirm('Are you sure you want to reject this request?');">
-                                <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
-                                <input type="hidden" name="action" value="reject">
-                                <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                                <div class="form-check mb-2">
+                        <form method="POST" class="px-3 py-3" onsubmit="return confirm('Are you sure you want to reject this request?');">
+                            <input type="hidden" name="csrf_token" value="<?= escape($_SESSION['csrf_token']) ?>">
+                            <input type="hidden" name="action" value="reject">
+                            <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                            
+                            <div class="mb-3">
+                                <h6 class="text-muted small fw-bold mb-2">Block Options:</h6>
+                                <div class="form-check mb-2 ps-0">
                                     <input type="checkbox" class="form-check-input" id="block_email_<?= $req['id'] ?>" name="block_email" value="1">
-                                    <label class="form-check-label small" for="block_email_<?= $req['id'] ?>">
+                                    <label class="form-check-label small ms-2" for="block_email_<?= $req['id'] ?>" style="cursor: pointer;">
                                         Block email from re-registering
                                     </label>
                                 </div>
-                                <div class="form-check mb-2">
+                                <div class="form-check mb-3 ps-0">
                                     <input type="checkbox" class="form-check-input" id="block_phone_<?= $req['id'] ?>" name="block_phone" value="1">
-                                    <label class="form-check-label small" for="block_phone_<?= $req['id'] ?>">
+                                    <label class="form-check-label small ms-2" for="block_phone_<?= $req['id'] ?>" style="cursor: pointer;">
                                         Block phone from re-registering
                                     </label>
                                 </div>
-                                <button type="submit" class="btn btn-sm text-danger text-start w-100 p-2 rounded-3 border-0 bg-transparent dropdown-item-danger">
-                                    <i class="bi bi-x-circle me-2"></i> Reject Request
-                                </button>
-                            </form>
-                        </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); border-radius: 0.375rem; padding: 0.5rem; font-size: 13px;">
+                                <i class="bi bi-x-circle me-2"></i> Reject Request
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </div>
