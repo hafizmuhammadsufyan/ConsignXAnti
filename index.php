@@ -1924,9 +1924,8 @@
         margin-top: 60px;
         margin-bottom: 0;
         padding: 0 20px;
-        background: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0.05));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        --webkit-background-clip: text;
+        --webkit-text-fill-color: transparent;
         opacity: 0;
         transform: translateY(100px);
         will-change: opacity, transform
@@ -2006,10 +2005,9 @@
 
     .f-cin {
         padding: 88px 5% 64px;
-        overflow: visible;
+        overflow: hidden;
         border-bottom: 1px solid var(--ln);
-        position: relative;
-        min-height: 200px
+        position: relative
     }
 
     .f-cin::before {
@@ -2026,15 +2024,10 @@
         font-weight: 800;
         letter-spacing: -.04em;
         color: transparent;
-        -webkit-text-stroke: 2px rgba(255, 255, 255, 0.95);
-        line-height: 1.3;
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.822);
+        line-height: 1;
         position: relative;
-        z-index: 1;
-        display: block;
-        text-align: left;
-        padding: 30px 20px;
-        margin: 20px 0;
-        word-spacing: 0.2em
+        z-index: 1
     }
 
     .fw {
@@ -2046,14 +2039,7 @@
 
     .fwi {
         display: inline-block;
-        transform: translateY(0);
-        opacity: 1;
-        will-change: opacity, transform;
-        transition: none
-    }
-
-    .fwi.word-visible {
-        opacity: 1
+        transform: translateY(108%)
     }
 
     .f-grid {
@@ -3170,7 +3156,7 @@
                 once: true
             }
         })
-        .from('.fwi', {
+        .to('.fwi', {
             y: 40,
             opacity: 0.5,
             duration: 0.8,
@@ -3178,14 +3164,14 @@
             stagger: 0.12,
             overwrite: 'auto'
         }, 0)
-        .from('#fHuge', {
+        .to('#fHuge', {
             y: 60,
             opacity: 0,
             duration: 0.9,
             ease: 'power3.out',
             overwrite: 'auto'
         }, 0.1)
-        .from('.reveal-box', {
+        .to('.reveal-box', {
             y: 50,
             opacity: 0,
             duration: 0.8,
@@ -3590,43 +3576,6 @@
                 }
             });
 
-            /* HERO PARALLAX EFFECT */
-
-            // gsap.to('#hero-bg', {
-            //     y: -120,
-            //     scale: 1.2,
-            //     ease: 'none',
-            //     scrollTrigger: {
-            //         trigger: '#brand-scene',
-            //         start: 'top 10%',
-            //         end: 'bottom top',
-            //         scrub: 1.5,
-            //         // markers: true
-            //     }
-            // });
-
-            // gsap.to('#b-canvas', {
-            //     y: -200,
-            //     ease: 'none',
-            //     scrollTrigger: {
-            //         trigger: '#brand-scene',
-            //         start: 'top 10%',
-            //         end: 'bottom top',
-            //         scrub: 1.2
-            //     }
-            // });
-
-            // gsap.to('#bzt', {
-            //     y: -80,
-            //     ease: 'none',
-            //     scrollTrigger: {
-            //         trigger: '#brand-scene',
-            //         start: 'top top',
-            //         end: 'bottom top',
-            //         scrub: 1
-            //     }
-            // });
-
             gsap.fromTo(".hero-content", {
                 opacity: 1,
                 scale: .8,
@@ -3966,8 +3915,17 @@
            FOOTER INITIALIZATION (main animation handled by ScrollTrigger)
            ════════════════════════════════════════════════════════════ */
         function initFooter() {
-            // Footer animations are handled by the main ScrollTrigger timeline
-            // No additional animation needed here
+            gsap.to('.fwi', {
+                y: 0,
+                duration: 1.1,
+                ease: 'power3.out',
+                stagger: .11,
+                scrollTrigger: {
+                    trigger: '#fbig',
+                    start: 'top 88%',
+                    once: true
+                }
+            });
         }
 
         /* ════════════════════════════════════════════════════════════
