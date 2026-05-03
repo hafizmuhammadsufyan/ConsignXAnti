@@ -18,8 +18,8 @@ define('APP_URL', 'http://localhost/consignxAnti');
 
 // Email Configuration (Gmail SMTP)
 define('SMTP_HOST', 'smtp.gmail.com');
-define('SMTP_USER', 'example@gmail.com'); // insert email and app password to send email
-define('SMTP_PASS', 'insertyourpassword'); // Gmail App Password
+define('SMTP_USER', 'sufyanfortech810@gmail.com'); // insert email and app password to send email
+define('SMTP_PASS', 'fqvownwokrbrjapz'); // Gmail App Password
 define('SMTP_PORT', 587);
 define('SMTP_ENCRYPTION', 'tls');
 define('MAIL_FROM', 'sufyanfortech810@gmail.com');

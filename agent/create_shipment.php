@@ -53,8 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (!$recipient_phone_validation['valid']) {
             $msg = display_alert("Recipient phone validation failed: " . $recipient_phone_validation['message'], "danger");
         } else {
-            // Use auto-calculated price server-side for integrity
-            $price = calculate_shipment_price($origin_city, $dest_city, $weight);
+            // Use the client-calculated price shown to the user
+            $price = (float) $_POST['price'];
 
             try {
                 $pdo->beginTransaction();
