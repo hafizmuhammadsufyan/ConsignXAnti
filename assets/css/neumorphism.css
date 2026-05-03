@@ -1,5 +1,11 @@
 /* FILE: /consignxAnti/assets/css/neumorphism.css */
 
+/* Neumorphic Background */
+.neumorphic-bg {
+    background: var(--bg-color);
+    min-height: 100vh;
+}
+
 /* Core Neumorphic Surface - Soft Elevated Card */
 .neumorphic-card {
     background: var(--bg-color);

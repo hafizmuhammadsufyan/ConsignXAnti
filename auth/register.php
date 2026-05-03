@@ -155,7 +155,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../assets/css/neumorphism.css">
 </head>
 
-<body class="neumorphic-bg bg-light py-5">
+<body class="neumorphic-bg py-5">
+
+    <!-- Theme Toggle Button -->
+    <div class="theme-toggle-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted small fw-bold d-none d-md-inline">Dark Mode</span>
+            <label class="theme-switch">
+                <input type="checkbox">
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
 
     <div class="container">
         <div class="row justify-content-center">
@@ -313,6 +324,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/main.js"></script>
 </body>
 
 </html>
